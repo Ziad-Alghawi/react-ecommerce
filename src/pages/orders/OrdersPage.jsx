@@ -1,20 +1,20 @@
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { formatMoney } from '../utils/money';
+import { formatMoney } from '../../utils/money';
 import { Fragment, useEffect, useState } from 'react';
-import { Header } from '../components/Header';
-import BuyAgainIcon from '../assets/images/icons/buy-again.png';
+import { Header } from '../../components/Header';
+import BuyAgainIcon from '../../assets/images/icons/buy-again.png';
 import './OrdersPage.css';
+
+
 export function OrdersPage({ cart }) {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     axios.get('/api/orders?expand=products')
-      .then((respone) => {
-        setOrders(respone.data);
-
-      })
-
+      .then((response) => {
+        setOrders(response.data);
+      });
   }, []);
 
   return (
@@ -29,6 +29,7 @@ export function OrdersPage({ cart }) {
 
         <div className="orders-grid">
           {orders.map((order) => {
+            return (
 
             <div key={order.id} className="order-container">
 
@@ -56,12 +57,12 @@ export function OrdersPage({ cart }) {
                   return (
                     <Fragment key={orderProduct.id}>
                       <div className="product-image-container">
-                        <img src={orderProduct.image} />
+                        <img src={orderProduct.product.image} />
                       </div>
 
                       <div className="product-details">
                         <div className="product-name">
-                          {orderProduct.name}
+                          {orderProduct.product.name}
                         </div>
                         <div className="product-delivery-date">
                           Arriving on: {dayjs(orderProduct.estimatedDeliveryTimeMs).format('MMMM D')}
@@ -91,8 +92,8 @@ export function OrdersPage({ cart }) {
                 })}
               </div>
             </div>
-          })
-          }
+             );
+          })}
         </div>
       </div>
     </>
