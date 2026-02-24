@@ -2,7 +2,7 @@ import { formatMoney } from "../../utils/money";
 import { DeliveryOptions } from "./DeliveryOptions";
 
 
-export function CartItemDetails({ cartItem }) {
+export function CartItemDetails({ cartItem, deleteCartItem }) {
   return (
     <>
       <img className="product-image"
@@ -22,7 +22,8 @@ export function CartItemDetails({ cartItem }) {
           <span className="update-quantity-link link-primary">
             Update
           </span>
-          <span className="delete-quantity-link link-primary">
+          <span className="delete-quantity-link link-primary"
+            onClick={deleteCartItem}>
             Delete
           </span>
         </div>
