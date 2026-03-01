@@ -10,7 +10,8 @@ export function OrderGrid({ orders, loadCart }) {
       {orders.map((order) => {
         return (
 
-          <div key={order.id} className="order-container">
+          <div key={order.id} className="order-container"
+            data-testid="order-container">
 
             <OrderHeader order={order} />
 

@@ -27,7 +27,8 @@ export function OrderDetailsGrid({ order, loadCart }) {
               <img src={orderProduct.product.image} />
             </div>
 
-            <div className="product-details">
+            <div className="product-details"
+              data-testid="order-product-details">
               <div className="product-name">
                 {orderProduct.product.name}
               </div>

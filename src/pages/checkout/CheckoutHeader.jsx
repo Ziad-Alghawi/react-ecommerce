@@ -13,7 +13,8 @@ export function CheckoutHeader({ cart }) {
 
   return (
     <div className="checkout-header">
-      <div className="header-content">
+      <div className="header-content"
+        data-testid="checkout-header">
         <div className="checkout-header-left-section">
           <Link to="/">
             <img className="logo" src={Logo} />
