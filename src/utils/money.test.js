@@ -13,5 +13,13 @@ describe('formatMemory', () => {
 
   });
 
+  it('test zero', () => {
+    expect(formatMoney(0)).toBe('$0.00');
+  })
+
+  it('test negative', () => {
+    expect(formatMoney(-500)).toBe('-$5.00');
+  })
+
 })
 
