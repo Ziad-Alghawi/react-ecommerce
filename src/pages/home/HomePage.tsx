@@ -3,10 +3,16 @@ import { useSearchParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header';
 import { ProductsGrid } from './ProductsGrid';
+import type { CartItem, LoadCart, Product } from '../../types/store';
 import './HomePage.css';
 
-export function HomePage({cart, loadCart}) {
-  const [products, setProducts] = useState([]);
+interface HomePageProps {
+  cart: CartItem[];
+  loadCart: LoadCart;
+}
+
+export function HomePage({ cart, loadCart }: HomePageProps) {
+  const [products, setProducts] = useState<Product[]>([]);
   // Get the search query from the URL parameters
   const [searchParams] = useSearchParams();
   // Extract the search query from the URL parameters//Get word from URL.
@@ -19,7 +25,7 @@ export function HomePage({cart, loadCart}) {
       ? `/api/products/search=${search}` 
       : '/api/products';
 
-      const response = await axios.get(urlPath);
+      const response = await axios.get<Product[]>(urlPath);
     setProducts(response.data);
 
     }

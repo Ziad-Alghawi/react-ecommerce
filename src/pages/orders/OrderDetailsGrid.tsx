@@ -2,9 +2,14 @@ import axios from 'axios';
 import { Fragment } from 'react';
 import dayjs from 'dayjs';
 import BuyAgainIcon from '../../assets/images/icons/buy-again.png';
+import type { LoadCart, Order } from '../../types/store';
 
+interface OrderDetailsGridProps {
+  order: Order;
+  loadCart: LoadCart;
+}
 
-export function OrderDetailsGrid({ order, loadCart }) {
+export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
 
   return (
     <div className="order-details-grid">
@@ -22,7 +27,7 @@ export function OrderDetailsGrid({ order, loadCart }) {
         }
 
         return (
-          <Fragment key={orderProduct.id}>
+          <Fragment key={orderProduct.productId}>
             <div className="product-image-container">
               <img src={orderProduct.product.image} />
             </div>

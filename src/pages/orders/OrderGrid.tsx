@@ -1,9 +1,13 @@
-import { Fragment } from 'react';
 import { OrderHeader } from './OrderHeader';
 import { OrderDetailsGrid } from './OrderDetailsGrid';
+import type { LoadCart, Order } from '../../types/store';
 
+interface OrderGridProps {
+  orders: Order[];
+  loadCart: LoadCart;
+}
 
-export function OrderGrid({ orders, loadCart }) {
+export function OrderGrid({ orders, loadCart }: OrderGridProps) {
   return (
 
     <div className="orders-grid">

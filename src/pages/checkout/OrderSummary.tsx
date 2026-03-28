@@ -2,8 +2,15 @@ import axios from "axios";
 import { DeliveryOptions } from "./DeliveryOptions";
 import { CartItemDetails } from "./CartItemDetails";
 import { DeliveryDate } from "./DeliveryDate";
+import type { CartItem, DeliveryOption, LoadCart } from "../../types/store";
 
-export function OrderSummary({ cart, deliveryOptions, loadCart }) {
+interface OrderSummaryProps {
+  cart: CartItem[];
+  deliveryOptions: DeliveryOption[];
+  loadCart: LoadCart;
+}
+
+export function OrderSummary({ cart, deliveryOptions, loadCart }: OrderSummaryProps) {
   return (
 
     <div className="order-summary">
@@ -15,14 +22,14 @@ export function OrderSummary({ cart, deliveryOptions, loadCart }) {
         };
       
         return (
-          <div key={cartItem.id} className="cart-item-container"
+          <div key={cartItem.productId} className="cart-item-container"
             data-testid="cart-item-container">
 
             <DeliveryDate cartItem={cartItem} deliveryOptions={deliveryOptions} />
 
             <div className="cart-item-details-grid">
 
-              <CartItemDetails cartItem={cartItem} deliveryOptions={deliveryOptions} deleteCartItem={deleteCartItem} loadCart={loadCart} />
+              <CartItemDetails cartItem={cartItem} deleteCartItem={deleteCartItem} loadCart={loadCart} />
 
               <DeliveryOptions cartItem={cartItem} deliveryOptions={deliveryOptions} loadCart={loadCart} />
 

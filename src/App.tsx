@@ -6,17 +6,17 @@ import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import type { CartItem } from './types/store';
 import './App.css'
 
 
 function App() {
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   const loadCart = async () => {
-      const response =await axios.get('/api/cart-items?expand=product');
+      const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
       setCart(response.data);
     };
-
-  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     

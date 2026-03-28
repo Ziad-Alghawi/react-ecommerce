@@ -1,12 +1,17 @@
-import { Link, NavLink, useNavigate, useSearchParams } from 'react-router';
+import { NavLink, useNavigate, useSearchParams } from 'react-router';
+import { useState, type ChangeEvent } from 'react';
+import type { CartItem } from '../types/store';
 import LogoWhite from '../assets/images/logo-white.png';
 import MobileLogoWhite from '../assets/images/mobile-logo-white.png';
 import CartIcon from '../assets/images/icons/cart-icon.png';
 import SearchIcon from '../assets/images/icons/search-icon.png';
 import './header.css';
-import { useState } from 'react';
 
-export function Header({ cart }) {
+interface HeaderProps {
+  cart: CartItem[];
+}
+
+export function Header({ cart }: HeaderProps) {
   const navigate = useNavigate();
   // Get the search query from the URL parameters
   const [searchParams] = useSearchParams();
@@ -16,7 +21,7 @@ export function Header({ cart }) {
 
    const [search, setSearch] = useState(searchText || '');
 
-  const updateSearchInput  = (event) => {
+  const updateSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   };
   const searchProducts = () => {

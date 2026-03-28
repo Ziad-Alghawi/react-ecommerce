@@ -1,8 +1,15 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { formatMoney } from "../../utils/money";
+import type { CartItem, DeliveryOption, LoadCart } from "../../types/store";
 
-export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }) {
+interface DeliveryOptionsProps {
+  cartItem: CartItem;
+  deliveryOptions: DeliveryOption[];
+  loadCart: LoadCart;
+}
+
+export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: DeliveryOptionsProps) {
   return (
     <div className="delivery-options">
       <div className="delivery-options-title">
@@ -21,11 +28,9 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }) {
             deliveryOptionId: deliveryOption.id
           });
           await loadCart();
-
         };
 
         return (
-
           <div key={deliveryOption.id} className="delivery-option" onClick={updateDeliveryOption}
             data-testid="delivery-option">
             <input type="radio"
@@ -33,23 +38,18 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }) {
               onChange={() => {}}
               className="delivery-option-input"
               name={`delivery-option-${cartItem.productId}`} 
-                data-testid="delivery-option-input" />
+              data-testid="delivery-option-input" />
             <div>
               <div className="delivery-option-date">
                 {dayjs(deliveryOption.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
-
               </div>
               <div className="delivery-option-price">
                 {priceString}
               </div>
             </div>
           </div>
-
-        )
-
+        );
       })}
-
     </div>
-
   );
 }

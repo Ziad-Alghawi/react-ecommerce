@@ -1,54 +1,104 @@
-# React + TypeScript + Vite
+# E-Commerce Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React and TypeScript storefront built with Vite and connected to an Express backend for products, cart, checkout, orders, and package tracking.
 
-Currently, two official plugins are available:
+This project focuses on a clean shopping flow rather than a mock landing page. The frontend handles product browsing, cart updates, checkout, order history, and delivery tracking, while the bundled backend serves the API, image assets, and production build output.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Stack
 
-## Expanding the ESLint configuration
+- React 19
+- TypeScript
+- Vite
+- React Router
+- Axios
+- Vitest and Testing Library
+- Express backend inside [ecommerce-backend](./ecommerce-backend)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Features
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Product listing with search
+- Cart quantity updates and item removal
+- Delivery option selection during checkout
+- Payment summary and order placement flow
+- Orders history page
+- Delivery tracking page
+- TypeScript-based frontend source for components, pages, and utilities
+- Component and utility tests covering key flows
+
+## Project Structure
+
+```text
+ecommerce-project/
+|-- ecommerce-backend/   # Express API, images, database, production dist
+|-- public/              # Frontend static assets
+|-- src/                 # React + TypeScript frontend
+|-- vite.config.ts       # Frontend build and proxy configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Install dependencies for both the frontend and the backend.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
+npm --prefix ecommerce-backend install
 ```
+
+Start the backend first.
+
+```bash
+npm run dev:backend
+```
+
+In a second terminal, start the frontend dev server.
+
+```bash
+npm run dev
+```
+
+The frontend runs through Vite and proxies API and image requests to the backend on port 3000.
+
+## Available Scripts
+
+Frontend root:
+
+```bash
+npm run dev
+npm run dev:frontend
+npm run build
+npm run preview
+npm run lint
+npm run test
+```
+
+Backend:
+
+```bash
+npm --prefix ecommerce-backend run dev
+npm --prefix ecommerce-backend run start
+```
+
+## Build Notes
+
+- The frontend production build is written to [ecommerce-backend/dist](./ecommerce-backend/dist).
+- That setup keeps the backend ready to serve the compiled frontend in one place.
+- For local development, the backend must be running before the frontend if you want API requests and images to work correctly.
+
+## Validation
+
+The current frontend has been checked with:
+
+```bash
+npm run build
+npm run lint
+npm run test
+```
+
+## Notes
+
+- If port 3000 is already in use, stop the existing process before starting the backend.
+- The repository keeps the backend inside the frontend project folder so the full app can be started from one place.
+
+## Summary
+
+This repository represents a complete TypeScript migration of the frontend application while preserving the original shopping experience and backend integration. The result is a cleaner project structure, improved maintainability, and a more production-ready developer workflow.

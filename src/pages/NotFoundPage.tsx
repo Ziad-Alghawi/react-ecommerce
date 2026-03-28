@@ -1,7 +1,12 @@
 import { Header } from '../components/Header';
+import type { CartItem } from '../types/store';
 import './NotFoundPage.css';
 
-export function NotFoundPage({ cart }) {
+interface NotFoundPageProps {
+  cart: CartItem[];
+}
+
+export function NotFoundPage({ cart }: NotFoundPageProps) {
   return (
     <>
       {/* You can choose whatever title and favicon you want. */}

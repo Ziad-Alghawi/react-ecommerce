@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type KeyboardEvent } from "react";
 import axios from "axios";
 import { formatMoney } from "../../utils/money";
-import { DeliveryOptions } from "./DeliveryOptions";
+import type { CartItem, LoadCart } from "../../types/store";
 
+interface CartItemDetailsProps {
+  cartItem: CartItem;
+  deleteCartItem: () => Promise<void>;
+  loadCart: LoadCart;
+}
 
-export function CartItemDetails({ cartItem, deleteCartItem, loadCart }) 
-{
+export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItemDetailsProps) {
   // we update the quantity by making update is interactive then also we update by pressing enter key 
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
-  const [quantity, setQuantity] = useState(cartItem.quantity);
+  const [quantity, setQuantity] = useState(String(cartItem.quantity));
 
   const updateQuantity = async () => {
     if (isUpdatingQuantity) {
@@ -22,16 +26,16 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart })
     }
   };
 
-  const updateQuantityInput = (event) => {
+  const updateQuantityInput = (event: ChangeEvent<HTMLInputElement>) => {
     setQuantity(event.target.value);
   }
 
-const handleQuantityKeyDown = (event) => {
+const handleQuantityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
   const keyPressed = event.key;
   if (keyPressed === 'Enter') {
     updateQuantity();
   } else if (keyPressed === 'Escape') {
-    setQuantity(cartItem.quantity);
+    setQuantity(String(cartItem.quantity));
     setIsUpdatingQuantity(false);
     
   }

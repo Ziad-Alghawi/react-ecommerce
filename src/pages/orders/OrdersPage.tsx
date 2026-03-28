@@ -2,15 +2,20 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header';
 import { OrderGrid } from './OrderGrid';
+import type { CartItem, LoadCart, Order } from '../../types/store';
 import './OrdersPage.css';
 
+interface OrdersPageProps {
+  cart: CartItem[];
+  loadCart: LoadCart;
+}
 
-export function OrdersPage({ cart, loadCart }) {
-  const [orders, setOrders] = useState([]);
+export function OrdersPage({ cart, loadCart }: OrdersPageProps) {
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const fetchOrdersData = async () => {
-      const response = await axios.get('/api/orders?expand=products')
+      const response = await axios.get<Order[]>('/api/orders?expand=products')
         setOrders(response.data);
     }
     fetchOrdersData();

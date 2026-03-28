@@ -1,6 +1,12 @@
 import { Product } from "./Product";
+import type { LoadCart, Product as ProductType } from "../../types/store";
 
-export function ProductsGrid({products, loadCart}) {
+interface ProductsGridProps {
+  products: ProductType[];
+  loadCart: LoadCart;
+}
+
+export function ProductsGrid({ products, loadCart }: ProductsGridProps) {
   
 
 

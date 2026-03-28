@@ -1,10 +1,15 @@
 import { Link } from 'react-router';
+import type { CartItem } from '../../types/store';
 import Logo from '../../assets/images/logo.png';
 import MobileLogo from '../../assets/images/mobile-logo.png';
 import CheckoutLockIcon from  '../../assets/images/icons/checkout-lock-icon.png';
 import './CheckoutHeader.css';
 
-export function CheckoutHeader({ cart }) {
+interface CheckoutHeaderProps {
+  cart: CartItem[];
+}
+
+export function CheckoutHeader({ cart }: CheckoutHeaderProps) {
 
   let totalQuantity = 0;
   cart.forEach((cartItem) =>{

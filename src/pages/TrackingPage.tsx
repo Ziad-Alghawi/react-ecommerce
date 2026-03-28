@@ -2,20 +2,24 @@ import { useParams } from 'react-router';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import { Header } from '../components/Header.jsx';
+import { Header } from '../components/Header';
+import type { CartItem, Order } from '../types/store';
 import './TrackingPage.css';
 
+interface TrackingPageProps {
+  cart: CartItem[];
+}
 
-export function TrackingPage({ cart }) {
+export function TrackingPage({ cart }: TrackingPageProps) {
   const { orderId, productId } = useParams();
 
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
 
     const fetchOrderData = async () => {
 
-      const response = await axios.get(`/api/orders/${orderId}?expand=products`);
+      const response = await axios.get<Order>(`/api/orders/${orderId}?expand=products`);
       setOrder(response.data);
 
     };
@@ -30,6 +34,10 @@ export function TrackingPage({ cart }) {
   const orderProduct = order.products.find((orderProduct) => {
     return orderProduct.productId === productId;
   });
+
+  if (!orderProduct) {
+    return null;
+  }
 
   // Calculate delivery progress
   const totalDeliveryTimeMs = orderProduct.estimatedDeliveryTimeMs - order.orderTimeMs;

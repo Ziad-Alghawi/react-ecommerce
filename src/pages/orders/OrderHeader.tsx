@@ -1,8 +1,12 @@
 import dayjs from 'dayjs';
 import { formatMoney } from '../../utils/money';
+import type { Order } from '../../types/store';
 
+interface OrderHeaderProps {
+  order: Order;
+}
 
-export function OrderHeader({ order }) {
+export function OrderHeader({ order }: OrderHeaderProps) {
 
   return (
     <div className="order-header">

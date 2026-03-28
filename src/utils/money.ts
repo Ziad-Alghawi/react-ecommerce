@@ -1,4 +1,4 @@
-export function formatMoney(amountCents) {
+export function formatMoney(amountCents: number) {
 
   if (amountCents < 0) {
     amountCents = amountCents * -1;

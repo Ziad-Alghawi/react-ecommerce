@@ -1,8 +1,14 @@
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { formatMoney } from "../../utils/money";
+import type { LoadCart, PaymentSummary as PaymentSummaryType } from "../../types/store";
 
-export function PaymentSummary({ paymentSummary, loadCart }) {
+interface PaymentSummaryProps {
+  paymentSummary: PaymentSummaryType | null;
+  loadCart: LoadCart;
+}
+
+export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps) {
   //navigate redirects user to another page
   const navigate = useNavigate();
 
