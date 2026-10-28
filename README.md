@@ -99,6 +99,6 @@ npm run test
 - If port 3000 is already in use, stop the existing process before starting the backend.
 - The repository keeps the backend inside the frontend project folder so the full app can be started from one place.
 
-## Summary
+## Background
 
-This repository represents a complete TypeScript migration of the frontend application while preserving the original shopping experience and backend integration. The result is a cleaner project structure, improved maintainability, and a more production-ready developer workflow.
+This project started from a React course starter. My own work: migrating the frontend to TypeScript, adding tests with Vitest and Testing Library, and connecting it to the Express backend.
