@@ -21,6 +21,9 @@ export function HomePage({ cart, loadCart }: HomePageProps) {
   const search = searchParams.get('search');
 
   useEffect(() => {
+    // Set to false when the search changes, so a slow older response can't replace newer results
+    let isLatestRequest = true;
+
     const getHomeData = async () => {
     //If word exists → load filtered products // If not  load all products 
       const urlPath = search 
@@ -28,11 +31,18 @@ export function HomePage({ cart, loadCart }: HomePageProps) {
       : '/api/products';
 
       const response = await axios.get<Product[]>(urlPath);
+      if (!isLatestRequest) {
+        return;
+      }
     setProducts(response.data);
     setHasLoaded(true);
 
     }
     getHomeData();
+
+    return () => {
+      isLatestRequest = false;
+    };
     //When search in URL changes reload products
   }, [search]);
 

@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
@@ -170,6 +170,40 @@ describe('HomePage component', () => {
 
     expect(await screen.findByTestId('no-products-message'))
       .toHaveTextContent('No products found for "spaceship"');
+    expect(screen.queryByTestId('product-container')).not.toBeInTheDocument();
+  });
+
+  it('ignores an older search response that arrives late', async () => {
+    let resolveOlderSearch;
+    axios.get.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveOlderSearch = resolve;
+    }));
+
+    render(
+      <MemoryRouter initialEntries={['/?search=socks']}>
+        <HomePage cart={[]} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const searchBar = screen.getByTestId('header-search-bar');
+    await user.clear(searchBar);
+    await user.type(searchBar, 'spaceship{Enter}');
+    await screen.findByTestId('no-products-message');
+
+    await act(async () => {
+      resolveOlderSearch({
+        data: [{
+          id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
+          image: "images/products/athletic-cotton-socks-6-pairs.jpg",
+          name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
+          rating: { stars: 4.5, count: 87 },
+          priceCents: 1090,
+          keywords: ["socks"]
+        }]
+      });
+    });
+
+    expect(screen.getByTestId('no-products-message')).toBeInTheDocument();
     expect(screen.queryByTestId('product-container')).not.toBeInTheDocument();
   });
 });
