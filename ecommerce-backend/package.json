@@ -18,7 +18,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "mysql2": "^3.14.1",
-    "patch-package": "8.0.0",
+    "patch-package": "8.0.1",
     "pg": "^8.16.0",
     "sequelize": "^6.6.5",
     "sql.js": "1.10.3",
