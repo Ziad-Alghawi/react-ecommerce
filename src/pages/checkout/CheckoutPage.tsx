@@ -3,22 +3,33 @@ import { useEffect, useState } from 'react';
 import { CheckoutHeader } from './CheckoutHeader'
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
-import type { CartItem, DeliveryOption, LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
+import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
+import type { CartItem, CartStatus, DeliveryOption, LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 import './CheckoutPage.css';
 
 interface CheckoutPageProps {
   cart: CartItem[];
+  cartStatus: CartStatus;
   loadCart: LoadCart;
+  onRetry: () => void;
 }
 
-export function CheckoutPage({ cart, loadCart }: CheckoutPageProps) {
+export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPageProps) {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummaryType | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const fetchCheckoutData = async () => {
-      const response = await axios.get<DeliveryOption[]>('/api/delivery-options?expand=estimatedDeliveryTime');
-      setDeliveryOptions(response.data);
+      try {
+        const response = await axios.get<DeliveryOption[]>('/api/delivery-options?expand=estimatedDeliveryTime');
+        if (!Array.isArray(response.data)) {
+          throw new Error('Unexpected delivery options response');
+        }
+        setDeliveryOptions(response.data);
+      } catch {
+        setHasError(true);
+      }
     };
 
     fetchCheckoutData();
@@ -27,16 +38,36 @@ export function CheckoutPage({ cart, loadCart }: CheckoutPageProps) {
 
     useEffect(() => {
       const fetchPaymentSummary = async () => {
-        const response = await axios.get<PaymentSummaryType>('/api/payment-summary');
-        setPaymentSummary(response.data);
+        try {
+          const response = await axios.get<PaymentSummaryType>('/api/payment-summary');
+          if (typeof response.data !== 'object') {
+            throw new Error('Unexpected payment summary response');
+          }
+          setPaymentSummary(response.data);
+        } catch {
+          setHasError(true);
+        }
       };
 
       fetchPaymentSummary();
       // short way to update or reload payment summary and delivery options when user changes delivery option
     }, [cart]);
 
+  const isLoading = cartStatus === 'loading' || deliveryOptions.length === 0 || !paymentSummary;
 
+  let pageContent = (
+    <div className="checkout-grid">
+      <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
 
+      <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+    </div>
+  );
+
+  if (hasError || cartStatus === 'failed') {
+    pageContent = <ErrorMessage onRetry={onRetry} />;
+  } else if (isLoading) {
+    pageContent = <LoadingMessage />;
+  }
 
   return (
     <>
@@ -48,11 +79,7 @@ export function CheckoutPage({ cart, loadCart }: CheckoutPageProps) {
       <div className="checkout-page">
         <div className="page-title">Review your order</div>
 
-        <div className="checkout-grid">
-          <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
-
-          <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
-        </div>
+        {pageContent}
       </div>
     </>
 

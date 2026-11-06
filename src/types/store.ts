@@ -51,3 +51,4 @@ export interface Order {
 }
 
 export type LoadCart = () => Promise<void>;
+export type CartStatus = 'loading' | 'ready' | 'failed';
