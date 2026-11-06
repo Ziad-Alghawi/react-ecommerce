@@ -1,0 +1,4 @@
+{
+  "outputDirectory": "ecommerce-backend/dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

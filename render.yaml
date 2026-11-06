@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: react-ecommerce
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && npm --prefix ecommerce-backend ci
+    startCommand: npm --prefix ecommerce-backend start
+    healthCheckPath: /api/products
+    envVars:
+      - key: NODE_VERSION
+        value: 22
