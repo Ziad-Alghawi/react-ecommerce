@@ -26,6 +26,8 @@ function App() {
 
 
   return (
+    <>
+    <div className="app-content">
     <Routes>
       <Route index element={<HomePage cart={cart} loadCart={loadCart} />} />
 
@@ -37,6 +39,12 @@ function App() {
 
       <Route path="*" element={<NotFoundPage cart={cart} />} />
     </Routes>
+    </div>
+
+    <footer className="site-footer" data-testid="site-footer">
+      Demo store, data resets regularly
+    </footer>
+    </>
 
   )
 }

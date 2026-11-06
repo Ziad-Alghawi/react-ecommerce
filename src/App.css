@@ -1,0 +1,15 @@
+/* Keeps the footer at the bottom of the window on short pages.
+   flow-root stops the margin-top of each page from pushing this box down. */
+.app-content {
+  display: flow-root;
+  min-height: calc(100vh - 49px);
+}
+
+.site-footer {
+  height: 48px;
+  line-height: 48px;
+  border-top: 1px solid rgb(222, 222, 222);
+  text-align: center;
+  font-size: 13px;
+  color: rgb(100, 100, 100);
+}
