@@ -12,6 +12,12 @@ import { defaultOrders } from '../defaultData/defaultOrders.js';
 const router = express.Router();
 
 router.post('/', async (req, res) => {
+  // Wiping the database must never be open to the public
+  if (process.env.NODE_ENV === 'production') {
+    res.status(403).json({ error: 'Reset is disabled in production' });
+    return;
+  }
+
   await sequelize.sync({ force: true });
 
   const timestamp = Date.now();

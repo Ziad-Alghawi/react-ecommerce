@@ -226,7 +226,8 @@ Calculates and returns the payment summary for the current cart.
 ```
 
 ## POST /api/reset
-Resets the database to its default state.
+Resets the database to its default state. Only available when `NODE_ENV` is not `production`.
 
 **Response:**
 - Status: 204 No Response
+- Status: 403 Forbidden when `NODE_ENV` is `production`
