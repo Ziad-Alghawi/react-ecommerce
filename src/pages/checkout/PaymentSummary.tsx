@@ -68,6 +68,7 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
 
           <button className="place-order-button button-primary"
             data-testid="place-order-button"
+            disabled={paymentSummary.totalItems === 0}
             onClick={createOrder}>
             Place your order
           </button>

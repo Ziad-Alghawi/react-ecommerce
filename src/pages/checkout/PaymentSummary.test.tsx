@@ -26,6 +26,19 @@ describe('PaymentSummary', () => {
     user = userEvent.setup();
   });
 
+  it('disables the place order button when the cart is empty', () => {
+    render(
+      <MemoryRouter>
+        <PaymentSummary
+          paymentSummary={{ ...paymentSummary, totalItems: 0 }}
+          loadCart={loadCart}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('place-order-button')).toBeDisabled();
+  });
+
   it('displays the correct details', async () => {
     render(
       <MemoryRouter>

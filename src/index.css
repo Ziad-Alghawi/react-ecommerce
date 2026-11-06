@@ -44,6 +44,12 @@ input, select, button {
   box-shadow: none;
 }
 
+.button-primary:disabled {
+  background-color: rgb(25, 135, 84);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .button-secondary {
   color: rgb(33, 33, 33);
   background: white;
