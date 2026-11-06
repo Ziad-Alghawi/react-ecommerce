@@ -152,3 +152,18 @@
   width: 26px;
   text-align: center;
 }
+
+/* Give the search box more room on phones. */
+@media (max-width: 450px) {
+  .header .right-section {
+    width: unset;
+  }
+
+  .header .cart-text {
+    display: none;
+  }
+
+  .header .cart-quantity {
+    right: 12px;
+  }
+}
