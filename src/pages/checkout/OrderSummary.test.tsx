@@ -92,7 +92,7 @@ describe('OrderSummary component', () => {
     ).toHaveTextContent('$10.90');
     expect(
       within(cartItemContainers[0]).getByTestId('cart-item-quantity')
-    ).toHaveTextContent('Quantity:2');
+    ).toHaveTextContent('Quantity: 2');
 
     let deliveryOptionInputs = within(cartItemContainers[0])
       .getAllByTestId('delivery-option-input');
@@ -112,7 +112,7 @@ describe('OrderSummary component', () => {
     ).toHaveTextContent('$20.95');
     expect(
       within(cartItemContainers[1]).getByTestId('cart-item-quantity')
-    ).toHaveTextContent('Quantity:1');
+    ).toHaveTextContent('Quantity: 1');
 
     deliveryOptionInputs = within(cartItemContainers[1])
       .getAllByTestId('delivery-option-input');

@@ -68,7 +68,7 @@ const handleQuantityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
           <span data-testid="cart-item-quantity">
             
 
-            Quantity:{isUpdatingQuantity
+            Quantity: {isUpdatingQuantity
               ? <input type="text" className="quantity-textbox" value={quantity} 
               onChange={updateQuantityInput} 
               onKeyDown={handleQuantityKeyDown}/>
