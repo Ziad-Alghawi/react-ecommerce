@@ -65,6 +65,13 @@
   }
 }
 
+.home-page .no-products-message {
+  padding: 60px 25px;
+  text-align: center;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
 .home-page .product-container {
   padding-top: 40px;
   padding-bottom: 25px;

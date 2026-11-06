@@ -39,6 +39,28 @@ describe('HomePage component', () => {
       }
     }
 
+    if (urlPath === '/api/products?search=socks') {
+      return {
+        data: [{
+          id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
+          image: "images/products/athletic-cotton-socks-6-pairs.jpg",
+          name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
+          rating: {
+            stars: 4.5,
+            count: 87
+          },
+          priceCents: 1090,
+          keywords: ["socks", "sports", "apparel"]
+        }]
+      }
+    }
+
+    if (urlPath.startsWith('/api/products?search=')) {
+      return { data: [] }
+    }
+
+    // The real API answers 404 for anything else, like the old /api/products/search=...
+    throw new Error(`Request failed with status code 404: ${urlPath}`);
   })
 
   beforeEach(() => {
@@ -109,4 +131,45 @@ describe('HomePage component', () => {
     expect(loadCart).toHaveBeenCalledTimes(2);
 
   })
+
+  it('shows only the products that match the search', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?search=socks']}>
+        <HomePage cart={[]} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const productContainer = await screen.findAllByTestId('product-container');
+
+    expect(axios.get).toHaveBeenCalledWith('/api/products?search=socks');
+    expect(productContainer.length).toBe(1);
+    expect(
+      within(productContainer[0])
+      .getByText('Black and Gray Athletic Cotton Socks - 6 Pairs')
+    ).toBeInTheDocument();
+  });
+
+  it('encodes special characters in the search text', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?search=socks%20%26%20shoes']}>
+        <HomePage cart={[]} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    await screen.findByTestId('no-products-message');
+
+    expect(axios.get).toHaveBeenCalledWith('/api/products?search=socks%20%26%20shoes');
+  });
+
+  it('shows a message when no products match the search', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?search=spaceship']}>
+        <HomePage cart={[]} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByTestId('no-products-message'))
+      .toHaveTextContent('No products found for "spaceship"');
+    expect(screen.queryByTestId('product-container')).not.toBeInTheDocument();
+  });
 });
