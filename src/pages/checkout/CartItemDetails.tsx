@@ -16,8 +16,16 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
 
   const updateQuantity = async () => {
     if (isUpdatingQuantity) {
+      const newQuantity = Number(quantity);
+      // The API rejects anything else, so go back to the current quantity
+      if (!Number.isInteger(newQuantity) || newQuantity < 1) {
+        setQuantity(String(cartItem.quantity));
+        setIsUpdatingQuantity(false);
+        return;
+      }
+
       await axios.put(`/api/cart-items/${cartItem.productId}`, {
-        quantity: Number(quantity)
+        quantity: newQuantity
       });
       await loadCart();
       setIsUpdatingQuantity(false);
