@@ -96,7 +96,7 @@ export const defaultProducts = [
       "count": 99
     },
     "priceCents": 2374,
-    "keywords": ["kleenex", "tissues", "kitchen", "napkins"]
+    "keywords": ["tissues", "kitchen", "napkins"]
   },
   {
     "id": "5968897c-4d27-4872-89f6-5bcb052746d7",
@@ -155,25 +155,25 @@ export const defaultProducts = [
   },
   {
     "id": "c2a82c5e-aff4-435f-9975-517cfaba2ece",
-    "image": "images/products/electric-steel-hot-water-kettle-white.jpg",
-    "name": "Electric Hot Water Kettle - White",
+    "image": "images/products/enamel-stovetop-kettle-white.jpg",
+    "name": "Enamel Stovetop Kettle - White",
     "rating": {
       "stars": 5,
       "count": 846
     },
     "priceCents": 5074,
-    "keywords": ["water kettle", "appliances", "kitchen"]
+    "keywords": ["water kettle", "kettles", "kitchen"]
   },
   {
     "id": "58b4fc92-e98c-42aa-8c55-b6b79996769a",
-    "image": "images/products/knit-athletic-sneakers-gray.jpg",
-    "name": "Waterproof Knit Athletic Sneakers - Gray",
+    "image": "images/products/rubber-rain-boots-yellow.jpg",
+    "name": "Waterproof Rubber Rain Boots - Yellow",
     "rating": {
       "stars": 4,
       "count": 89
     },
     "priceCents": 5390,
-    "keywords": ["shoes", "running shoes", "footwear"]
+    "keywords": ["boots", "rain boots", "shoes", "footwear"]
   },
   {
     "id": "a82c6bac-3067-4e68-a5ba-d827ac0be010",
@@ -188,14 +188,14 @@ export const defaultProducts = [
   },
   {
     "id": "1c079479-8586-494f-ab53-219325432536",
-    "image": "images/products/men-athletic-shoes-white.jpg",
-    "name": "Men's Athletic Sneaker - White",
+    "image": "images/products/men-leather-hiking-boots-brown.jpg",
+    "name": "Men's Leather Hiking Boots - Brown",
     "rating": {
       "stars": 4,
       "count": 229
     },
     "priceCents": 4590,
-    "keywords": ["shoes", "running shoes", "footwear", "mens"]
+    "keywords": ["boots", "hiking boots", "shoes", "footwear", "mens"]
   },
   {
     "id": "b0f17cc5-8b40-4ca5-9142-b61fe3d98c85",
@@ -221,25 +221,25 @@ export const defaultProducts = [
   },
   {
     "id": "4f4fbcc2-4e72-45cc-935c-9e13d79cc57f",
-    "image": "images/products/women-knit-ballet-flat-white.jpg",
-    "name": "Women's Ballet Flat - White",
+    "image": "images/products/woven-straw-tote-bag.jpg",
+    "name": "Woven Straw Tote Bag",
     "rating": {
       "stars": 4,
       "count": 326
     },
     "priceCents": 2640,
-    "keywords": ["shoes", "flats", "womens", "footwear"]
+    "keywords": ["bags", "tote bags", "accessories", "womens"]
   },
   {
     "id": "8b5a2ee1-6055-422a-a666-b34ba28b76d4",
-    "image": "images/products/men-golf-polo-t-shirt-gray.jpg",
-    "name": "Men's Golf Polo Shirt - Gray",
+    "image": "images/products/men-knit-sweaters-3-pack.jpg",
+    "name": "Men's Knit Sweaters - 3 Pack",
     "rating": {
       "stars": 4.5,
       "count": 2556
     },
     "priceCents": 1599,
-    "keywords": ["tshirts", "shirts", "apparel", "mens"]
+    "keywords": ["sweaters", "apparel", "mens"]
   },
   {
     "id": "3fdfe8d6-9a15-4979-b459-585b0d0545b9",
@@ -309,14 +309,14 @@ export const defaultProducts = [
   },
   {
     "id": "04701903-bc79-49c6-bc11-1af7e3651358",
-    "image": "images/products/men-brown-flat-sneakers.jpg",
-    "name": "Men's Brown Flat Sneakers",
+    "image": "images/products/men-brown-leather-oxford-shoes.jpg",
+    "name": "Men's Brown Leather Oxford Shoes",
     "rating": {
       "stars": 4.5,
       "count": 562
     },
     "priceCents": 2499,
-    "keywords": ["footwear", "men", "sneakers"]
+    "keywords": ["footwear", "men", "shoes", "oxfords"]
   },
   {
     "id": "4e37dd03-3b23-4bc6-9ff8-44e112a92c64",
@@ -375,14 +375,14 @@ export const defaultProducts = [
   },
   {
     "id": "0d7f9afa-2efe-4fd9-b0fd-ba5663e0a524",
-    "image": "images/products/black-and-silver-espresso-maker.jpg",
-    "name": "Black and Silver Espresso Maker",
+    "image": "images/products/stovetop-espresso-maker.jpg",
+    "name": "Stovetop Espresso Maker",
     "rating": {
       "stars": 4.5,
       "count": 1211
     },
     "priceCents": 8250,
-    "keywords": ["espresso makers", "kitchen", "appliances"]
+    "keywords": ["espresso makers", "coffee", "kitchen"]
   },
   {
     "id": "02e3a47e-dd68-467e-9f71-8bf6f723fdae",
@@ -408,14 +408,14 @@ export const defaultProducts = [
   },
   {
     "id": "10ed8504-57db-433c-b0a3-fc71a35c88a1",
-    "image": "images/products/athletic-skateboard-shoes-gray.jpg",
-    "name": "Athletic Skateboard Shoes - Gray",
+    "image": "images/products/stoneware-storage-jars-2-pack.jpg",
+    "name": "Stoneware Storage Jars With Lids - 2 Pack",
     "rating": {
       "stars": 4,
       "count": 89
     },
     "priceCents": 3390,
-    "keywords": ["shoes", "running shoes", "footwear"]
+    "keywords": ["jars", "storage", "kitchen"]
   },
   {
     "id": "77a845b1-16ed-4eac-bdf9-5b591882113d",
