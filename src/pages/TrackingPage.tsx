@@ -3,40 +3,74 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
+import { ErrorMessage, LoadingMessage } from '../components/PageStatus';
 import type { CartItem, Order } from '../types/store';
 import './TrackingPage.css';
 
 interface TrackingPageProps {
   cart: CartItem[];
+  onRetry: () => void;
 }
 
-export function TrackingPage({ cart }: TrackingPageProps) {
+export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
   const { orderId, productId } = useParams();
 
   const [order, setOrder] = useState<Order | null>(null);
+  const [isNotFound, setIsNotFound] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
 
     const fetchOrderData = async () => {
-
-      const response = await axios.get<Order>(`/api/orders/${orderId}?expand=products`);
-      setOrder(response.data);
-
+      try {
+        const response = await axios.get<Order>(`/api/orders/${orderId}?expand=products`);
+        if (!Array.isArray(response.data?.products)) {
+          throw new Error('Unexpected order response');
+        }
+        setOrder(response.data);
+      } catch (error) {
+        // Trying again can't help when the order doesn't exist
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          setIsNotFound(true);
+        } else {
+          setHasError(true);
+        }
+      }
     };
     fetchOrderData();
 
   }, [orderId]);
 
-  if (!order) {
-    return null;
-  }
-
-  const orderProduct = order.products.find((orderProduct) => {
+  const orderProduct = order?.products.find((orderProduct) => {
     return orderProduct.productId === productId;
   });
 
   if (!orderProduct) {
-    return null;
+    let pageContent = <LoadingMessage />;
+
+    if (hasError) {
+      pageContent = <ErrorMessage onRetry={onRetry} />;
+    } else if (isNotFound || order) {
+      pageContent = (
+        <div className="page-status" data-testid="package-not-found">
+          <div>We couldn't find this package</div>
+          <a className="link-primary" href="/orders">View all orders</a>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <title>Tracking</title>
+        <link rel="icon" type="image/svg+xml" href="/tracking-favicon.png" />
+
+        <Header cart={cart} />
+
+        <div className="tracking-page">
+          {pageContent}
+        </div>
+      </>
+    );
   }
 
   // Calculate delivery progress
