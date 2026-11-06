@@ -56,7 +56,7 @@ function App() {
     <>
     <div className="app-content">
     <Routes key={retryCount}>
-      <Route index element={<HomePage cart={cart} loadCart={loadCart} />} />
+      <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
 
       <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
 
