@@ -1,6 +1,5 @@
 ## Intro to the Project
-This is the backend for the [ecommerce-project](https://github.com/SuperSimpleDev/ecommerce-project).
-- 95% of the code was generated with AI.
+This backend is based on the starter code from the [SuperSimpleDev ecommerce course](https://github.com/SuperSimpleDev/ecommerce-project), and I extended the project around it with a frontend search fix, cart quantity validation, frontend tests, CI and deployment config.
 
 ## Video Tutorials
 **Part 1 - Create the Backend:** https://youtu.be/vBprybSmJs8

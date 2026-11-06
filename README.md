@@ -77,4 +77,4 @@ GitHub Actions runs all three on every push.
 
 ## Background
 
-This project started from a React course starter. My own work: migrating the frontend to TypeScript, adding tests with Vitest and Testing Library, and connecting it to the Express backend.
+This project started from a React course. The backend is based on the [course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. I extended the project with a search fix, cart quantity validation, frontend tests, CI and deployment config.
