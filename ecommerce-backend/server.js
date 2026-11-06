@@ -24,8 +24,13 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Comma-separated list of frontend origins allowed to call the API from another domain
+const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim());
+
 // Middleware
-app.use(cors());
+app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 
 // Serve images from the images folder
