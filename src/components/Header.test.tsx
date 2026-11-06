@@ -1,7 +1,13 @@
 import { it, expect, describe, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, useLocation } from 'react-router';
 import { Header } from './Header';
+
+function CurrentUrl() {
+  const { pathname, search } = useLocation();
+  return <div data-testid="current-url">{pathname + search}</div>;
+}
 
 describe('Header component', () => {
   let cart;
@@ -42,5 +48,21 @@ describe('Header component', () => {
     expect(cartLink).toHaveTextContent('Cart');
     expect(cartLink).toHaveTextContent('5');
     expect(cartLink).toHaveAttribute('href', '/checkout');
+  });
+
+  it('searches when pressing Enter and encodes the search text', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <Header cart={cart} />
+        <CurrentUrl />
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByTestId('header-search-bar'), 'socks & shoes{Enter}');
+
+    expect(screen.getByTestId('current-url'))
+      .toHaveTextContent('/?search=socks%20%26%20shoes');
   });
 });

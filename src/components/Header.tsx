@@ -1,5 +1,5 @@
 import { NavLink, useNavigate, useSearchParams } from 'react-router';
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { CartItem } from '../types/store';
 import LogoWhite from '../assets/images/logo-white.png';
 import MobileLogoWhite from '../assets/images/mobile-logo-white.png';
@@ -25,7 +25,12 @@ export function Header({ cart }: HeaderProps) {
     setSearch(event.target.value);
   };
   const searchProducts = () => {
-    navigate(`/?search=${search}`);
+    navigate(`/?search=${encodeURIComponent(search)}`);
+  };
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      searchProducts();
+    }
   };
 
 
@@ -51,7 +56,7 @@ export function Header({ cart }: HeaderProps) {
 
       <div className="middle-section">
         <input className="search-bar" type="text" placeholder="Search" 
-        value={search}  onChange={updateSearchInput}
+        value={search}  onChange={updateSearchInput} onKeyDown={handleSearchKeyDown}
         data-testid="header-search-bar" />
 
         <button className="search-button"
