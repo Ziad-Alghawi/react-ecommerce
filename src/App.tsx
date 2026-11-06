@@ -60,7 +60,7 @@ function App() {
 
       <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
 
-      <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} />} />
+      <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
 
       <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} />} />
 
