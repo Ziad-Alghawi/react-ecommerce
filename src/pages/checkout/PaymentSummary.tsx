@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { formatMoney } from "../../utils/money";
+import { ButtonSpinner } from "../../components/PageStatus";
+import { useAction } from "../../hooks/useAction";
 import type { LoadCart, PaymentSummary as PaymentSummaryType } from "../../types/store";
 
 interface PaymentSummaryProps {
@@ -12,11 +14,11 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
   //navigate redirects user to another page
   const navigate = useNavigate();
 
-  const createOrder = async () => {
+  const [createOrder, isPlacingOrder] = useAction(async () => {
     await axios.post('/api/orders');
     await loadCart();
     navigate('/orders');
-  };
+  });
 
   return (
     <div className="payment-summary">
@@ -68,8 +70,10 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
 
           <button className="place-order-button button-primary"
             data-testid="place-order-button"
-            disabled={paymentSummary.totalItems === 0}
+            disabled={paymentSummary.totalItems === 0 || isPlacingOrder}
+            aria-busy={isPlacingOrder}
             onClick={createOrder}>
+            {isPlacingOrder && <ButtonSpinner />}
             Place your order
           </button>
         </>

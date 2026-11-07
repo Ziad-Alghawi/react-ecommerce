@@ -1,6 +1,8 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from "react";
 import axios from "axios";
 import { formatMoney } from "../../utils/money";
+import { ButtonSpinner } from "../../components/PageStatus";
+import { useAction } from "../../hooks/useAction";
 import type { CartItem, LoadCart } from "../../types/store";
 
 interface CartItemDetailsProps {
@@ -14,7 +16,18 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(String(cartItem.quantity));
 
-  const updateQuantity = async () => {
+  const [saveQuantity, isSavingQuantity] = useAction(async () => {
+    await axios.put(`/api/cart-items/${cartItem.productId}`, {
+      quantity: Number(quantity)
+    });
+    await loadCart();
+    setIsUpdatingQuantity(false);
+  });
+  const [removeCartItem, isDeleting] = useAction(deleteCartItem);
+  // Don't let the user change an item while it's being saved or deleted
+  const isBusy = isSavingQuantity || isDeleting;
+
+  const updateQuantity = () => {
     if (isUpdatingQuantity) {
       const newQuantity = Number(quantity);
       // The API rejects anything else, so go back to the current quantity
@@ -24,11 +37,7 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
         return;
       }
 
-      await axios.put(`/api/cart-items/${cartItem.productId}`, {
-        quantity: newQuantity
-      });
-      await loadCart();
-      setIsUpdatingQuantity(false);
+      saveQuantity();
     } else {
       setIsUpdatingQuantity(true);
     }
@@ -77,15 +86,22 @@ const handleQuantityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 
 
           </span>
-          <span className="update-quantity-link link-primary"
+          <button className="update-quantity-link link-primary link-button"
+            data-testid="cart-item-update-quantity-link"
+            disabled={isBusy}
+            aria-busy={isSavingQuantity}
             onClick={updateQuantity} >
+            {isSavingQuantity && <ButtonSpinner />}
             Update
-          </span>
-          <span className="delete-quantity-link link-primary"
+          </button>
+          <button className="delete-quantity-link link-primary link-button"
             data-testid="cart-item-delete-quantity-link"
-            onClick={deleteCartItem}>
+            disabled={isBusy}
+            aria-busy={isDeleting}
+            onClick={removeCartItem}>
+            {isDeleting && <ButtonSpinner />}
             Delete
-          </span>
+          </button>
         </div>
       </div>
     </>

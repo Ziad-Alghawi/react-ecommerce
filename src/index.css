@@ -93,6 +93,19 @@ input, select, button {
   opacity: 0.5;
 }
 
+/* A <button> that looks like a link, so it can be disabled */
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+}
+
+.link-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Styles for dropdown selectors. */
 select {
   color: rgb(33, 33, 33);

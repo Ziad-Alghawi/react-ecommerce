@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
@@ -147,6 +147,60 @@ describe('OrderSummary component', () => {
       '/api/cart-items/15b6fc6f-327a-4ec4-896f-486349e85a3d'
     );
     expect(loadCart).toHaveBeenCalledTimes(2);
+  });
+
+  it('disables Update and Delete and shows a spinner while saving a quantity', async () => {
+    let finishRequest;
+    axios.put.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
+    render(
+      <MemoryRouter>
+        <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const cartItem = screen.getAllByTestId('cart-item-container')[0];
+    const updateButton = within(cartItem).getByTestId('cart-item-update-quantity-link');
+    const deleteButton = within(cartItem).getByTestId('cart-item-delete-quantity-link');
+
+    await user.click(updateButton);
+    const textbox = within(cartItem).getByRole('textbox');
+    await user.clear(textbox);
+    await user.type(textbox, '5');
+    await user.click(updateButton);
+
+    expect(axios.put).toHaveBeenCalledWith(
+      '/api/cart-items/e43638ce-6aa0-4b85-b27f-e1d07eb678c6', { quantity: 5 }
+    );
+    expect(updateButton).toBeDisabled();
+    expect(deleteButton).toBeDisabled();
+    expect(within(updateButton).getByTestId('button-spinner')).toBeInTheDocument();
+
+    await act(async () => finishRequest({}));
+
+    expect(updateButton).toBeEnabled();
+    expect(within(cartItem).queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('disables Delete and shows a spinner while deleting', async () => {
+    let finishRequest;
+    axios.delete.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
+    render(
+      <MemoryRouter>
+        <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const cartItem = screen.getAllByTestId('cart-item-container')[0];
+    const deleteButton = within(cartItem).getByTestId('cart-item-delete-quantity-link');
+    await user.click(deleteButton);
+
+    expect(deleteButton).toBeDisabled();
+    expect(within(deleteButton).getByTestId('button-spinner')).toBeInTheDocument();
+
+    await act(async () => finishRequest({}));
+
+    expect(deleteButton).toBeEnabled();
+    expect(loadCart).toHaveBeenCalledTimes(1);
   });
 
   it('does not render anything if cart is empty', () => {

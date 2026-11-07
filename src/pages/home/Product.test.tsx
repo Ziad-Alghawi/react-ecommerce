@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import userEvent from '@testing-library/user-event';
 import { Product } from './Product';
@@ -83,6 +83,28 @@ it('selects a quantity', async () => {
     }
     );
     expect(loadCart).toHaveBeenCalled();
+})
+
+it('disables the button and shows a spinner while adding', async () => {
+    let finishRequest;
+    axios.post.mockClear();
+    axios.post.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
+    render(<Product product={product} loadCart={loadCart} />);
+
+    const addToCartButton = screen.getByTestId('add-to-cart-button');
+    await user.click(addToCartButton);
+
+    expect(addToCartButton).toBeDisabled();
+    expect(screen.getByTestId('button-spinner')).toBeInTheDocument();
+
+    // Clicking again while it runs doesn't send a second request
+    await user.click(addToCartButton);
+    expect(axios.post).toHaveBeenCalledTimes(1);
+
+    await act(async () => finishRequest({}));
+
+    expect(addToCartButton).toBeEnabled();
+    expect(screen.queryByTestId('button-spinner')).not.toBeInTheDocument();
 })
 
 });

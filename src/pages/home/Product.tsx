@@ -2,6 +2,8 @@ import axios from "axios";
 import { useState, type ChangeEvent } from "react";
 import { formatMoney } from "../../utils/money";
 import CheckMarkIcon from '../../assets/images/icons/checkmark.png';
+import { ButtonSpinner } from "../../components/PageStatus";
+import { useAction } from "../../hooks/useAction";
 import type { LoadCart, Product as ProductType } from "../../types/store";
 
 interface ProductProps {
@@ -13,7 +15,7 @@ export function Product({ product, loadCart }: ProductProps) {
   const [quantity, setQuantity] = useState(1);
   const [showAddedMessage, setShowAddedMessage] = useState(false);
 
-  const addToCart = async () => {
+  const [addToCart, isAdding] = useAction(async () => {
     await axios.post('/api/cart-items', {
       productId: product.id,
       quantity
@@ -25,7 +27,7 @@ export function Product({ product, loadCart }: ProductProps) {
     setTimeout(() => {
       setShowAddedMessage(false);
     }, 2000);
-  };
+  });
 
   const selectQuantity = (event: ChangeEvent<HTMLSelectElement>) => {
     const quantitySelected = Number(event.target.value);
@@ -89,7 +91,10 @@ export function Product({ product, loadCart }: ProductProps) {
       <button className="add-to-cart-button   button-primary"
         data-testid="add-to-cart-button"
 
+        disabled={isAdding}
+        aria-busy={isAdding}
         onClick={addToCart} >
+        {isAdding && <ButtonSpinner />}
         Add to Cart
       </button>
     </div>

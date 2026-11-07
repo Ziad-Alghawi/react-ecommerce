@@ -25,6 +25,11 @@ export function LoadingMessage() {
   );
 }
 
+// Shown inside a button while its request runs
+export function ButtonSpinner() {
+  return <span className="button-spinner" aria-hidden="true" data-testid="button-spinner"></span>;
+}
+
 interface ErrorMessageProps {
   title?: string;
   onRetry: () => void;

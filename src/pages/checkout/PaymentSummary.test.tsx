@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { PaymentSummary } from './PaymentSummary';
 import axios from 'axios';
@@ -37,6 +37,25 @@ describe('PaymentSummary', () => {
     );
 
     expect(screen.getByTestId('place-order-button')).toBeDisabled();
+  });
+
+  it('disables the button and shows a spinner while placing the order', async () => {
+    let finishRequest;
+    axios.post.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
+    render(
+      <MemoryRouter>
+        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const placeOrderButton = screen.getByTestId('place-order-button');
+    await user.click(placeOrderButton);
+
+    expect(placeOrderButton).toBeDisabled();
+    expect(within(placeOrderButton).getByTestId('button-spinner')).toBeInTheDocument();
+
+    await act(async () => finishRequest({}));
+    expect(loadCart).toHaveBeenCalled();
   });
 
   it('displays the correct details', async () => {

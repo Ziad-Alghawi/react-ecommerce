@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Routes, Route } from 'react-router';
+import { Routes, Route, useLocation } from 'react-router';
 import { HomePage } from './pages/home/HomePage'
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorMessage } from './components/PageStatus';
+import { ActionFailureContext } from './hooks/useAction';
 import type { CartItem, CartStatus } from './types/store';
 import './App.css'
 
@@ -16,6 +17,9 @@ function App() {
   const [cartStatus, setCartStatus] = useState<CartStatus>('loading');
   const [retryCount, setRetryCount] = useState(0);
   const [actionFailed, setActionFailed] = useState(false);
+  // The button action that failed, so "Try again" can repeat it
+  const [failedAction, setFailedAction] = useState<{ retry: () => Promise<void>; path: string } | null>(null);
+  const location = useLocation();
 
   const loadCart = async () => {
       const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
@@ -38,6 +42,8 @@ function App() {
     const interceptor = axios.interceptors.response.use(undefined, (error) => {
       if (error.config?.method !== 'get') {
         setActionFailed(true);
+        // Cleared here and set again by useAction, if that's where the request came from
+        setFailedAction(null);
       }
       return Promise.reject(error);
     });
@@ -51,10 +57,30 @@ function App() {
     setRetryCount((count) => count + 1);
   };
 
+  const reportActionFailure = (error: unknown, retry: () => Promise<void>) => {
+    // Only repeat a change that wasn't saved. If it saved and only reloading
+    // the cart failed, repeating it would add the item twice
+    if (axios.isAxiosError(error) && error.config?.method !== 'get') {
+      setFailedAction({ retry, path: location.pathname });
+    }
+  };
+
+  const retryFailedAction = () => {
+    // The button is only still there if the user stayed on the same page
+    if (failedAction && failedAction.path === location.pathname) {
+      setActionFailed(false);
+      setFailedAction(null);
+      failedAction.retry();
+    } else {
+      retry();
+    }
+  };
+
 
   return (
     <>
     <div className="app-content">
+    <ActionFailureContext value={reportActionFailure}>
     <Routes key={retryCount}>
       <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
 
@@ -66,11 +92,12 @@ function App() {
 
       <Route path="*" element={<NotFoundPage cart={cart} />} />
     </Routes>
+    </ActionFailureContext>
     </div>
 
     {actionFailed && (
       <div className="action-error">
-        <ErrorMessage title="Your change wasn't saved" onRetry={retry} />
+        <ErrorMessage title="Your change wasn't saved" onRetry={retryFailedAction} />
       </div>
     )}
 

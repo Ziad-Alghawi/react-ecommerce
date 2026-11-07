@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import axios, { AxiosError } from 'axios';
@@ -51,6 +51,7 @@ describe('App when the API fails', () => {
   const originalAdapter = axios.defaults.adapter;
   let api;
   let user;
+  let requests;
 
   const renderApp = (url = '/') => render(
     <MemoryRouter initialEntries={[url]}>
@@ -61,9 +62,11 @@ describe('App when the API fails', () => {
   beforeEach(() => {
     api = { ...workingApi };
     user = userEvent.setup();
+    requests = [];
 
     // Real axios, with only the network replaced, so the interceptor runs too
     axios.defaults.adapter = async (config) => {
+      requests.push(`${config.method} ${config.url}`);
       const { status = 200, data } = api[config.url] ?? { status: 500 };
       const response = { data, status, statusText: '', headers: {}, config };
 
@@ -185,6 +188,40 @@ describe('App when the API fails', () => {
 
     expect(await screen.findByTestId('product-container')).toBeInTheDocument();
     expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+  });
+
+  it('repeats a failed add to cart when Try again is clicked', async () => {
+    renderApp();
+    await user.click(await screen.findByTestId('add-to-cart-button'));
+
+    expect(await screen.findByTestId('error-message'))
+      .toHaveTextContent("Your change wasn't saved");
+    expect(screen.getByTestId('add-to-cart-button')).toBeEnabled();
+
+    api['/api/cart-items'] = { data: {} };
+    await user.click(screen.getByTestId('try-again-button'));
+
+    await waitFor(() => expect(screen.getByText('Added')).toHaveStyle({ opacity: '1' }));
+    expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
+    // The action was repeated without reloading the page
+    expect(requests.filter((request) => request === 'get /api/products')).toHaveLength(1);
+    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+  });
+
+  it('repeats a failed order when Try again is clicked', async () => {
+    api['/api/payment-summary'] = {
+      data: { ...workingApi['/api/payment-summary'].data, totalItems: 1 }
+    };
+    renderApp('/checkout');
+    await user.click(await screen.findByTestId('place-order-button'));
+
+    await screen.findByTestId('error-message');
+
+    api['/api/orders'] = { data: {} };
+    await user.click(screen.getByTestId('try-again-button'));
+
+    expect(await screen.findByText(product.name)).toBeInTheDocument();
+    expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(2);
   });
 });
 

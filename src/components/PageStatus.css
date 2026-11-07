@@ -20,6 +20,19 @@
   animation: page-status-spin 0.9s linear infinite;
 }
 
+/* Uses the text color, so it works on green buttons and green links */
+.button-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: page-status-spin 0.9s linear infinite;
+}
+
 @keyframes page-status-spin {
   to {
     transform: rotate(360deg);
