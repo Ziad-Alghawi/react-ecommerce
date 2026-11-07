@@ -2,6 +2,10 @@
 
 A full-stack online store built with React, TypeScript and an Express API, covering the flow from product search to order tracking.
 
+**Live demo:** https://react-ecommerce-8359.onrender.com
+
+> The demo runs on a free server that sleeps when idle, so the first visit may take about a minute to load.
+
 ![Store home page](docs/screenshots/react-store.png)
 
 ## Features
