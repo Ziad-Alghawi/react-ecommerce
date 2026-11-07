@@ -9,14 +9,13 @@ import cartItemRoutes from './routes/cartItems.js';
 import orderRoutes from './routes/orders.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
+import { loadVisitors, requireVisitor } from './middleware/visitor.js';
 import { Product } from './models/Product.js';
 import { DeliveryOption } from './models/DeliveryOption.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
 import { defaultProducts } from './defaultData/defaultProducts.js';
 import { defaultDeliveryOptions } from './defaultData/defaultDeliveryOptions.js';
-import { defaultCart } from './defaultData/defaultCart.js';
-import { defaultOrders } from './defaultData/defaultOrders.js';
 import fs from 'fs';
 
 const app = express();
@@ -39,10 +38,11 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 // Use routes
 app.use('/api/products', productRoutes);
 app.use('/api/delivery-options', deliveryOptionRoutes);
-app.use('/api/cart-items', cartItemRoutes);
-app.use('/api/orders', orderRoutes);
+// Each visitor has their own cart and orders. Products are shared
+app.use('/api/cart-items', requireVisitor, cartItemRoutes);
+app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
-app.use('/api/payment-summary', paymentSummaryRoutes);
+app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
 
 // Serve static files from the dist folder
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -66,6 +66,19 @@ app.use((err, req, res, next) => {
 /* eslint-enable no-unused-vars */
 
 // Sync database and load default data if none exist
+// Older databases have one cart and order list shared by everyone, which can't
+// be split between visitors. Drop those two tables so sync() makes them again
+for (const model of [CartItem, Order]) {
+  // Fails when the table doesn't exist yet, which is fine
+  const columns = await sequelize.getQueryInterface()
+    .describeTable(model.getTableName())
+    .catch(() => null);
+  if (columns && !columns.visitorId) {
+    await model.drop();
+    console.log(`Dropped the old shared ${model.getTableName()} table.`);
+  }
+}
+
 await sequelize.sync();
 
 const productCount = await Product.count();
@@ -84,25 +97,13 @@ if (productCount === 0) {
     updatedAt: new Date(timestamp + index)
   }));
 
-  const cartItemsWithTimestamps = defaultCart.map((item, index) => ({
-    ...item,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
-
-  const ordersWithTimestamps = defaultOrders.map((order, index) => ({
-    ...order,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
-
   await Product.bulkCreate(productsWithTimestamps);
   await DeliveryOption.bulkCreate(deliveryOptionsWithTimestamps);
-  await CartItem.bulkCreate(cartItemsWithTimestamps);
-  await Order.bulkCreate(ordersWithTimestamps);
 
   console.log('Default data added to the database.');
 }
+
+await loadVisitors();
 
 // Start server
 app.listen(PORT, () => {

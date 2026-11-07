@@ -138,6 +138,18 @@ describe('OrdersPage component', () => {
     ).toBeInTheDocument();
   });
 
+  it('says so when there are no orders yet', async () => {
+    orders = [];
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByTestId('no-orders-message'))
+      .toHaveTextContent("You haven't placed any orders yet");
+  });
+
   it('disables Buy again and shows a spinner while adding to the cart', async () => {
     const user = userEvent.setup();
     const loadCart = vi.fn();

@@ -8,7 +8,10 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const expand = req.query.expand;
-  let orders = await Order.unscoped().findAll({ order: [['orderTimeMs', 'DESC']] }); // Sort by most recent
+  let orders = await Order.unscoped().findAll({
+    where: { visitorId: req.visitorId },
+    order: [['orderTimeMs', 'DESC']] // Sort by most recent
+  });
 
   if (expand === 'products') {
     orders = await Promise.all(orders.map(async (order) => {
@@ -30,7 +33,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const cartItems = await CartItem.findAll();
+  const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
 
   if (cartItems.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
@@ -62,10 +65,11 @@ router.post('/', async (req, res) => {
   const order = await Order.create({
     orderTimeMs: Date.now(),
     totalCostCents,
-    products
+    products,
+    visitorId: req.visitorId
   });
 
-  await CartItem.destroy({ where: {} });
+  await CartItem.destroy({ where: { visitorId: req.visitorId } });
 
   res.status(201).json(order);
 });
@@ -74,7 +78,8 @@ router.get('/:orderId', async (req, res) => {
   const { orderId } = req.params;
   const expand = req.query.expand;
 
-  let order = await Order.findByPk(orderId);
+  // Another visitor's order is "not found", the same as an order that doesn't exist
+  let order = await Order.findOne({ where: { id: orderId, visitorId: req.visitorId } });
   if (!order) {
     return res.status(404).json({ error: 'Order not found' });
   }

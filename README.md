@@ -14,6 +14,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
 - Order placement and order history
+- A separate cart and order history for each visitor, without sign-up
 - Package tracking with delivery progress
 - Responsive layout for phone and desktop
 
@@ -65,7 +66,7 @@ GitHub Actions runs all three on every push.
 ├── .github/workflows/    # CI pipeline
 ├── docs/screenshots/     # README images
 ├── ecommerce-backend/    # Express API
-│   ├── defaultData/      # Demo products, cart and orders
+│   ├── defaultData/      # Demo products and delivery options
 │   ├── images/           # Product images served by the API
 │   ├── models/           # Sequelize models
 │   ├── routes/           # API routes

@@ -7,6 +7,10 @@ export const Order = sequelize.define('Order', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  visitorId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  },
   orderTimeMs: {
     type: DataTypes.BIGINT,
     allowNull: false
@@ -28,5 +32,6 @@ export const Order = sequelize.define('Order', {
 }, {
   defaultScope: {
     order: [['createdAt', 'ASC']]
-  }
+  },
+  indexes: [{ fields: ['visitorId'] }]
 });

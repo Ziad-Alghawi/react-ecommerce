@@ -39,6 +39,12 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
     pageContent = <ErrorMessage onRetry={onRetry} />;
   } else if (!hasLoaded) {
     pageContent = <LoadingMessage />;
+  } else if (orders.length === 0) {
+    pageContent = (
+      <div className="no-orders-message" data-testid="no-orders-message">
+        You haven't placed any orders yet
+      </div>
+    );
   }
 
   return (
