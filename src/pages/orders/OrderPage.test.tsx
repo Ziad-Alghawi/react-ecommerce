@@ -1,5 +1,6 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import axios from 'axios';
 import { OrdersPage } from './OrdersPage';
@@ -135,5 +136,38 @@ describe('OrdersPage component', () => {
       within(orderProducts[0])
         .getByText('Intermediate Size Basketball')
     ).toBeInTheDocument();
+  });
+
+  it('disables Buy again and shows a spinner while adding to the cart', async () => {
+    const user = userEvent.setup();
+    const loadCart = vi.fn();
+    let finishRequest;
+    axios.post.mockClear();
+    axios.post.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const buyAgainButton = (await screen.findAllByTestId('buy-again-button'))[0];
+    await user.click(buyAgainButton);
+
+    expect(axios.post).toHaveBeenCalledWith('/api/cart-items', {
+      productId: 'e43638ce-6aa0-4b85-b27f-e1d07eb678c6',
+      quantity: 1
+    });
+    expect(buyAgainButton).toBeDisabled();
+    expect(within(buyAgainButton).getByTestId('button-spinner')).toBeInTheDocument();
+
+    // Clicking again while it runs doesn't send a second request
+    await user.click(buyAgainButton);
+    expect(axios.post).toHaveBeenCalledTimes(1);
+
+    await act(async () => finishRequest({}));
+
+    expect(buyAgainButton).toBeEnabled();
+    expect(within(buyAgainButton).queryByTestId('button-spinner')).not.toBeInTheDocument();
+    expect(loadCart).toHaveBeenCalledTimes(1);
   });
 });

@@ -208,6 +208,22 @@ describe('App when the API fails', () => {
     expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
   });
 
+  it('repeats a failed Buy again when Try again is clicked', async () => {
+    renderApp('/orders');
+    await user.click(await screen.findByTestId('buy-again-button'));
+
+    await screen.findByTestId('error-message');
+
+    api['/api/cart-items'] = { data: {} };
+    await user.click(screen.getByTestId('try-again-button'));
+
+    await waitFor(() => expect(screen.queryByTestId('error-message')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('buy-again-button')).toBeEnabled());
+    expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
+    // The action was repeated without reloading the page
+    expect(requests.filter((request) => request === 'get /api/orders?expand=products')).toHaveLength(1);
+  });
+
   it('repeats a failed order when Try again is clicked', async () => {
     api['/api/payment-summary'] = {
       data: { ...workingApi['/api/payment-summary'].data, totalItems: 1 }
