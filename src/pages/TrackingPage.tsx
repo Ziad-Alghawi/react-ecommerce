@@ -1,6 +1,5 @@
 import { useParams } from 'react-router';
 import axios from 'axios';
-import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
 import { ErrorMessage, LoadingMessage } from '../components/PageStatus';
@@ -15,7 +14,7 @@ interface PackageTrackingProps {
 
 function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
   const totalDeliveryTimeMs = orderProduct.estimatedDeliveryTimeMs - order.orderTimeMs;
-  const timePassedMs = dayjs().valueOf() - order.orderTimeMs;
+  const timePassedMs = Date.now() - order.orderTimeMs;
   const deliveryPercent = Math.min((timePassedMs / totalDeliveryTimeMs) * 100, 100);
 
   const isPreparing = deliveryPercent < 33;
