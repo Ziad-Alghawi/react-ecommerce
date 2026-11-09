@@ -19,7 +19,11 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 **Payment Summary, Reset**
 - [GET /api/payment-summary](#get-apipayment-summary)
 - [POST /api/reset](#post-apireset)
-  
+
+**Visitors:** the cart, order and payment summary routes need an `X-Visitor-Id` header with a UUID. Each ID has its own cart and orders, so a browser can keep its own data without an account. Requests without a valid ID get `400`.
+
+**Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`.
+
 ## GET /api/products
 Returns a list of products.
 
@@ -182,6 +186,8 @@ Creates a new order from the current cart items.
 }
 ```
 - Side effect: Cart is emptied
+- Status 400 if the cart is empty
+- Status 409 if the visitor already has 50 orders
 
 ## GET /api/orders/:orderId
 Returns a specific order.

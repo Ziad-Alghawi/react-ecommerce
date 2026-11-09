@@ -36,7 +36,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
   let pageContent = <OrderGrid orders={orders} loadCart={loadCart} />;
 
   if (hasError) {
-    pageContent = <ErrorMessage onRetry={onRetry} />;
+    pageContent = <ErrorMessage onButtonClick={onRetry} />;
   } else if (!hasLoaded) {
     pageContent = <LoadingMessage />;
   } else if (orders.length === 0) {

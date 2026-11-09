@@ -31,7 +31,7 @@ async function startServer() {
   baseUrl = `http://localhost:${port}`;
   server = spawn(process.execPath, [serverFile], {
     cwd: workDir,
-    env: { ...process.env, PORT: String(port), MAX_VISITORS: '3' }
+    env: { ...process.env, PORT: String(port), MAX_VISITORS: '3', MAX_ORDERS: '2' }
   });
 
   await new Promise((resolve, reject) => {
@@ -115,6 +115,24 @@ test('an order costs what the payment summary showed', async () => {
 
   const savedOrder = await (await api(`/api/orders/${order.id}?expand=products`, { visitorId })).json();
   assert.equal(savedOrder.products[0].product.id, productId);
+});
+
+test('refuses new orders once a visitor has reached the limit', async () => {
+  // The server was started with room for 2 orders per visitor
+  const visitorId = randomUUID();
+  const placeOrder = () => api('/api/orders', { visitorId, method: 'POST' });
+
+  for (let i = 0; i < 2; i++) {
+    await addToCart(visitorId);
+    assert.equal((await placeOrder()).status, 201);
+  }
+
+  await addToCart(visitorId);
+  const response = await placeOrder();
+  assert.equal(response.status, 409);
+  assert.match((await response.json()).error, /up to 2 orders/);
+  // The cart is kept, so nothing is lost
+  assert.equal((await getCart(visitorId)).length, 1);
 });
 
 test('cart and order routes need a valid visitor ID', async () => {

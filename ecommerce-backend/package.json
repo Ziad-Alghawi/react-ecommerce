@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "lint": "eslint .",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "zip": "node zipFiles.js",
@@ -25,7 +26,9 @@
     "sql.js-as-sqlite3": "0.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
     "nodemon": "^3.1.9"
   }
 }

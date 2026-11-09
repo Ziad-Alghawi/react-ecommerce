@@ -112,7 +112,7 @@ describe('App when the API fails', () => {
     expect(screen.getByTestId('header-search-bar')).toBeInTheDocument();
 
     api['/api/products'] = workingApi['/api/products'];
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByTestId('product-container')).toBeInTheDocument();
     expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('App when the API fails', () => {
     await screen.findByTestId('error-message');
 
     api['/api/orders?expand=products'] = workingApi['/api/orders?expand=products'];
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByText(product.name)).toBeInTheDocument();
   });
@@ -148,7 +148,7 @@ describe('App when the API fails', () => {
     expect(screen.queryByTestId('place-order-button')).not.toBeInTheDocument();
 
     api['/api/cart-items?expand=product'] = workingApi['/api/cart-items?expand=product'];
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByTestId('place-order-button')).toBeInTheDocument();
     expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
@@ -161,7 +161,7 @@ describe('App when the API fails', () => {
     await screen.findByTestId('error-message');
 
     api['/api/orders/order-1?expand=products'] = workingApi['/api/orders/order-1?expand=products'];
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByText(product.name)).toBeInTheDocument();
   });
@@ -171,7 +171,7 @@ describe('App when the API fails', () => {
     renderApp(`/tracking/order-1/${product.id}`);
 
     expect(await screen.findByTestId('package-not-found')).toBeInTheDocument();
-    expect(screen.queryByTestId('try-again-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('error-message-button')).not.toBeInTheDocument();
   });
 
   it('shows the not found message for a product that is not in the order', async () => {
@@ -191,7 +191,7 @@ describe('App when the API fails', () => {
     expect(screen.getByTestId('error-message'))
       .toHaveTextContent("Your change wasn't saved");
 
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByTestId('product-container')).toBeInTheDocument();
     expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
@@ -206,7 +206,7 @@ describe('App when the API fails', () => {
     expect(screen.getByTestId('add-to-cart-button')).toBeEnabled();
 
     api['/api/cart-items'] = { data: {} };
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     await waitFor(() => expect(screen.getByText('Added')).toHaveStyle({ opacity: '1' }));
     expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
@@ -222,13 +222,33 @@ describe('App when the API fails', () => {
     await screen.findByTestId('error-message');
 
     api['/api/cart-items'] = { data: {} };
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     await waitFor(() => expect(screen.queryByTestId('error-message')).not.toBeInTheDocument());
     await waitFor(() => expect(screen.getByTestId('buy-again-button')).toBeEnabled());
     expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
     // The action was repeated without reloading the page
     expect(requests.filter((request) => request === 'get /api/orders?expand=products')).toHaveLength(1);
+  });
+
+  it('shows why the API refused an order, without offering to repeat it', async () => {
+    api['/api/orders'] = {
+      status: 409,
+      data: { error: "This demo store keeps up to 50 orders per visitor, and you've reached the limit." }
+    };
+    renderApp('/checkout');
+    await user.click(await screen.findByTestId('place-order-button'));
+
+    const errorMessage = await screen.findByTestId('error-message');
+    expect(errorMessage).toHaveTextContent('up to 50 orders per visitor');
+    expect(errorMessage).not.toHaveTextContent('waking up');
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+    expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(1);
+    // Still on checkout, with the cart kept
+    expect(screen.getByTestId('place-order-button')).toBeEnabled();
   });
 
   it('repeats a failed order when Try again is clicked', async () => {
@@ -238,7 +258,7 @@ describe('App when the API fails', () => {
     await screen.findByTestId('error-message');
 
     api['/api/orders'] = { data: {} };
-    await user.click(screen.getByTestId('try-again-button'));
+    await user.click(screen.getByTestId('error-message-button'));
 
     expect(await screen.findByText(product.name)).toBeInTheDocument();
     expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(2);

@@ -103,7 +103,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
   if (orderProduct) {
     pageContent = <PackageTracking order={order} orderProduct={orderProduct} />;
   } else if (hasError) {
-    pageContent = <ErrorMessage onRetry={onRetry} />;
+    pageContent = <ErrorMessage onButtonClick={onRetry} />;
   } else if (isNotFound || order) {
     pageContent = (
       <div className="page-status" data-testid="package-not-found">

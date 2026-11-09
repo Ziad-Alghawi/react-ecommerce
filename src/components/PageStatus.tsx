@@ -32,19 +32,24 @@ export function ButtonSpinner() {
 
 interface ErrorMessageProps {
   title?: string;
-  onRetry: () => void;
+  detail?: string;
+  buttonText?: string;
+  onButtonClick: () => void;
 }
 
-export function ErrorMessage({ title = "We couldn't load this page", onRetry }: ErrorMessageProps) {
+export function ErrorMessage({
+  title = "We couldn't load this page",
+  detail = 'The demo server may be waking up. Please try again in a moment.',
+  buttonText = 'Try again',
+  onButtonClick
+}: ErrorMessageProps) {
   return (
     <div className="page-status" role="alert" data-testid="error-message">
       <div>{title}</div>
-      <div className="page-status-detail">
-        The demo server may be waking up. Please try again in a moment.
-      </div>
-      <button className="page-status-button button-primary" onClick={onRetry}
-        data-testid="try-again-button">
-        Try again
+      <div className="page-status-detail">{detail}</div>
+      <button className="page-status-button button-primary" onClick={onButtonClick}
+        data-testid="error-message-button">
+        {buttonText}
       </button>
     </div>
   );

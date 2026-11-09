@@ -57,7 +57,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
   let pageContent = <ProductsGrid products={products} loadCart={loadCart} />;
 
   if (hasError) {
-    pageContent = <ErrorMessage onRetry={onRetry} />;
+    pageContent = <ErrorMessage onButtonClick={onRetry} />;
   } else if (!hasLoaded) {
     pageContent = <LoadingMessage />;
   } else if (products.length === 0) {

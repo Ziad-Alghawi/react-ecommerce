@@ -62,7 +62,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   );
 
   if (hasError || cartStatus === 'failed') {
-    pageContent = <ErrorMessage onRetry={onRetry} />;
+    pageContent = <ErrorMessage onButtonClick={onRetry} />;
   } else if (isLoading) {
     pageContent = <LoadingMessage />;
   } else if (cart.length === 0) {

@@ -50,12 +50,12 @@ app.get('*', (req, res) => {
   }
 });
 
-/* eslint-disable no-unused-vars */
+// Express only treats a handler with four arguments as an error handler, so next has to stay
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
-/* eslint-enable no-unused-vars */
 
 // Older databases have one cart and order list shared by everyone, which can't
 // be split between visitors. Drop those two tables so sync() makes them again

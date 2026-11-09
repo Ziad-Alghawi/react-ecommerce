@@ -11,11 +11,20 @@ import { ActionFailureContext } from './hooks/useAction';
 import type { CartItem, CartStatus } from './types/store';
 import './App.css';
 
+// The API answers a request it won't accept (4xx) with the reason. Repeating it can't help
+function getRejectionReason(error: unknown) {
+  if (axios.isAxiosError<{ error?: string }>(error) && error.response && error.response.status < 500) {
+    return error.response.data?.error ?? null;
+  }
+  return null;
+}
+
 function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartStatus, setCartStatus] = useState<CartStatus>('loading');
   const [retryCount, setRetryCount] = useState(0);
   const [actionFailed, setActionFailed] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   // The button action that failed, so "Try again" can repeat it
   const [failedAction, setFailedAction] = useState<{ retry: () => Promise<void>; path: string } | null>(null);
   const location = useLocation();
@@ -41,6 +50,7 @@ function App() {
     const interceptor = axios.interceptors.response.use(undefined, (error) => {
       if (error.config?.method !== 'get') {
         setActionFailed(true);
+        setRejectionReason(getRejectionReason(error));
         // Cleared here and set again by useAction, if that's where the request came from
         setFailedAction(null);
       }
@@ -91,7 +101,12 @@ function App() {
 
       {actionFailed && (
         <div className="action-error">
-          <ErrorMessage title="Your change wasn't saved" onRetry={retryFailedAction} />
+          {rejectionReason ? (
+            <ErrorMessage title="Your change wasn't saved" detail={rejectionReason}
+              buttonText="Close" onButtonClick={() => setActionFailed(false)} />
+          ) : (
+            <ErrorMessage title="Your change wasn't saved" onButtonClick={retryFailedAction} />
+          )}
         </div>
       )}
 

@@ -7,6 +7,9 @@ import { calculatePaymentSummary } from './paymentSummary.js';
 
 const router = express.Router();
 
+// Keeps one visitor from filling the shared database. MAX_ORDERS can lower it, for example in tests
+const MAX_ORDERS = Number(process.env.MAX_ORDERS) || 50;
+
 async function withProductDetails(order) {
   const products = await Promise.all(order.products.map(async (orderProduct) => ({
     ...orderProduct,
@@ -34,6 +37,12 @@ router.post('/', async (req, res) => {
 
   if (cartItems.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
+  }
+
+  if (await Order.count({ where: { visitorId: req.visitorId } }) >= MAX_ORDERS) {
+    return res.status(409).json({
+      error: `This demo store keeps up to ${MAX_ORDERS} orders per visitor, and you've reached the limit.`
+    });
   }
 
   const products = await Promise.all(cartItems.map(async (item) => {
