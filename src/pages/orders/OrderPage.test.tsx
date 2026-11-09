@@ -95,7 +95,6 @@ describe('OrdersPage component', () => {
     const orderContainers = await screen.findAllByTestId('order-container');
     expect(orderContainers.length).toBe(2);
 
-    // Check the details of the first order.
     expect(
       within(orderContainers[0]).getByTestId('order-date')
     ).toHaveTextContent('August 12');
@@ -118,7 +117,6 @@ describe('OrdersPage component', () => {
         .getByText('Adults Plain Cotton T-Shirt - 2 Pack')
     ).toBeInTheDocument();
 
-    // Check the details of the second order.
     expect(
       within(orderContainers[1]).getByTestId('order-date')
     ).toHaveTextContent('June 10');

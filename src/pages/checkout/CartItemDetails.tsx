@@ -1,9 +1,9 @@
-import { useState, type ChangeEvent, type KeyboardEvent } from "react";
-import axios from "axios";
-import { formatMoney } from "../../utils/money";
-import { ButtonSpinner } from "../../components/PageStatus";
-import { useAction } from "../../hooks/useAction";
-import type { CartItem, LoadCart } from "../../types/store";
+import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import axios from 'axios';
+import { formatMoney } from '../../utils/money';
+import { ButtonSpinner } from '../../components/PageStatus';
+import { useAction } from '../../hooks/useAction';
+import type { CartItem, LoadCart } from '../../types/store';
 
 interface CartItemDetailsProps {
   cartItem: CartItem;
@@ -12,7 +12,6 @@ interface CartItemDetailsProps {
 }
 
 export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItemDetailsProps) {
-  // we update the quantity by making update is interactive then also we update by pressing enter key 
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(String(cartItem.quantity));
 
@@ -27,70 +26,67 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
   // Don't let the user change an item while it's being saved or deleted
   const isBusy = isSavingQuantity || isDeleting;
 
-  const updateQuantity = () => {
-    if (isUpdatingQuantity) {
-      const newQuantity = Number(quantity);
-      // The API rejects anything else, so go back to the current quantity
-      if (!Number.isInteger(newQuantity) || newQuantity < 1) {
-        setQuantity(String(cartItem.quantity));
-        setIsUpdatingQuantity(false);
-        return;
-      }
+  const cancelQuantityUpdate = () => {
+    setQuantity(String(cartItem.quantity));
+    setIsUpdatingQuantity(false);
+  };
 
-      saveQuantity();
-    } else {
+  const updateQuantity = () => {
+    if (!isUpdatingQuantity) {
       setIsUpdatingQuantity(true);
+      return;
     }
+
+    const newQuantity = Number(quantity);
+    // The API rejects anything else, so go back to the current quantity
+    if (!Number.isInteger(newQuantity) || newQuantity < 1) {
+      cancelQuantityUpdate();
+      return;
+    }
+    saveQuantity();
   };
 
   const updateQuantityInput = (event: ChangeEvent<HTMLInputElement>) => {
     setQuantity(event.target.value);
-  }
+  };
 
-const handleQuantityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-  const keyPressed = event.key;
-  if (keyPressed === 'Enter') {
-    updateQuantity();
-  } else if (keyPressed === 'Escape') {
-    setQuantity(String(cartItem.quantity));
-    setIsUpdatingQuantity(false);
-    
-  }
-};
+  const handleQuantityKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      updateQuantity();
+    } else if (event.key === 'Escape') {
+      cancelQuantityUpdate();
+    }
+  };
 
   return (
     <>
       <img className="product-image"
-        src={cartItem.product.image} 
-        data-testid="cart-item-image"/>
+        src={cartItem.product.image}
+        data-testid="cart-item-image" />
 
       <div className="cart-item-details">
-        <div className="product-name" 
+        <div className="product-name"
           data-testid="cart-item-name">
           {cartItem.product.name}
         </div>
-        <div className="product-price" 
+        <div className="product-price"
           data-testid="cart-item-price">
           {formatMoney(cartItem.product.priceCents)}
         </div>
         <div className="product-quantity">
           <span data-testid="cart-item-quantity">
-            
-
             Quantity: {isUpdatingQuantity
-              ? <input type="text" className="quantity-textbox" value={quantity} 
-              onChange={updateQuantityInput} 
-              onKeyDown={handleQuantityKeyDown}/>
+              ? <input type="text" className="quantity-textbox" value={quantity}
+                onChange={updateQuantityInput}
+                onKeyDown={handleQuantityKeyDown} />
               : <span className="quantity-label">{cartItem.quantity}</span>
             }
-
-
           </span>
           <button className="update-quantity-link link-primary link-button"
             data-testid="cart-item-update-quantity-link"
             disabled={isBusy}
             aria-busy={isSavingQuantity}
-            onClick={updateQuantity} >
+            onClick={updateQuantity}>
             {isSavingQuantity && <ButtonSpinner />}
             Update
           </button>

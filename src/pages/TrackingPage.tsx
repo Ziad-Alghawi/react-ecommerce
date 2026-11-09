@@ -4,8 +4,64 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
 import { ErrorMessage, LoadingMessage } from '../components/PageStatus';
-import type { CartItem, Order } from '../types/store';
+import { formatDeliveryDate } from '../utils/date';
+import type { CartItem, Order, OrderProduct } from '../types/store';
 import './TrackingPage.css';
+
+interface PackageTrackingProps {
+  order: Order;
+  orderProduct: OrderProduct;
+}
+
+function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
+  const totalDeliveryTimeMs = orderProduct.estimatedDeliveryTimeMs - order.orderTimeMs;
+  const timePassedMs = dayjs().valueOf() - order.orderTimeMs;
+  const deliveryPercent = Math.min((timePassedMs / totalDeliveryTimeMs) * 100, 100);
+
+  const isPreparing = deliveryPercent < 33;
+  const isShipped = deliveryPercent >= 33 && deliveryPercent < 100;
+  const isDelivered = deliveryPercent === 100;
+
+  return (
+    <div className="order-tracking">
+      <a className="back-to-orders-link link-primary" href="/orders">
+        View all orders
+      </a>
+
+      <div className="delivery-date">
+        {isDelivered ? 'Delivered on' : 'Arriving on'}{' '}
+        {formatDeliveryDate(orderProduct.estimatedDeliveryTimeMs)}
+      </div>
+
+      <div className="product-info">
+        {orderProduct.product.name}
+      </div>
+
+      <div className="product-info">
+        Quantity: {orderProduct.quantity}
+      </div>
+
+      <img className="product-image" src={orderProduct.product.image} />
+
+      <div className="progress-labels-container">
+        <div className={`progress-label ${isPreparing ? 'current-status' : ''}`}>
+          Preparing
+        </div>
+        <div className={`progress-label ${isShipped ? 'current-status' : ''}`}>
+          Shipped
+        </div>
+        <div className={`progress-label ${isDelivered ? 'current-status' : ''}`}>
+          Delivered
+        </div>
+      </div>
+
+      <div className="progress-bar-container">
+        <div className="progress-bar"
+          style={{ width: `${deliveryPercent}%` }}></div>
+      </div>
+    </div>
+  );
+}
 
 interface TrackingPageProps {
   cart: CartItem[];
@@ -20,8 +76,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-
-    const fetchOrderData = async () => {
+    const fetchOrder = async () => {
       try {
         const response = await axios.get<Order>(`/api/orders/${orderId}?expand=products`);
         if (!Array.isArray(response.data?.products)) {
@@ -37,104 +92,38 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
         }
       }
     };
-    fetchOrderData();
-
+    fetchOrder();
   }, [orderId]);
 
   const orderProduct = order?.products.find((orderProduct) => {
     return orderProduct.productId === productId;
   });
 
-  if (!orderProduct) {
-    let pageContent = <LoadingMessage />;
+  let pageContent = <LoadingMessage />;
 
-    if (hasError) {
-      pageContent = <ErrorMessage onRetry={onRetry} />;
-    } else if (isNotFound || order) {
-      pageContent = (
-        <div className="page-status" data-testid="package-not-found">
-          <div>We couldn't find this package</div>
-          <a className="link-primary" href="/orders">View all orders</a>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <title>Tracking</title>
-        <link rel="icon" type="image/svg+xml" href="/tracking-favicon.png" />
-
-        <Header cart={cart} />
-
-        <div className="tracking-page">
-          {pageContent}
-        </div>
-      </>
+  if (orderProduct) {
+    pageContent = <PackageTracking order={order} orderProduct={orderProduct} />;
+  } else if (hasError) {
+    pageContent = <ErrorMessage onRetry={onRetry} />;
+  } else if (isNotFound || order) {
+    pageContent = (
+      <div className="page-status" data-testid="package-not-found">
+        <div>We couldn't find this package</div>
+        <a className="link-primary" href="/orders">View all orders</a>
+      </div>
     );
   }
-
-  // Calculate delivery progress
-  const totalDeliveryTimeMs = orderProduct.estimatedDeliveryTimeMs - order.orderTimeMs;
-  const timePassedMs = dayjs().valueOf() - order.orderTimeMs;
-
-  let deliveryPercent = (timePassedMs / totalDeliveryTimeMs) * 100;
-  if (deliveryPercent > 100) {
-    deliveryPercent = 100;
-  }
-
-  // Determine the current status based on delivery percent
-  const isPreparing = deliveryPercent < 33;
-  const isShipped = deliveryPercent >= 33 && deliveryPercent < 100;
-  const isDelivered = deliveryPercent === 100;
-
 
   return (
     <>
       <title>Tracking</title>
-      <link rel="icon" type="image/svg+xml" href="/tracking-favicon.png" />
+      <link rel="icon" type="image/png" href="/tracking-favicon.png" />
 
       <Header cart={cart} />
 
       <div className="tracking-page">
-        <div className="order-tracking">
-          <a className="back-to-orders-link link-primary" href="/orders">
-            View all orders
-          </a>
-
-          <div className="delivery-date">
-            {deliveryPercent >= 100 ? 'Delivered on' : 'Arriving on'}{' '}
-            {dayjs(orderProduct.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
-          </div>
-
-          <div className="product-info">
-            {orderProduct.product.name}
-          </div>
-
-          <div className="product-info">
-            Quantity: {orderProduct.quantity}
-          </div>
-
-          <img className="product-image" src={orderProduct.product.image} />
-
-          <div className="progress-labels-container">
-            <div className={`progress-label ${isPreparing && 'current-status'}`}>
-              Preparing
-            </div>
-            <div className={`progress-label ${isShipped && 'current-status'}`}>
-              Shipped
-            </div>
-            <div className={`progress-label ${isDelivered && 'current-status'}`}>
-              Delivered
-            </div>
-          </div>
-
-          <div className="progress-bar-container">
-            <div className="progress-bar"
-              style={{ width: `${deliveryPercent}%` }}></div>
-          </div>
-        </div>
+        {pageContent}
       </div>
     </>
-
   );
 }

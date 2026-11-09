@@ -1,9 +1,9 @@
-import axios from "axios";
-import { useNavigate } from "react-router";
-import { formatMoney } from "../../utils/money";
-import { ButtonSpinner } from "../../components/PageStatus";
-import { useAction } from "../../hooks/useAction";
-import type { LoadCart, PaymentSummary as PaymentSummaryType } from "../../types/store";
+import axios from 'axios';
+import { useNavigate } from 'react-router';
+import { formatMoney } from '../../utils/money';
+import { ButtonSpinner } from '../../components/PageStatus';
+import { useAction } from '../../hooks/useAction';
+import type { LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 
 interface PaymentSummaryProps {
   paymentSummary: PaymentSummaryType | null;
@@ -11,7 +11,6 @@ interface PaymentSummaryProps {
 }
 
 export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps) {
-  //navigate redirects user to another page
   const navigate = useNavigate();
 
   const [createOrder, isPlacingOrder] = useAction(async () => {
@@ -29,7 +28,7 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
       {paymentSummary && (
         <>
           <div className="payment-summary-row"
-          data-testid="payment-summary-product-cost">
+            data-testid="payment-summary-product-cost">
             <div>Items ({paymentSummary.totalItems}):</div>
             <div className="payment-summary-money">
               {formatMoney(paymentSummary.productCostCents)}
@@ -77,9 +76,7 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
             Place your order
           </button>
         </>
-
       )}
-
     </div>
   );
 }

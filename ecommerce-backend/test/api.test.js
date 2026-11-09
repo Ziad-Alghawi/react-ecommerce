@@ -80,6 +80,43 @@ test('products and delivery options work without a visitor ID', async () => {
   assert.equal((await api('/api/delivery-options')).status, 200);
 });
 
+test('searches products by name or keyword', async () => {
+  const byName = await (await api('/api/products?search=SOCKS')).json();
+  assert.ok(byName.some((product) => product.id === productId));
+
+  const byKeyword = await (await api('/api/products?search=apparel')).json();
+  assert.ok(byKeyword.some((product) => product.id === productId));
+
+  assert.deepEqual(await (await api('/api/products?search=spaceship')).json(), []);
+});
+
+test('an order costs what the payment summary showed', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  await api(`/api/cart-items/${productId}`, {
+    visitorId, method: 'PUT', body: { quantity: 2, deliveryOptionId: '2' }
+  });
+
+  const summary = await (await api('/api/payment-summary', { visitorId })).json();
+  // 2 socks at $10.90, $4.99 shipping, 10% tax
+  assert.equal(summary.totalItems, 2);
+  assert.equal(summary.productCostCents, 2180);
+  assert.equal(summary.shippingCostCents, 499);
+  assert.equal(summary.taxCents, 268);
+  assert.equal(summary.totalCostCents, 2947);
+
+  const order = await (await api('/api/orders', { visitorId, method: 'POST' })).json();
+  assert.equal(order.totalCostCents, summary.totalCostCents);
+
+  // Delivery option 2 takes 3 days
+  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+  const deliveryTimeMs = order.products[0].estimatedDeliveryTimeMs;
+  assert.ok(Math.abs(deliveryTimeMs - (order.orderTimeMs + threeDaysMs)) < 5000);
+
+  const savedOrder = await (await api(`/api/orders/${order.id}?expand=products`, { visitorId })).json();
+  assert.equal(savedOrder.products[0].product.id, productId);
+});
+
 test('cart and order routes need a valid visitor ID', async () => {
   for (const urlPath of ['/api/cart-items', '/api/orders', '/api/payment-summary']) {
     assert.equal((await api(urlPath)).status, 400, `${urlPath} without an ID`);

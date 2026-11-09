@@ -9,22 +9,15 @@ interface OrderGridProps {
 
 export function OrderGrid({ orders, loadCart }: OrderGridProps) {
   return (
-
     <div className="orders-grid">
-      {orders.map((order) => {
-        return (
+      {orders.map((order) => (
+        <div key={order.id} className="order-container"
+          data-testid="order-container">
+          <OrderHeader order={order} />
 
-          <div key={order.id} className="order-container"
-            data-testid="order-container">
-
-            <OrderHeader order={order} />
-
-            <OrderDetailsGrid order={order} loadCart={loadCart} />
-          </div>
-        );
-      })}
+          <OrderDetailsGrid order={order} loadCart={loadCart} />
+        </div>
+      ))}
     </div>
-
-
   );
 }

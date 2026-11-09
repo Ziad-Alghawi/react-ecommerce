@@ -1,8 +1,7 @@
 import { it, expect, describe } from 'vitest';
 import { formatMoney } from './money';
 
-//describe is test suite
-describe('formatMemory', () => {
+describe('formatMoney', () => {
   it('formats 1999 cents as $19.99', () => {
     expect(formatMoney(1999)).toBe('$19.99');
   });
@@ -10,16 +9,13 @@ describe('formatMemory', () => {
   it('displays 2 decimals', () => {
     expect(formatMoney(1090)).toBe('$10.90');
     expect(formatMoney(100)).toBe('$1.00');
-
   });
 
-  it('test zero', () => {
+  it('formats zero', () => {
     expect(formatMoney(0)).toBe('$0.00');
-  })
+  });
 
-  it('test negative', () => {
+  it('puts the minus sign before the dollar sign', () => {
     expect(formatMoney(-500)).toBe('-$5.00');
-  })
-
-})
-
+  });
+});

@@ -69,14 +69,10 @@ describe('PaymentSummary', () => {
       screen.getByText('Items (3):')
     ).toBeInTheDocument();
 
-    // There are multiple ways to check the text inside an element.
-    // 1. within() + getByText() + toBeInTheDocument()
     expect(
       within(screen.getByTestId('payment-summary-product-cost')).getByText('$42.75')
     ).toBeInTheDocument();
 
-
-    // 2. getByTestId() + toHaveTextContent() >>> cleamer
     expect(
       screen.getByTestId('payment-summary-shipping-cost')
     ).toHaveTextContent('$4.99');
@@ -92,37 +88,25 @@ describe('PaymentSummary', () => {
     expect(
       screen.getByTestId('payment-summary-total')
     ).toHaveTextContent('$52.51');
+  });
 
-
-  })
-
-  it('place an order', async () => {
+  it('places an order and goes to the orders page', async () => {
     function Location() {
       const location = useLocation();
-      return (
-        <div data-testid="url-path">{location.pathname}</div>
-      )
-
+      return <div data-testid="url-path">{location.pathname}</div>;
     }
 
     render(
       <MemoryRouter>
-        <PaymentSummary
-          paymentSummary={paymentSummary}
-          loadCart={loadCart} />
-
+        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
         <Location />
       </MemoryRouter>
-
     );
 
-    const placeOrderButton = screen.getByTestId('place-order-button');
-    await user.click(placeOrderButton);
-
+    await user.click(screen.getByTestId('place-order-button'));
 
     expect(axios.post).toHaveBeenCalledWith('/api/orders');
     expect(loadCart).toHaveBeenCalled();
-    expect(screen.getByTestId('url-path')).toHaveTextContent('/orders'
-    )
+    expect(screen.getByTestId('url-path')).toHaveTextContent('/orders');
   });
 });

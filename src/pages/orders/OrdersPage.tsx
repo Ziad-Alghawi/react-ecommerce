@@ -18,7 +18,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const fetchOrdersData = async () => {
+    const fetchOrders = async () => {
       try {
         const response = await axios.get<Order[]>('/api/orders?expand=products');
         if (!Array.isArray(response.data)) {
@@ -29,8 +29,8 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
       } catch {
         setHasError(true);
       }
-    }
-    fetchOrdersData();
+    };
+    fetchOrders();
   }, []);
 
   let pageContent = <OrderGrid orders={orders} loadCart={loadCart} />;
@@ -41,7 +41,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
     pageContent = <LoadingMessage />;
   } else if (orders.length === 0) {
     pageContent = (
-      <div className="no-orders-message" data-testid="no-orders-message">
+      <div className="page-status" data-testid="no-orders-message">
         You haven't placed any orders yet
       </div>
     );
@@ -50,7 +50,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
   return (
     <>
       <title>Orders</title>
-      <link rel="icon" type="image/svg+xml" href="/orders-favicon.png" />
+      <link rel="icon" type="image/png" href="/orders-favicon.png" />
 
       <Header cart={cart} />
 
@@ -60,6 +60,5 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
         {pageContent}
       </div>
     </>
-
   );
 }

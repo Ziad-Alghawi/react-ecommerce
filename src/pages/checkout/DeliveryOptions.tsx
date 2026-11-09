@@ -1,7 +1,7 @@
-import axios from "axios";
-import dayjs from "dayjs";
-import { formatMoney } from "../../utils/money";
-import type { CartItem, DeliveryOption, LoadCart } from "../../types/store";
+import axios from 'axios';
+import { formatMoney } from '../../utils/money';
+import { formatDeliveryDate } from '../../utils/date';
+import type { CartItem, DeliveryOption, LoadCart } from '../../types/store';
 
 interface DeliveryOptionsProps {
   cartItem: CartItem;
@@ -17,11 +17,9 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: Deliver
       </div>
 
       {deliveryOptions.map((deliveryOption) => {
-        let priceString = 'FREE Shipping';
-
-        if (deliveryOption.priceCents > 0) {
-          priceString = `${formatMoney(deliveryOption.priceCents)} - Shipping`;
-        }
+        const priceString = deliveryOption.priceCents > 0
+          ? `${formatMoney(deliveryOption.priceCents)} - Shipping`
+          : 'FREE Shipping';
 
         const updateDeliveryOption = async () => {
           await axios.put(`/api/cart-items/${cartItem.productId}`, {
@@ -37,11 +35,11 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: Deliver
               checked={deliveryOption.id === cartItem.deliveryOptionId}
               onChange={() => {}}
               className="delivery-option-input"
-              name={`delivery-option-${cartItem.productId}`} 
+              name={`delivery-option-${cartItem.productId}`}
               data-testid="delivery-option-input" />
             <div>
               <div className="delivery-option-date">
-                {dayjs(deliveryOption.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
+                {formatDeliveryDate(deliveryOption.estimatedDeliveryTimeMs)}
               </div>
               <div className="delivery-option-price">
                 {priceString}

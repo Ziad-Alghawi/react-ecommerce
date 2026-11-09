@@ -90,7 +90,6 @@ describe('CheckoutPage component', () => {
       </MemoryRouter>
     );
 
-    // findByTestId() = waits until it finds a single element.
     const paymentSummary = await screen.findByTestId('payment-summary-product-cost');
 
     expect(axios.get).toHaveBeenNthCalledWith(
@@ -102,8 +101,7 @@ describe('CheckoutPage component', () => {
       '/api/payment-summary'
     );
 
-    // Check the order summary is overall correct (since OrderSummary
-    // is tested in more detail in OrderSummary.test.jsx)
+    // OrderSummary and PaymentSummary have their own, more detailed tests
     expect(screen.getByText('Review your order')).toBeInTheDocument();
     expect(
       screen.getByText('Black and Gray Athletic Cotton Socks - 6 Pairs')
@@ -112,8 +110,6 @@ describe('CheckoutPage component', () => {
       screen.getByText('Intermediate Size Basketball')
     ).toBeInTheDocument();
 
-    // Check the payment summary is overall correct (since PaymentSummary
-    // is tested in more detail in PaymentSummary.test.jsx)
     expect(paymentSummary).toBeInTheDocument();
     expect(screen.getByText('Payment Summary')).toBeInTheDocument();
     expect(screen.getByTestId('payment-summary-product-cost'))

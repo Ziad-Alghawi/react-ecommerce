@@ -18,9 +18,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
   // Stays false until the first response, so the empty message never flashes while loading
   const [hasLoaded, setHasLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  // Get the search query from the URL parameters
   const [searchParams] = useSearchParams();
-  // Extract the search query from the URL parameters//Get word from URL.
   const search = searchParams.get('search');
 
   useEffect(() => {
@@ -28,11 +26,10 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
     let isLatestRequest = true;
     setHasError(false);
 
-    const getHomeData = async () => {
-    //If word exists → load filtered products // If not  load all products 
-      const urlPath = search 
-      ? `/api/products?search=${encodeURIComponent(search)}`
-      : '/api/products';
+    const fetchProducts = async () => {
+      const urlPath = search
+        ? `/api/products?search=${encodeURIComponent(search)}`
+        : '/api/products';
 
       try {
         const response = await axios.get<Product[]>(urlPath);
@@ -49,13 +46,12 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
           setHasError(true);
         }
       }
-    }
-    getHomeData();
+    };
+    fetchProducts();
 
     return () => {
       isLatestRequest = false;
     };
-    //When search in URL changes reload products
   }, [search]);
 
   let pageContent = <ProductsGrid products={products} loadCart={loadCart} />;
@@ -66,7 +62,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
     pageContent = <LoadingMessage />;
   } else if (products.length === 0) {
     pageContent = (
-      <div className="no-products-message" data-testid="no-products-message">
+      <div className="page-status" data-testid="no-products-message">
         {search ? `No products found for "${search}"` : 'No products available'}
       </div>
     );
@@ -74,15 +70,14 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
 
   return (
     <>
-
-      <link rel="icon" href="/home-favicon.png" />
       <title>Ecommerce-project</title>
+      <link rel="icon" type="image/png" href="/home-favicon.png" />
+
       <Header cart={cart} />
 
       <div className="home-page">
         {pageContent}
       </div>
     </>
-
   );
 }

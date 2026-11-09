@@ -15,8 +15,6 @@ interface BuyAgainButtonProps {
 function BuyAgainButton({ orderProduct, loadCart }: BuyAgainButtonProps) {
   const [buyAgain, isAdding] = useAction(async () => {
     await axios.post('/api/cart-items', {
-      // Note: you can also get the productId from
-      // orderProduct.productId
       productId: orderProduct.product.id,
       quantity: 1
     });
@@ -28,7 +26,7 @@ function BuyAgainButton({ orderProduct, loadCart }: BuyAgainButtonProps) {
       data-testid="buy-again-button"
       disabled={isAdding}
       aria-busy={isAdding}
-      onClick={buyAgain} >
+      onClick={buyAgain}>
       {/* The spinner takes the icon's place, so the button doesn't change size */}
       {isAdding
         ? <ButtonSpinner />
@@ -44,51 +42,38 @@ interface OrderDetailsGridProps {
 }
 
 export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
-
   return (
     <div className="order-details-grid">
-      {order.products.map((orderProduct) => {
+      {order.products.map((orderProduct) => (
+        <Fragment key={orderProduct.productId}>
+          <div className="product-image-container">
+            <img src={orderProduct.product.image} />
+          </div>
 
-        return (
-          <Fragment key={orderProduct.productId}>
-            <div className="product-image-container">
-              <img src={orderProduct.product.image} />
+          <div className="product-details"
+            data-testid="order-product-details">
+            <div className="product-name">
+              {orderProduct.product.name}
+            </div>
+            <div className="product-delivery-date">
+              Arriving on: {dayjs(orderProduct.estimatedDeliveryTimeMs).format('MMMM D')}
+            </div>
+            <div className="product-quantity">
+              Quantity: {orderProduct.quantity}
             </div>
 
-            <div className="product-details"
-              data-testid="order-product-details">
-              <div className="product-name">
-                {orderProduct.product.name}
-              </div>
-              <div className="product-delivery-date">
-                Arriving on: {dayjs(orderProduct.estimatedDeliveryTimeMs).format('MMMM D')}
-              </div>
-              <div className="product-quantity">
-                Quantity: {orderProduct.quantity}
-              </div>
+            <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />
+          </div>
 
-
-
-
-              <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />
-            </div>
-
-            <div className="product-actions">
-              <a href={`/tracking/${order.id}/${orderProduct.product.id}`}>
-                <button className="track-package-button button-secondary">
-                  Track package
-                </button>
-              </a>
-            </div>
-
-
-          </Fragment>
-
-        );
-
-      })}
+          <div className="product-actions">
+            <a href={`/tracking/${order.id}/${orderProduct.product.id}`}>
+              <button className="track-package-button button-secondary">
+                Track package
+              </button>
+            </a>
+          </div>
+        </Fragment>
+      ))}
     </div>
-
   );
 }
-

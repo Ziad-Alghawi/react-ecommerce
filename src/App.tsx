@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Routes, Route, useLocation } from 'react-router';
-import { HomePage } from './pages/home/HomePage'
+import { HomePage } from './pages/home/HomePage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
@@ -9,8 +9,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorMessage } from './components/PageStatus';
 import { ActionFailureContext } from './hooks/useAction';
 import type { CartItem, CartStatus } from './types/store';
-import './App.css'
-
+import './App.css';
 
 function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -22,14 +21,14 @@ function App() {
   const location = useLocation();
 
   const loadCart = async () => {
-      const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
-      // A sleeping server or a proxy can answer with an HTML page instead of JSON
-      if (!Array.isArray(response.data)) {
-        throw new Error('Unexpected cart response');
-      }
-      setCart(response.data);
-      setCartStatus('ready');
-    };
+    const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
+    // A sleeping server or a proxy can answer with an HTML page instead of JSON
+    if (!Array.isArray(response.data)) {
+      throw new Error('Unexpected cart response');
+    }
+    setCart(response.data);
+    setCartStatus('ready');
+  };
 
   useEffect(() => {
     setCartStatus('loading');
@@ -76,37 +75,31 @@ function App() {
     }
   };
 
-
   return (
     <>
-    <div className="app-content">
-    <ActionFailureContext value={reportActionFailure}>
-    <Routes key={retryCount}>
-      <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-
-      <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
-
-      <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-
-      <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
-
-      <Route path="*" element={<NotFoundPage cart={cart} />} />
-    </Routes>
-    </ActionFailureContext>
-    </div>
-
-    {actionFailed && (
-      <div className="action-error">
-        <ErrorMessage title="Your change wasn't saved" onRetry={retryFailedAction} />
+      <div className="app-content">
+        <ActionFailureContext value={reportActionFailure}>
+          <Routes key={retryCount}>
+            <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+            <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
+            <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+            <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
+            <Route path="*" element={<NotFoundPage cart={cart} />} />
+          </Routes>
+        </ActionFailureContext>
       </div>
-    )}
 
-    <footer className="site-footer" data-testid="site-footer">
-      Demo store, data resets regularly
-    </footer>
+      {actionFailed && (
+        <div className="action-error">
+          <ErrorMessage title="Your change wasn't saved" onRetry={retryFailedAction} />
+        </div>
+      )}
+
+      <footer className="site-footer" data-testid="site-footer">
+        Demo store, data resets regularly
+      </footer>
     </>
-
-  )
+  );
 }
 
-export default App
+export default App;

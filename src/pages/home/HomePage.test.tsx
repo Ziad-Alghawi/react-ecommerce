@@ -7,66 +7,53 @@ import { HomePage } from './HomePage';
 
 vi.mock('axios');
 
+const socks = {
+  id: 'e43638ce-6aa0-4b85-b27f-e1d07eb678c6',
+  image: 'images/products/athletic-cotton-socks-6-pairs.jpg',
+  name: 'Black and Gray Athletic Cotton Socks - 6 Pairs',
+  rating: {
+    stars: 4.5,
+    count: 87
+  },
+  priceCents: 1090,
+  keywords: ['socks', 'sports', 'apparel']
+};
+
+const basketball = {
+  id: '15b6fc6f-327a-4ec4-896f-486349e85a3d',
+  image: 'images/products/intermediate-composite-basketball.jpg',
+  name: 'Intermediate Size Basketball',
+  rating: {
+    stars: 4,
+    count: 127
+  },
+  priceCents: 2095,
+  keywords: ['sports', 'basketballs']
+};
+
 describe('HomePage component', () => {
   let loadCart;
   let user;
 
   axios.get.mockImplementation(async (urlPath) => {
     if (urlPath === '/api/products') {
-      return {
-        data: [{
-    id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-    image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-    name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
-    rating: {
-      stars: 4.5,
-      count: 87
-    },
-    priceCents: 1090,
-    keywords: ["socks", "sports", "apparel"]
-  },
-  {
-    id: "15b6fc6f-327a-4ec4-896f-486349e85a3d",
-    image: "images/products/intermediate-composite-basketball.jpg",
-    name: "Intermediate Size Basketball",
-    rating: {
-      stars: 4,
-      count: 127
-    },
-    priceCents: 2095,
-    keywords: ["sports", "basketballs"]
-  }]
-      }
+      return { data: [socks, basketball] };
     }
-
     if (urlPath === '/api/products?search=socks') {
-      return {
-        data: [{
-          id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-          image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-          name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
-          rating: {
-            stars: 4.5,
-            count: 87
-          },
-          priceCents: 1090,
-          keywords: ["socks", "sports", "apparel"]
-        }]
-      }
+      return { data: [socks] };
     }
-
     if (urlPath.startsWith('/api/products?search=')) {
-      return { data: [] }
+      return { data: [] };
     }
-
     // The real API answers 404 for anything else, like the old /api/products/search=...
     throw new Error(`Request failed with status code 404: ${urlPath}`);
-  })
+  });
 
   beforeEach(() => {
-  loadCart = vi.fn();
-  user = userEvent.setup();
-});
+    loadCart = vi.fn();
+    user = userEvent.setup();
+  });
+
   it('displays the product correctly', async () => {
     render(
       <MemoryRouter>
@@ -74,25 +61,13 @@ describe('HomePage component', () => {
       </MemoryRouter>
     );
 
-    const productContainer =await screen.findAllByTestId('product-container');
+    const productContainers = await screen.findAllByTestId('product-container');
 
-    expect(productContainer.length).toBe(2);
-
-    // we use within to check specific product 
-    expect(
-      within(productContainer[0])
-      .getByText('Black and Gray Athletic Cotton Socks - 6 Pairs')
-    ).toBeInTheDocument();
-
-     expect(
-      within(productContainer[1])
-      .getByText('Intermediate Size Basketball')
-    ).toBeInTheDocument();
-    
+    expect(productContainers.length).toBe(2);
+    expect(within(productContainers[0]).getByText(socks.name)).toBeInTheDocument();
+    expect(within(productContainers[1]).getByText(basketball.name)).toBeInTheDocument();
   });
 
-  
-// we will test the add to cart functionality in this test case
   it('adds a product to the cart', async () => {
     render(
       <MemoryRouter>
@@ -100,37 +75,24 @@ describe('HomePage component', () => {
       </MemoryRouter>
     );
 
-    const productContainer =await screen.findAllByTestId('product-container');
-    // we will add 2 products to the cart with different quantities
-    const quantitySelector1 = within(productContainer[0]).getByTestId('quantity-select-selector');
-    await user.selectOptions(quantitySelector1, '2');
-// we will click add for first product
-    const addToCartButton1 = within(productContainer[0]).getByTestId('add-to-cart-button');
-    await user.click(addToCartButton1);
+    const productContainers = await screen.findAllByTestId('product-container');
 
-//////////////////////// 
+    await user.selectOptions(within(productContainers[0]).getByTestId('quantity-select-selector'), '2');
+    await user.click(within(productContainers[0]).getByTestId('add-to-cart-button'));
 
-    // we will add the second product to the cart with a different quantity
-    const quantitySelector2 = within(productContainer[1]).getByTestId('quantity-select-selector');
-    await user.selectOptions(quantitySelector2, '3');
-    // we will click add for  second product
-    const addToCartButton2 = within(productContainer[1]).getByTestId('add-to-cart-button');
-    await user.click(addToCartButton2);
+    await user.selectOptions(within(productContainers[1]).getByTestId('quantity-select-selector'), '3');
+    await user.click(within(productContainers[1]).getByTestId('add-to-cart-button'));
 
-    // check if the axios.post was called with the correct parameters for both products
     expect(axios.post).toHaveBeenNthCalledWith(1, '/api/cart-items', {
-      productId: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
+      productId: socks.id,
       quantity: 2
     });
-
     expect(axios.post).toHaveBeenNthCalledWith(2, '/api/cart-items', {
-      productId: "15b6fc6f-327a-4ec4-896f-486349e85a3d",
+      productId: basketball.id,
       quantity: 3
     });
-
     expect(loadCart).toHaveBeenCalledTimes(2);
-
-  })
+  });
 
   it('shows only the products that match the search', async () => {
     render(
@@ -139,14 +101,11 @@ describe('HomePage component', () => {
       </MemoryRouter>
     );
 
-    const productContainer = await screen.findAllByTestId('product-container');
+    const productContainers = await screen.findAllByTestId('product-container');
 
     expect(axios.get).toHaveBeenCalledWith('/api/products?search=socks');
-    expect(productContainer.length).toBe(1);
-    expect(
-      within(productContainer[0])
-      .getByText('Black and Gray Athletic Cotton Socks - 6 Pairs')
-    ).toBeInTheDocument();
+    expect(productContainers.length).toBe(1);
+    expect(within(productContainers[0]).getByText(socks.name)).toBeInTheDocument();
   });
 
   it('encodes special characters in the search text', async () => {
@@ -191,16 +150,7 @@ describe('HomePage component', () => {
     await screen.findByTestId('no-products-message');
 
     await act(async () => {
-      resolveOlderSearch({
-        data: [{
-          id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-          image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-          name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
-          rating: { stars: 4.5, count: 87 },
-          priceCents: 1090,
-          keywords: ["socks"]
-        }]
-      });
+      resolveOlderSearch({ data: [socks] });
     });
 
     expect(screen.getByTestId('no-products-message')).toBeInTheDocument();

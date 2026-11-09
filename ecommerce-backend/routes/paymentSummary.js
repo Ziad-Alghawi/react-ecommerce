@@ -5,8 +5,8 @@ import { DeliveryOption } from '../models/DeliveryOption.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
+// Placing an order uses this too, so the order total always matches what checkout showed
+export async function calculatePaymentSummary(cartItems) {
   let totalItems = 0;
   let productCostCents = 0;
   let shippingCostCents = 0;
@@ -23,14 +23,19 @@ router.get('/', async (req, res) => {
   const taxCents = Math.round(totalCostBeforeTaxCents * 0.1);
   const totalCostCents = totalCostBeforeTaxCents + taxCents;
 
-  res.json({
+  return {
     totalItems,
     productCostCents,
     shippingCostCents,
     totalCostBeforeTaxCents,
     taxCents,
     totalCostCents
-  });
+  };
+}
+
+router.get('/', async (req, res) => {
+  const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
+  res.json(await calculatePaymentSummary(cartItems));
 });
 
 export default router;

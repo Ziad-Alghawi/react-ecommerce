@@ -1,32 +1,29 @@
 import express from 'express';
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
-import { DeliveryOption } from '../models/DeliveryOption.js';
+import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption.js';
 import { CartItem } from '../models/CartItem.js';
+import { calculatePaymentSummary } from './paymentSummary.js';
 
 const router = express.Router();
+
+async function withProductDetails(order) {
+  const products = await Promise.all(order.products.map(async (orderProduct) => ({
+    ...orderProduct,
+    product: await Product.findByPk(orderProduct.productId)
+  })));
+  return { ...order.toJSON(), products };
+}
 
 router.get('/', async (req, res) => {
   const expand = req.query.expand;
   let orders = await Order.unscoped().findAll({
     where: { visitorId: req.visitorId },
-    order: [['orderTimeMs', 'DESC']] // Sort by most recent
+    order: [['orderTimeMs', 'DESC']]
   });
 
   if (expand === 'products') {
-    orders = await Promise.all(orders.map(async (order) => {
-      const products = await Promise.all(order.products.map(async (product) => {
-        const productDetails = await Product.findByPk(product.productId);
-        return {
-          ...product,
-          product: productDetails
-        };
-      }));
-      return {
-        ...order.toJSON(),
-        products
-      };
-    }));
+    orders = await Promise.all(orders.map(withProductDetails));
   }
 
   res.json(orders);
@@ -39,28 +36,15 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Cart is empty' });
   }
 
-  let totalCostCents = 0;
   const products = await Promise.all(cartItems.map(async (item) => {
-    const product = await Product.findByPk(item.productId);
-    if (!product) {
-      throw new Error(`Product not found: ${item.productId}`);
-    }
     const deliveryOption = await DeliveryOption.findByPk(item.deliveryOptionId);
-    if (!deliveryOption) {
-      throw new Error(`Invalid delivery option: ${item.deliveryOptionId}`);
-    }
-    const productCost = product.priceCents * item.quantity;
-    const shippingCost = deliveryOption.priceCents;
-    totalCostCents += productCost + shippingCost;
-    const estimatedDeliveryTimeMs = Date.now() + deliveryOption.deliveryDays * 24 * 60 * 60 * 1000;
     return {
       productId: item.productId,
       quantity: item.quantity,
-      estimatedDeliveryTimeMs
+      estimatedDeliveryTimeMs: estimateDeliveryTimeMs(deliveryOption)
     };
   }));
-
-  totalCostCents = Math.round(totalCostCents * 1.1);
+  const { totalCostCents } = await calculatePaymentSummary(cartItems);
 
   const order = await Order.create({
     orderTimeMs: Date.now(),
@@ -85,17 +69,7 @@ router.get('/:orderId', async (req, res) => {
   }
 
   if (expand === 'products') {
-    const products = await Promise.all(order.products.map(async (product) => {
-      const productDetails = await Product.findByPk(product.productId);
-      return {
-        ...product,
-        product: productDetails
-      };
-    }));
-    order = {
-      ...order.toJSON(),
-      products
-    };
+    order = await withProductDetails(order);
   }
 
   res.json(order);

@@ -210,10 +210,6 @@ describe('OrderSummary component', () => {
       </MemoryRouter>
     );
 
-    // We can't use getAllByTestId because if it doesn't find anything,
-    // it will cause an error. Instead we use queryAllByTestId. This
-    // does the same thing as getAllByTestId it doesn't cause an error
-    // if it doesn't find anything, it just returns an empty array.
     expect(screen.queryAllByTestId('cart-item-container').length).toBe(0);
   });
 });

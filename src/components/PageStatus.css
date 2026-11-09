@@ -2,6 +2,8 @@
   padding: 60px 25px;
   text-align: center;
   font-size: 18px;
+  /* A long search text has no spaces to wrap at */
+  overflow-wrap: anywhere;
 }
 
 .page-status-detail {

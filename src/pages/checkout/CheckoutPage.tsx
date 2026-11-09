@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { CheckoutHeader } from './CheckoutHeader'
+import { CheckoutHeader } from './CheckoutHeader';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
@@ -20,7 +20,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const fetchCheckoutData = async () => {
+    const fetchDeliveryOptions = async () => {
       try {
         const response = await axios.get<DeliveryOption[]>('/api/delivery-options?expand=estimatedDeliveryTime');
         if (!Array.isArray(response.data)) {
@@ -31,27 +31,24 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
         setHasError(true);
       }
     };
-
-    fetchCheckoutData();
-    
+    fetchDeliveryOptions();
   }, []);
 
-    useEffect(() => {
-      const fetchPaymentSummary = async () => {
-        try {
-          const response = await axios.get<PaymentSummaryType>('/api/payment-summary');
-          if (typeof response.data !== 'object') {
-            throw new Error('Unexpected payment summary response');
-          }
-          setPaymentSummary(response.data);
-        } catch {
-          setHasError(true);
+  // Every change to the cart (quantity, delivery option...) changes the totals
+  useEffect(() => {
+    const fetchPaymentSummary = async () => {
+      try {
+        const response = await axios.get<PaymentSummaryType>('/api/payment-summary');
+        if (typeof response.data !== 'object') {
+          throw new Error('Unexpected payment summary response');
         }
-      };
-
-      fetchPaymentSummary();
-      // short way to update or reload payment summary and delivery options when user changes delivery option
-    }, [cart]);
+        setPaymentSummary(response.data);
+      } catch {
+        setHasError(true);
+      }
+    };
+    fetchPaymentSummary();
+  }, [cart]);
 
   const isLoading = cartStatus === 'loading' || deliveryOptions.length === 0 || !paymentSummary;
 
@@ -72,7 +69,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   return (
     <>
       <title>Checkout</title>
-      <link rel="icon" type="image/svg+xml" href="/cart-favicon.png" />
+      <link rel="icon" type="image/png" href="/cart-favicon.png" />
 
       <CheckoutHeader cart={cart} />
 
@@ -82,7 +79,5 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
         {pageContent}
       </div>
     </>
-
-  )
-
+  );
 }

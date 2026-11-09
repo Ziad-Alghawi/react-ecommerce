@@ -25,3 +25,7 @@ export const DeliveryOption = sequelize.define('DeliveryOption', {
     order: [['createdAt', 'ASC']]
   }
 });
+
+export function estimateDeliveryTimeMs(deliveryOption) {
+  return Date.now() + deliveryOption.deliveryDays * 24 * 60 * 60 * 1000;
+}

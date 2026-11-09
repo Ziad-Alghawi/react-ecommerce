@@ -1,5 +1,5 @@
-import dayjs from "dayjs";
-import type { CartItem, DeliveryOption } from "../../types/store";
+import { formatDeliveryDate } from '../../utils/date';
+import type { CartItem, DeliveryOption } from '../../types/store';
 
 interface DeliveryDateProps {
   cartItem: CartItem;
@@ -7,7 +7,6 @@ interface DeliveryDateProps {
 }
 
 export function DeliveryDate({ cartItem, deliveryOptions }: DeliveryDateProps) {
-
   const selectedDeliveryOption = deliveryOptions.find((deliveryOption) => {
     return deliveryOption.id === cartItem.deliveryOptionId;
   });
@@ -16,11 +15,9 @@ export function DeliveryDate({ cartItem, deliveryOptions }: DeliveryDateProps) {
     return null;
   }
 
-
   return (
     <div className="delivery-date">
-      Delivery date: {dayjs(selectedDeliveryOption.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
+      Delivery date: {formatDeliveryDate(selectedDeliveryOption.estimatedDeliveryTimeMs)}
     </div>
-
   );
 }

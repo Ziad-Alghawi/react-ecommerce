@@ -11,11 +11,9 @@ import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
 import { Product } from './models/Product.js';
-import { DeliveryOption } from './models/DeliveryOption.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
-import { defaultProducts } from './defaultData/defaultProducts.js';
-import { defaultDeliveryOptions } from './defaultData/defaultDeliveryOptions.js';
+import { addDefaultData } from './defaultData/addDefaultData.js';
 import fs from 'fs';
 
 const app = express();
@@ -28,14 +26,9 @@ const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim());
 
-// Middleware
 app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 
-// Serve images from the images folder
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
-// Use routes
 app.use('/api/products', productRoutes);
 app.use('/api/delivery-options', deliveryOptionRoutes);
 // Each visitor has their own cart and orders. Products are shared
@@ -44,10 +37,10 @@ app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
 
-// Serve static files from the dist folder
+// The built frontend, including the product images from its public folder
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Catch-all route to serve index.html for any unmatched routes
+// Let React Router handle every other path
 app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, 'dist', 'index.html');
   if (fs.existsSync(indexPath)) {
@@ -57,7 +50,6 @@ app.get('*', (req, res) => {
   }
 });
 
-// Error handling middleware
 /* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -65,7 +57,6 @@ app.use((err, req, res, next) => {
 });
 /* eslint-enable no-unused-vars */
 
-// Sync database and load default data if none exist
 // Older databases have one cart and order list shared by everyone, which can't
 // be split between visitors. Drop those two tables so sync() makes them again
 for (const model of [CartItem, Order]) {
@@ -81,31 +72,13 @@ for (const model of [CartItem, Order]) {
 
 await sequelize.sync();
 
-const productCount = await Product.count();
-if (productCount === 0) {
-  const timestamp = Date.now();
-
-  const productsWithTimestamps = defaultProducts.map((product, index) => ({
-    ...product,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
-
-  const deliveryOptionsWithTimestamps = defaultDeliveryOptions.map((option, index) => ({
-    ...option,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
-
-  await Product.bulkCreate(productsWithTimestamps);
-  await DeliveryOption.bulkCreate(deliveryOptionsWithTimestamps);
-
+if (await Product.count() === 0) {
+  await addDefaultData();
   console.log('Default data added to the database.');
 }
 
 await loadVisitors();
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
