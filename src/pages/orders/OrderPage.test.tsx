@@ -136,6 +136,21 @@ describe('OrdersPage component', () => {
     ).toBeInTheDocument();
   });
 
+  it('says whether each package was delivered or is still on its way', async () => {
+    // Between the two delivery dates of the first order
+    vi.setSystemTime(new Date(2024, 7, 14, 12));
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} />
+      </MemoryRouter>
+    );
+
+    const deliveryDates = await screen.findAllByTestId('order-product-delivery-date');
+    expect(deliveryDates[0]).toHaveTextContent('Arriving on Thursday, August 15');
+    expect(deliveryDates[1]).toHaveTextContent('Delivered on Monday, August 12');
+    vi.useRealTimers();
+  });
+
   it('says so when there are no orders yet', async () => {
     orders = [];
     render(

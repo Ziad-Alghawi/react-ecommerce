@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
 import { ErrorMessage, LoadingMessage } from '../components/PageStatus';
-import { formatDeliveryDate } from '../utils/date';
+import { formatDeliveryStatus } from '../utils/date';
 import type { CartItem, Order, OrderProduct } from '../types/store';
 import './TrackingPage.css';
 
@@ -29,8 +29,7 @@ function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
       </a>
 
       <div className="delivery-date">
-        {isDelivered ? 'Delivered on' : 'Arriving on'}{' '}
-        {formatDeliveryDate(orderProduct.estimatedDeliveryTimeMs)}
+        {formatDeliveryStatus(orderProduct.estimatedDeliveryTimeMs)}
       </div>
 
       <div className="product-info">
@@ -109,7 +108,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
     pageContent = (
       <div className="page-status" data-testid="package-not-found">
         <div>We couldn't find this package</div>
-        <a className="link-primary" href="/orders">View all orders</a>
+        <a className="page-status-link link-primary" href="/orders">View all orders</a>
       </div>
     );
   }

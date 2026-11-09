@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { CheckoutHeader } from './CheckoutHeader';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
@@ -64,6 +65,13 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
     pageContent = <ErrorMessage onRetry={onRetry} />;
   } else if (isLoading) {
     pageContent = <LoadingMessage />;
+  } else if (cart.length === 0) {
+    pageContent = (
+      <div className="page-status" data-testid="empty-cart-message">
+        <div>Your cart is empty</div>
+        <Link className="page-status-link link-primary" to="/">Browse products</Link>
+      </div>
+    );
   }
 
   return (

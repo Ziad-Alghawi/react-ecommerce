@@ -117,4 +117,17 @@ describe('CheckoutPage component', () => {
     expect(screen.getByTestId('payment-summary-shipping-cost'))
       .toHaveTextContent('$4.99');
   });
+
+  it('shows an empty cart message with a link back to the products', async () => {
+    render(
+      <MemoryRouter>
+        <CheckoutPage cart={[]} cartStatus="ready" loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByTestId('empty-cart-message'))
+      .toHaveTextContent('Your cart is empty');
+    expect(screen.getByRole('link', { name: 'Browse products' })).toHaveAttribute('href', '/');
+    expect(screen.queryByTestId('place-order-button')).not.toBeInTheDocument();
+  });
 });

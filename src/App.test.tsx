@@ -15,6 +15,13 @@ const product = {
   keywords: ['socks']
 };
 
+const cartItem = {
+  productId: product.id,
+  quantity: 1,
+  deliveryOptionId: '1',
+  product
+};
+
 const order = {
   id: 'order-1',
   orderTimeMs: 1723456800000,
@@ -29,7 +36,7 @@ const order = {
 
 const workingApi = {
   '/api/products': { data: [product] },
-  '/api/cart-items?expand=product': { data: [] },
+  '/api/cart-items?expand=product': { data: [cartItem] },
   '/api/orders?expand=products': { data: [order] },
   '/api/orders/order-1?expand=products': { data: order },
   '/api/delivery-options?expand=estimatedDeliveryTime': {
@@ -37,12 +44,12 @@ const workingApi = {
   },
   '/api/payment-summary': {
     data: {
-      totalItems: 0,
-      productCostCents: 0,
+      totalItems: 1,
+      productCostCents: 1090,
       shippingCostCents: 0,
-      totalCostBeforeTaxCents: 0,
-      taxCents: 0,
-      totalCostCents: 0
+      totalCostBeforeTaxCents: 1090,
+      taxCents: 109,
+      totalCostCents: 1199
     }
   }
 };
@@ -225,9 +232,6 @@ describe('App when the API fails', () => {
   });
 
   it('repeats a failed order when Try again is clicked', async () => {
-    api['/api/payment-summary'] = {
-      data: { ...workingApi['/api/payment-summary'].data, totalItems: 1 }
-    };
     renderApp('/checkout');
     await user.click(await screen.findByTestId('place-order-button'));
 

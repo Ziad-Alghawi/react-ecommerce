@@ -65,4 +65,23 @@ describe('Header component', () => {
     expect(screen.getByTestId('current-url'))
       .toHaveTextContent('/?search=socks%20%26%20shoes');
   });
+
+  it('clears the search text when clicking the logo', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={['/?search=socks']}>
+        <Header cart={cart} />
+        <CurrentUrl />
+      </MemoryRouter>
+    );
+
+    const searchBar = screen.getByTestId('header-search-bar');
+    expect(searchBar).toHaveValue('socks');
+
+    await user.click(screen.getByTestId('header-logo'));
+
+    expect(searchBar).toHaveValue('');
+    expect(screen.getByTestId('current-url')).toHaveTextContent(/^\/$/);
+  });
 });

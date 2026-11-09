@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { Fragment } from 'react';
-import dayjs from 'dayjs';
 import BuyAgainIcon from '../../assets/images/icons/buy-again.png';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { formatDeliveryStatus } from '../../utils/date';
 import type { LoadCart, Order, OrderProduct } from '../../types/store';
 
 interface BuyAgainButtonProps {
@@ -55,8 +55,8 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
             <div className="product-name">
               {orderProduct.product.name}
             </div>
-            <div className="product-delivery-date">
-              Arriving on: {dayjs(orderProduct.estimatedDeliveryTimeMs).format('MMMM D')}
+            <div className="product-delivery-date" data-testid="order-product-delivery-date">
+              {formatDeliveryStatus(orderProduct.estimatedDeliveryTimeMs)}
             </div>
             <div className="product-quantity">
               Quantity: {orderProduct.quantity}
