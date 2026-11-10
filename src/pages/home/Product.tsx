@@ -13,9 +13,10 @@ const ADDED_MESSAGE_MS = 2000;
 interface ProductProps {
   product: ProductType;
   loadCart: LoadCart;
+  lazyLoadImage?: boolean;
 }
 
-export function Product({ product, loadCart }: ProductProps) {
+export function Product({ product, loadCart, lazyLoadImage = false }: ProductProps) {
   const [quantity, setQuantity] = useState(1);
   const [showAddedMessage, setShowAddedMessage] = useState(false);
 
@@ -42,7 +43,7 @@ export function Product({ product, loadCart }: ProductProps) {
         <img className="product-image"
           data-testid="product-image"
           src={product.image} alt={product.name}
-          width="720" height="720" />
+          width="480" height="480" loading={lazyLoadImage ? 'lazy' : 'eager'} />
       </div>
 
       <h2 className="product-name limit-text-to-2-lines">

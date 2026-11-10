@@ -6,6 +6,11 @@
   overflow-wrap: anywhere;
 }
 
+/* Keeps the footer out of view while loading, so it doesn't jump down when the content arrives */
+.page-status-loading {
+  min-height: 100vh;
+}
+
 .page-status .page-title {
   margin-bottom: 0;
 }

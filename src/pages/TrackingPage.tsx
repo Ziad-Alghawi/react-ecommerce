@@ -34,7 +34,7 @@ function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
 
       <div className="tracking-product">
         <img className="product-image" src={orderProduct.product.image}
-          alt={orderProduct.product.name} width="720" height="720" />
+          alt={orderProduct.product.name} width="480" height="480" />
         <div>
           <div className="product-name">{orderProduct.product.name}</div>
           <div className="product-quantity">Quantity: {orderProduct.quantity}</div>

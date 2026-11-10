@@ -31,11 +31,11 @@ describe('Header component', () => {
       </MemoryRouter>
     );
 
-    const logo = screen.getByTestId('header-logo');
+    const logo = screen.getByTestId('logo');
     expect(logo.getAttribute('src')).toContain('logo-white.webp');
 
-    const mobileLogo = screen.getByTestId('header-mobile-logo');
-    expect(mobileLogo.getAttribute('src')).toContain('mobile-logo-white.png');
+    const mobileLogo = screen.getByTestId('mobile-logo');
+    expect(mobileLogo.getAttribute('srcset')).toContain('mobile-logo-white.png');
 
     expect(screen.getByTestId('header-search-bar')).toBeInTheDocument();
     expect(screen.getByTestId('header-search-button')).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('Header component', () => {
     const searchBar = screen.getByTestId('header-search-bar');
     expect(searchBar).toHaveValue('socks');
 
-    await user.click(screen.getByTestId('header-logo'));
+    await user.click(screen.getByTestId('logo'));
 
     expect(searchBar).toHaveValue('');
     expect(screen.getByTestId('current-url')).toHaveTextContent(/^\/$/);

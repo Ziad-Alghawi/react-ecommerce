@@ -3,9 +3,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
 import type { CartItem } from '../types/store';
 import { CartIcon, SearchIcon } from './Icons';
-import { STORE_NAME } from './PageTitle';
-import LogoWhite from '../assets/images/logo-white.webp';
-import MobileLogoWhite from '../assets/images/mobile-logo-white.png';
+import { Logo } from './Logo';
 import './Header.css';
 
 interface HeaderProps {
@@ -30,10 +28,7 @@ export function Header({ cart }: HeaderProps) {
   return (
     <header className="header">
       <NavLink to="/" className="header-logo-link" onClick={() => setSearch('')}>
-        <img className="logo" src={LogoWhite} alt={`${STORE_NAME} home`}
-          width="150" height="44" data-testid="header-logo" />
-        <img className="mobile-logo" src={MobileLogoWhite} alt={`${STORE_NAME} home`}
-          width="26" height="30" data-testid="header-mobile-logo" />
+        <Logo white />
       </NavLink>
 
       <form className="search-form" role="search" onSubmit={searchProducts}>

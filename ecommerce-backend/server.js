@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
@@ -26,6 +27,7 @@ const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim());
 
+app.use(compression());
 app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 

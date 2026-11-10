@@ -62,7 +62,7 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
     <>
       <img className="product-image"
         src={cartItem.product.image} alt={cartItem.product.name}
-        width="720" height="720"
+        width="480" height="480"
         data-testid="cart-item-image" />
 
       <div className="cart-item-details">

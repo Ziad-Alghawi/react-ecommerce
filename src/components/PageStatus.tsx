@@ -13,7 +13,7 @@ export function LoadingMessage() {
   }, []);
 
   return (
-    <div className="page-status" role="status" data-testid="loading-message">
+    <div className="page-status page-status-loading" role="status" data-testid="loading-message">
       <div className="page-status-spinner"></div>
       <div>Loading...</div>
       {isSlow && (

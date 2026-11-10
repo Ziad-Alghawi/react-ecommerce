@@ -1,6 +1,6 @@
 # Product image credits
 
-These product photos are from [Unsplash](https://unsplash.com) and [Pexels](https://www.pexels.com) and are free to use under the [Unsplash License](https://unsplash.com/license) and the [Pexels License](https://www.pexels.com/license/). They were cropped to 720x720. The hiking boots photo was also retouched to remove a small badge.
+These product photos are from [Unsplash](https://unsplash.com) and [Pexels](https://www.pexels.com) and are free to use under the [Unsplash License](https://unsplash.com/license) and the [Pexels License](https://www.pexels.com/license/). They were cropped and resized to 480x480. The hiking boots photo was also retouched to remove a small badge.
 
 | File | Photographer | Source |
 | --- | --- | --- |

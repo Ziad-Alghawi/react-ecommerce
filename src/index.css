@@ -51,6 +51,11 @@
   box-sizing: border-box;
 }
 
+/* Reserves the scrollbar's space, so the page doesn't shift sideways when it appears */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -143,22 +148,11 @@ button, select {
 
 /* The logo file has wide margins around the artwork, so crop them */
 .logo {
+  display: block;
   object-fit: cover;
 }
 
-.mobile-logo {
-  display: none;
-}
-
 @media (max-width: 640px) {
-  .logo {
-    display: none;
-  }
-
-  .mobile-logo {
-    display: block;
-  }
-
   .page-title {
     font-size: var(--font-size-xl);
   }

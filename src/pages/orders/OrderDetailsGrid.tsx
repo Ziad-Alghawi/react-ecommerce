@@ -47,7 +47,7 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
       {order.products.map((orderProduct) => (
         <div key={orderProduct.productId} className="order-product">
           <img className="order-product-image" src={orderProduct.product.image}
-            alt={orderProduct.product.name} width="720" height="720" />
+            alt={orderProduct.product.name} width="480" height="480" loading="lazy" />
 
           <div className="product-details"
             data-testid="order-product-details">
