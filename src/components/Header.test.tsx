@@ -32,7 +32,7 @@ describe('Header component', () => {
     );
 
     const logo = screen.getByTestId('header-logo');
-    expect(logo.getAttribute('src')).toContain('logo-white.png');
+    expect(logo.getAttribute('src')).toContain('logo-white.webp');
 
     const mobileLogo = screen.getByTestId('header-mobile-logo');
     expect(mobileLogo.getAttribute('src')).toContain('mobile-logo-white.png');

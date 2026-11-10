@@ -2,7 +2,7 @@ import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
 import type { CartItem } from '../types/store';
-import LogoWhite from '../assets/images/logo-white.png';
+import LogoWhite from '../assets/images/logo-white.webp';
 import MobileLogoWhite from '../assets/images/mobile-logo-white.png';
 import CartIcon from '../assets/images/icons/cart-icon.png';
 import SearchIcon from '../assets/images/icons/search-icon.png';
