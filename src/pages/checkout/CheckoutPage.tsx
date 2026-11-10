@@ -81,7 +81,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
 
       <CheckoutHeader cart={cart} />
 
-      <main className="checkout-page">
+      <main className="checkout-page page">
         <h1 className="page-title">Review your order</h1>
 
         {pageContent}

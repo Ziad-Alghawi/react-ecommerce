@@ -1,7 +1,5 @@
 .home-page {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-8);
 }
 
 .home-intro {
@@ -109,10 +107,6 @@
 }
 
 @media (max-width: 520px) {
-  .home-page {
-    padding: var(--space-5) var(--space-4) var(--space-7);
-  }
-
   .home-page .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);

@@ -60,7 +60,7 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
 
   return (
     <>
-      <img className="product-image"
+      <img className="product-thumbnail"
         src={cartItem.product.image} alt={cartItem.product.name}
         width="480" height="480"
         data-testid="cart-item-image" />

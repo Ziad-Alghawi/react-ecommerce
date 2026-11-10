@@ -54,7 +54,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
 
       <Header cart={cart} />
 
-      <main className="orders-page">
+      <main className="orders-page page">
         <h1 className="page-title">Your Orders</h1>
 
         {pageContent}

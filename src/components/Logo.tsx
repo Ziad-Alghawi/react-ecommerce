@@ -5,7 +5,6 @@ import WhiteLogo from '../assets/images/logo-white.webp';
 import WhiteMobileLogo from '../assets/images/mobile-logo-white.png';
 
 interface LogoProps {
-  // The white logo, for the dark green header
   white?: boolean;
 }
 

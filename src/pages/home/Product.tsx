@@ -51,8 +51,7 @@ export function Product({ product, loadCart, lazyLoadImage = false }: ProductPro
       </h2>
 
       <div className="product-rating-container">
-        <img className="product-rating-stars"
-          data-testid="product-rating-stars-image"
+        <img data-testid="product-rating-stars-image"
           src={`images/ratings/rating-${product.rating.stars * 10}.png`}
           alt={`${product.rating.stars} out of 5 stars`}
           width="96" height="19" />

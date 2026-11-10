@@ -83,7 +83,7 @@ GitHub Actions runs all of these on every push.
 │   ├── test/             # API tests
 │   ├── documentation.md  # API reference
 │   └── server.js         # Server entry point
-├── public/               # Favicons, product photos and rating images
+├── public/               # Favicon, product photos and rating images
 ├── src/
 │   ├── components/       # Shared components
 │   ├── pages/            # Home, checkout, orders, tracking

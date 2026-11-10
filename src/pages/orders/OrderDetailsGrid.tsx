@@ -43,14 +43,13 @@ interface OrderDetailsGridProps {
 
 export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
   return (
-    <div className="order-details-grid">
+    <div>
       {order.products.map((orderProduct) => (
         <div key={orderProduct.productId} className="order-product">
-          <img className="order-product-image" src={orderProduct.product.image}
+          <img className="product-thumbnail" src={orderProduct.product.image}
             alt={orderProduct.product.name} width="480" height="480" loading="lazy" />
 
-          <div className="product-details"
-            data-testid="order-product-details">
+          <div data-testid="order-product-details">
             <div className="product-name">
               {orderProduct.product.name}
             </div>

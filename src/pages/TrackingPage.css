@@ -1,7 +1,5 @@
 .tracking-page {
   max-width: 760px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-8);
 }
 
 .tracking-page .order-tracking {
@@ -25,13 +23,6 @@
   align-items: center;
   gap: var(--space-4);
   margin-bottom: var(--space-6);
-}
-
-.tracking-page .product-image {
-  width: 96px;
-  height: 96px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
 }
 
 .tracking-page .product-name {
@@ -70,10 +61,6 @@
 }
 
 @media (max-width: 640px) {
-  .tracking-page {
-    padding: var(--space-5) var(--space-4) var(--space-7);
-  }
-
   .tracking-page .order-tracking {
     padding: var(--space-5) var(--space-4);
   }

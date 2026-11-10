@@ -51,11 +51,6 @@
   box-sizing: border-box;
 }
 
-/* Reserves the scrollbar's space, so the page doesn't shift sideways when it appears */
-html {
-  scrollbar-gutter: stable;
-}
-
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -133,10 +128,22 @@ button, select {
   background-color: var(--color-brand);
 }
 
+.page {
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-8);
+}
+
 .page-title {
   margin: 0 0 var(--space-5);
   font-size: var(--font-size-2xl);
   line-height: 1.2;
+}
+
+.product-thumbnail {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
 }
 
 .card {
@@ -153,6 +160,15 @@ button, select {
 }
 
 @media (max-width: 640px) {
+  .page {
+    padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+
+  .product-thumbnail {
+    width: 72px;
+    height: 72px;
+  }
+
   .page-title {
     font-size: var(--font-size-xl);
   }

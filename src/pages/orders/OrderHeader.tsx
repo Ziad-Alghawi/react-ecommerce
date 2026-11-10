@@ -9,14 +9,14 @@ interface OrderHeaderProps {
 export function OrderHeader({ order }: OrderHeaderProps) {
   return (
     <div className="order-header">
-      <div className="order-date">
+      <div>
         <div className="order-header-label">Order placed</div>
         <div data-testid="order-date">
           {dayjs(order.orderTimeMs).format('MMMM D')}
         </div>
       </div>
 
-      <div className="order-total">
+      <div>
         <div className="order-header-label">Total</div>
         <div data-testid="order-total">
           {formatMoney(order.totalCostCents)}

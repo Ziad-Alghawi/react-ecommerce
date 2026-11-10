@@ -33,7 +33,7 @@ function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
       </h1>
 
       <div className="tracking-product">
-        <img className="product-image" src={orderProduct.product.image}
+        <img className="product-thumbnail" src={orderProduct.product.image}
           alt={orderProduct.product.name} width="480" height="480" />
         <div>
           <div className="product-name">{orderProduct.product.name}</div>
@@ -120,7 +120,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
 
       <Header cart={cart} />
 
-      <main className="tracking-page">
+      <main className="tracking-page page">
         {pageContent}
       </main>
     </>

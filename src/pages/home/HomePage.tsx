@@ -75,7 +75,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
 
       <Header cart={cart} />
 
-      <main className="home-page">
+      <main className="home-page page">
         <div className="home-intro">
           <h1 className="page-title">
             {search ? `Results for "${search}"` : 'Everyday essentials, delivered'}
