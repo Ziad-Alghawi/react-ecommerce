@@ -1,6 +1,6 @@
 # Product image credits
 
-These product photos are from [Unsplash](https://unsplash.com) and are free to use under the [Unsplash License](https://unsplash.com/license). They were cropped to 720x720. The hiking boots photo was also retouched to remove a small badge.
+These product photos are from [Unsplash](https://unsplash.com) and [Pexels](https://www.pexels.com) and are free to use under the [Unsplash License](https://unsplash.com/license) and the [Pexels License](https://www.pexels.com/license/). They were cropped to 720x720. The hiking boots photo was also retouched to remove a small badge.
 
 | File | Photographer | Source |
 | --- | --- | --- |
@@ -14,7 +14,9 @@ These product photos are from [Unsplash](https://unsplash.com) and are free to u
 | `enamel-stovetop-kettle-white.jpg` | Kelly Sikkema | [Photo](https://unsplash.com/photos/Habx5tcthEM) |
 | `women-plain-cotton-oversized-sweater-gray.jpg` | Brooke Cagle | [Photo](https://unsplash.com/photos/uAfjZu--U2g) |
 | `men-knit-sweaters-3-pack.jpg` | Katya Azimova | [Photo](https://unsplash.com/photos/3FQBV3LvrDM) |
+| `2-slot-toaster-white.jpg` | Hf f | [Photo](https://www.pexels.com/photo/4493668/) |
 | `3-piece-cooking-set.jpg` | Justus Menke | [Photo](https://unsplash.com/photos/RSpq9P2vttE) |
+| `adults-plain-cotton-tshirt-2-pack-teal.jpg` | MART PRODUCTION | [Photo](https://www.pexels.com/photo/8217431/) |
 | `non-stick-cooking-set-4-pieces.jpg` | Cooker King | [Photo](https://unsplash.com/photos/AOVtEuU9UGc) |
 | `artistic-bowl-set-6-piece.jpg` | khloe arledge | [Photo](https://unsplash.com/photos/ypi0l7vP0Vw) |
 | `athletic-cotton-socks-6-pairs.jpg` | Nynne Schrøder | [Photo](https://unsplash.com/photos/axt96zsVXL8) |

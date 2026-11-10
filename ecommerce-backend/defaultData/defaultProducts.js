@@ -30,7 +30,7 @@ export const defaultProducts = [
       "count": 56
     },
     "priceCents": 799,
-    "keywords": ["tshirts", "apparel", "mens"]
+    "keywords": ["tshirts", "apparel", "mens", "womens"]
   },
   {
     "id": "54e0eccd-8f36-462b-b68a-8182611d9add",

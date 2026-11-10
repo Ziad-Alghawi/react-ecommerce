@@ -97,4 +97,4 @@ GitHub Actions runs all of these on every push.
 
 This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
 
-Product photos are from Unsplash and credited in [CREDITS.md](public/images/products/CREDITS.md). Two course photos are still waiting for a replacement, listed in [PHOTOS-TODO.md](PHOTOS-TODO.md).
+Product photos are from Unsplash and Pexels and credited in [CREDITS.md](public/images/products/CREDITS.md).
