@@ -75,9 +75,20 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
 
       <Header cart={cart} />
 
-      <div className="home-page">
+      <main className="home-page">
+        <div className="home-intro">
+          <h1 className="home-intro-title">
+            {search ? `Results for "${search}"` : 'Everyday essentials, delivered'}
+          </h1>
+          {!search && (
+            <p className="home-intro-text">
+              Home, kitchen and wardrobe basics, with a free delivery option on every order.
+            </p>
+          )}
+        </div>
+
         {pageContent}
-      </div>
+      </main>
     </>
   );
 }
