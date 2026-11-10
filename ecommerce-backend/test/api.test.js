@@ -153,6 +153,16 @@ test('a failing database call returns a 500 error and the server keeps running',
   assert.equal((await api('/api/products')).status, 200);
 });
 
+test('a malformed JSON body returns a 400 error', async () => {
+  const response = await fetch(`${baseUrl}/api/cart-items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': randomUUID() },
+    body: '{ "productId": '
+  });
+  assert.equal(response.status, 400);
+  assert.ok((await response.json()).error);
+});
+
 test('new visitors start with an empty cart and no orders', async () => {
   const visitorId = randomUUID();
   assert.deepEqual(await getCart(visitorId), []);

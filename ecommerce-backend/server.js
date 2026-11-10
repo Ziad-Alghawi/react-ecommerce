@@ -53,8 +53,13 @@ app.get('*', (req, res) => {
 // Express only treats a handler with four arguments as an error handler, so next has to stay
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  // Errors like a malformed JSON body come with their own 4xx status and a message safe to show
+  const status = err.status || 500;
+  if (status >= 500) {
+    console.error(err.stack);
+    return res.status(status).json({ error: 'Something went wrong!' });
+  }
+  res.status(status).json({ error: err.message });
 });
 
 // Older databases have one cart and order list shared by everyone, which can't
