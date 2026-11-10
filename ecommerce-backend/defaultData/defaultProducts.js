@@ -2,13 +2,13 @@ export const defaultProducts = [
   {
     "id": "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
     "image": "images/products/athletic-cotton-socks-6-pairs.jpg",
-    "name": "Black and Gray Athletic Cotton Socks - 6 Pairs",
+    "name": "Gray Hand Knit Wool Socks",
     "rating": {
       "stars": 4.5,
       "count": 87
     },
     "priceCents": 1090,
-    "keywords": ["socks", "sports", "apparel"]
+    "keywords": ["socks", "wool", "apparel"]
   },
   {
     "id": "15b6fc6f-327a-4ec4-896f-486349e85a3d",
@@ -46,7 +46,7 @@ export const defaultProducts = [
   {
     "id": "3ebe75dc-64d2-4137-8860-1f5a963e534b",
     "image": "images/products/elegant-white-dinner-plate-set.jpg",
-    "name": "2 Piece White Dinner Plate Set",
+    "name": "6 Piece White Dinner Plate Set",
     "rating": {
       "stars": 4,
       "count": 37
@@ -57,7 +57,7 @@ export const defaultProducts = [
   {
     "id": "8c9c52b5-5a19-4bcb-a5d1-158a74287c53",
     "image": "images/products/3-piece-cooking-set.jpg",
-    "name": "3 Piece Non-Stick, Black Cooking Pot Set",
+    "name": "3 Piece Stainless Steel Cooking Pot Set",
     "rating": {
       "stars": 4.5,
       "count": 175
@@ -79,7 +79,7 @@ export const defaultProducts = [
   {
     "id": "77919bbe-0e56-475b-adde-4f24dfed3a04",
     "image": "images/products/luxury-towel-set.jpg",
-    "name": "2 Piece Luxury Towel Set - White",
+    "name": "2 Piece Luxury Towel Set - Burgundy, Teal",
     "rating": {
       "stars": 4.5,
       "count": 144
@@ -112,13 +112,13 @@ export const defaultProducts = [
   {
     "id": "b86ddc8b-3501-4b17-9889-a3bad6fb585f",
     "image": "images/products/women-sandal-heels-white-pink.jpg",
-    "name": "Women's Sandal Heels - Pink",
+    "name": "Women's Pointed Toe Heels - White",
     "rating": {
       "stars": 4.5,
       "count": 2286
     },
     "priceCents": 5300,
-    "keywords": ["womens", "shoes", "heels", "sandals"]
+    "keywords": ["womens", "shoes", "heels", "pumps"]
   },
   {
     "id": "aad29d11-ea98-41ee-9285-b916638cac4a",
@@ -200,13 +200,13 @@ export const defaultProducts = [
   {
     "id": "b0f17cc5-8b40-4ca5-9142-b61fe3d98c85",
     "image": "images/products/men-stretch-wool-sweater-black.jpg",
-    "name": "Men's Wool Sweater - Black",
+    "name": "Women's Chunky Knit Sweater - Black",
     "rating": {
       "stars": 4.5,
       "count": 2465
     },
     "priceCents": 3374,
-    "keywords": ["sweaters", "apparel"]
+    "keywords": ["sweaters", "apparel", "womens"]
   },
   {
     "id": "a93a101d-79ef-4cf3-a6cf-6dbe532a1b4a",
@@ -255,7 +255,7 @@ export const defaultProducts = [
   {
     "id": "e4f64a65-1377-42bc-89a5-e572d19252e2",
     "image": "images/products/sky-leaf-branch-earrings.jpg",
-    "name": "Sterling Silver Leaf Branch Earrings",
+    "name": "Crystal Leaf Branch Earrings",
     "rating": {
       "stars": 4.5,
       "count": 52
@@ -266,7 +266,7 @@ export const defaultProducts = [
   {
     "id": "19c6a64a-5463-4d45-9af8-e41140a4100c",
     "image": "images/products/duvet-cover-set-gray-queen.jpg",
-    "name": "Duvet Cover Set, Diamond Pattern",
+    "name": "Duvet Cover Set - Gray",
     "rating": {
       "stars": 4,
       "count": 456
@@ -277,7 +277,7 @@ export const defaultProducts = [
   {
     "id": "d2785924-743d-49b3-8f03-ec258e640503",
     "image": "images/products/women-knit-beanie-pom-pom-blue.jpg",
-    "name": "Women's Knit Winter Beanie - Blue",
+    "name": "Women's Knit Winter Beanie - Yellow",
     "rating": {
       "stars": 5,
       "count": 83
@@ -321,7 +321,7 @@ export const defaultProducts = [
   {
     "id": "4e37dd03-3b23-4bc6-9ff8-44e112a92c64",
     "image": "images/products/non-stick-cooking-set-4-pieces.jpg",
-    "name": "Non-Stick Cook Set With Lids - 4 Pieces",
+    "name": "Non-Stick Cookware Set - 5 Pieces",
     "rating": {
       "stars": 4.5,
       "count": 511
@@ -332,7 +332,7 @@ export const defaultProducts = [
   {
     "id": "a434b69f-1bc1-482d-9ce7-cd7f4a66ce8d",
     "image": "images/products/vanity-mirror-pink.jpg",
-    "name": "Vanity Mirror with LED Lights - Pink",
+    "name": "Handheld Vanity Mirror - Pink",
     "rating": {
       "stars": 4.5,
       "count": 130
@@ -354,7 +354,7 @@ export const defaultProducts = [
   {
     "id": "d339adf3-e004-4c20-a120-40e8874c66cb",
     "image": "images/products/crystal-zirconia-stud-earrings-pink.jpg",
-    "name": "Crystal Zirconia Stud Earrings - Pink",
+    "name": "Gold Flower Stud Earrings",
     "rating": {
       "stars": 4.5,
       "count": 117
@@ -365,7 +365,7 @@ export const defaultProducts = [
   {
     "id": "d37a651a-d501-483b-aae6-a9659b0757a0",
     "image": "images/products/glass-screw-lid-food-containers.jpg",
-    "name": "Glass Screw Lid Containers - 3 Pieces",
+    "name": "Glass Food Containers With Bamboo Lids - 3 Pieces",
     "rating": {
       "stars": 4,
       "count": 126
@@ -398,7 +398,7 @@ export const defaultProducts = [
   {
     "id": "8a53b080-6d40-4a65-ab26-b24ecf700bce",
     "image": "images/products/bath-towel-set-gray-rosewood.jpg",
-    "name": "Bath Towels 2 Pack - Gray, Rosewood",
+    "name": "Bath Towels 2 Pack - Gray",
     "rating": {
       "stars": 4.5,
       "count": 93
@@ -431,7 +431,7 @@ export const defaultProducts = [
   {
     "id": "bc2847e9-5323-403f-b7cf-57fde044a955",
     "image": "images/products/men-cozy-fleece-hoodie-light-teal.jpg",
-    "name": "Men's Fleece Hoodie - Light Teal",
+    "name": "Men's Fleece Hoodie - White",
     "rating": {
       "stars": 4.5,
       "count": 3157
@@ -442,7 +442,7 @@ export const defaultProducts = [
   {
     "id": "36c64692-677f-4f58-b5ec-0dc2cf109e27",
     "image": "images/products/artistic-bowl-set-6-piece.jpg",
-    "name": "Artistic Bowl and Plate Set - 6 Pieces",
+    "name": "Artistic Ceramic Bowl Set",
     "rating": {
       "stars": 5,
       "count": 679
