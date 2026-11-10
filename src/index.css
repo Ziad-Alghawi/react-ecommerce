@@ -4,9 +4,11 @@
   --color-brand-active: #0f5132;
   --color-brand-dark: #0b4a2c;
   --color-brand-subtle: #e8f3ed;
+  --color-brand-accent: #b9f2c8;
   --color-text: #1f2328;
   --color-text-muted: #59636e;
   --color-text-inverse: #ffffff;
+  --color-inverse-hover: rgba(255, 255, 255, 0.12);
   --color-surface: #ffffff;
   --color-surface-hover: #f3f5f6;
   --color-background: #f6f7f8;

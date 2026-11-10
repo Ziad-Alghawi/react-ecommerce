@@ -1,6 +1,6 @@
 .tracking-page {
   max-width: 850px;
-  margin-top: 90px;
+  margin-top: var(--space-6);
   margin-bottom: 100px;
   padding-left: 30px;
   padding-right: 30px;

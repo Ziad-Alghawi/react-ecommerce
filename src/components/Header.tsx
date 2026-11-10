@@ -1,11 +1,10 @@
 import { NavLink, useNavigate, useSearchParams } from 'react-router';
-import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
 import type { CartItem } from '../types/store';
+import { CartIcon, SearchIcon } from './Icons';
 import LogoWhite from '../assets/images/logo-white.webp';
 import MobileLogoWhite from '../assets/images/mobile-logo-white.png';
-import CartIcon from '../assets/images/icons/cart-icon.png';
-import SearchIcon from '../assets/images/icons/search-icon.png';
 import './Header.css';
 
 interface HeaderProps {
@@ -16,59 +15,54 @@ export function Header({ cart }: HeaderProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
+  const cartQuantity = getCartQuantity(cart);
 
   const updateSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   };
 
-  const searchProducts = () => {
+  const searchProducts = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     navigate(`/?search=${encodeURIComponent(search)}`);
   };
 
-  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      searchProducts();
-    }
-  };
-
   return (
-    <div className="header">
-      <div className="left-section">
-        <NavLink to="/" className="header-link" onClick={() => setSearch('')}>
-          <img className="logo"
-            src={LogoWhite}
-            data-testid="header-logo" />
-          <img className="mobile-logo"
-            src={MobileLogoWhite}
-            data-testid="header-mobile-logo" />
-        </NavLink>
-      </div>
+    <header className="header">
+      <NavLink to="/" className="header-logo-link" onClick={() => setSearch('')}>
+        <img className="logo" src={LogoWhite} alt="Ziad-Alghawi Store home"
+          width="150" height="44" data-testid="header-logo" />
+        <img className="mobile-logo" src={MobileLogoWhite} alt="Ziad-Alghawi Store home"
+          width="26" height="30" data-testid="header-mobile-logo" />
+      </NavLink>
 
-      <div className="middle-section">
-        <input className="search-bar" type="text" placeholder="Search"
-          value={search} onChange={updateSearchInput} onKeyDown={handleSearchKeyDown}
+      <form className="search-form" role="search" onSubmit={searchProducts}>
+        <input className="search-bar" type="search" placeholder="Search products"
+          aria-label="Search products"
+          value={search} onChange={updateSearchInput}
           data-testid="header-search-bar" />
 
-        <button className="search-button"
-          onClick={searchProducts}
+        <button className="search-button" type="submit" aria-label="Search"
           data-testid="header-search-button">
-          <img className="search-icon" src={SearchIcon} />
+          <SearchIcon />
         </button>
-      </div>
+      </form>
 
-      <div className="right-section">
-        <NavLink className="orders-link header-link" to="/orders"
+      <nav className="header-nav">
+        <NavLink className="header-link" to="/orders"
           data-testid="header-orders-link">
-          <span className="orders-text">Orders</span>
+          Orders
         </NavLink>
 
-        <NavLink className="cart-link header-link" to="/checkout"
+        <NavLink className="header-link" to="/checkout"
+          aria-label={`Cart, ${cartQuantity} ${cartQuantity === 1 ? 'item' : 'items'}`}
           data-testid="header-cart-link">
-          <img className="cart-icon" src={CartIcon} />
-          <div className="cart-quantity">{getCartQuantity(cart)}</div>
-          <div className="cart-text">Cart</div>
+          <span className="cart-icon">
+            <CartIcon />
+            {cartQuantity > 0 && <span className="cart-badge">{cartQuantity}</span>}
+          </span>
+          Cart
         </NavLink>
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 }
