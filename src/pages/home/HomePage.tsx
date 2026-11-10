@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useSearchParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header';
+import { PageTitle } from '../../components/PageTitle';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
 import { ProductsGrid } from './ProductsGrid';
 import type { CartItem, LoadCart, Product } from '../../types/store';
@@ -70,8 +71,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
 
   return (
     <>
-      <title>Ecommerce-project</title>
-      <link rel="icon" type="image/png" href="/home-favicon.png" />
+      <PageTitle title={search ? `Results for "${search}"` : undefined} />
 
       <Header cart={cart} />
 

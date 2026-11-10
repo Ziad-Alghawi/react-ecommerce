@@ -1,6 +1,7 @@
+import { Link } from 'react-router';
 import { Header } from '../components/Header';
+import { PageTitle } from '../components/PageTitle';
 import type { CartItem } from '../types/store';
-import './NotFoundPage.css';
 
 interface NotFoundPageProps {
   cart: CartItem[];
@@ -9,14 +10,17 @@ interface NotFoundPageProps {
 export function NotFoundPage({ cart }: NotFoundPageProps) {
   return (
     <>
-      <title>404 Page Not Found</title>
-      <link rel="icon" type="image/png" href="/home-favicon.png" />
+      <PageTitle title="Page not found" />
 
       <Header cart={cart} />
 
-      <div className="not-found-message">
-        Page not found
-      </div>
+      <main className="page-status">
+        <h1 className="page-title">Page not found</h1>
+        <div className="page-status-detail">
+          The page you're looking for doesn't exist or has moved.
+        </div>
+        <Link className="page-status-link link-primary" to="/">Browse products</Link>
+      </main>
     </>
   );
 }

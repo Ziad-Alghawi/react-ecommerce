@@ -1,25 +1,42 @@
-/* Keeps the footer at the bottom of the window on short pages.
-   flow-root stops the margin-top of each page from pushing this box down. */
+/* Keeps the footer at the bottom of the window on short pages */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .app-content {
-  display: flow-root;
-  min-height: calc(100vh - 49px);
+  flex: 1;
 }
 
 .site-footer {
-  height: 48px;
-  line-height: 48px;
+  padding: var(--space-5);
   border-top: 1px solid var(--color-border);
-  text-align: center;
-  font-size: 13px;
+  background-color: var(--color-surface);
   color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.site-footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.site-footer-link {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Shown over the page when adding to cart, placing an order, etc. fails */
 .action-error {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  right: var(--space-4);
   z-index: 1100;
   max-width: 420px;
   margin: 0 auto;
@@ -30,5 +47,5 @@
 }
 
 .action-error .page-status {
-  padding: 20px;
+  padding: var(--space-5);
 }

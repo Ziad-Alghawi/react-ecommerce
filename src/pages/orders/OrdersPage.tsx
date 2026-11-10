@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header';
+import { PageTitle } from '../../components/PageTitle';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
 import { OrderGrid } from './OrderGrid';
 import type { CartItem, LoadCart, Order } from '../../types/store';
@@ -49,8 +50,7 @@ export function OrdersPage({ cart, loadCart, onRetry }: OrdersPageProps) {
 
   return (
     <>
-      <title>Orders</title>
-      <link rel="icon" type="image/png" href="/orders-favicon.png" />
+      <PageTitle title="Your Orders" />
 
       <Header cart={cart} />
 

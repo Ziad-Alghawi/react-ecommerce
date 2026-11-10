@@ -111,7 +111,13 @@ function App() {
       )}
 
       <footer className="site-footer" data-testid="site-footer">
-        Demo store, data resets regularly
+        <div className="site-footer-content">
+          <span>Demo store, data resets regularly. No real orders or payments.</span>
+          <a className="site-footer-link" href="https://github.com/Ziad-Alghawi/react-ecommerce"
+            target="_blank" rel="noreferrer">
+            View the code on GitHub
+          </a>
+        </div>
       </footer>
     </>
   );

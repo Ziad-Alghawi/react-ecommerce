@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { getCartQuantity } from '../../utils/cart';
 import type { CartItem } from '../../types/store';
 import { LockIcon } from '../../components/Icons';
+import { STORE_NAME } from '../../components/PageTitle';
 import Logo from '../../assets/images/logo.webp';
 import MobileLogo from '../../assets/images/mobile-logo.png';
 import './CheckoutHeader.css';
@@ -17,9 +18,9 @@ export function CheckoutHeader({ cart }: CheckoutHeaderProps) {
     <header className="checkout-header">
       <div className="checkout-header-content" data-testid="checkout-header">
         <Link to="/" className="checkout-header-logo-link">
-          <img className="logo" src={Logo} alt="Ziad-Alghawi Store home"
+          <img className="logo" src={Logo} alt={`${STORE_NAME} home`}
             width="150" height="44" />
-          <img className="mobile-logo" src={MobileLogo} alt="Ziad-Alghawi Store home"
+          <img className="mobile-logo" src={MobileLogo} alt={`${STORE_NAME} home`}
             width="26" height="30" />
         </Link>
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { PageTitle } from '../../components/PageTitle';
 import { CheckoutHeader } from './CheckoutHeader';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
@@ -76,8 +77,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
 
   return (
     <>
-      <title>Checkout</title>
-      <link rel="icon" type="image/png" href="/cart-favicon.png" />
+      <PageTitle title="Checkout" />
 
       <CheckoutHeader cart={cart} />
 

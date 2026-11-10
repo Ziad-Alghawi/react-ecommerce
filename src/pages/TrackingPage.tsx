@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
+import { PageTitle } from '../components/PageTitle';
 import { ErrorMessage, LoadingMessage } from '../components/PageStatus';
 import { formatDeliveryStatus } from '../utils/date';
 import type { CartItem, Order, OrderProduct } from '../types/store';
@@ -115,8 +116,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
 
   return (
     <>
-      <title>Tracking</title>
-      <link rel="icon" type="image/png" href="/tracking-favicon.png" />
+      <PageTitle title="Track your package" />
 
       <Header cart={cart} />
 
