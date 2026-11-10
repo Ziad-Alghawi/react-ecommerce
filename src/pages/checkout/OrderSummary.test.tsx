@@ -20,8 +20,8 @@ describe('OrderSummary component', () => {
       deliveryOptionId: '1',
       product: {
         id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-        image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-        name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
+        image: "images/products/gray-hand-knit-wool-socks.jpg",
+        name: "Gray Hand Knit Wool Socks",
         rating: {
           stars: 4.5,
           count: 87
@@ -83,10 +83,10 @@ describe('OrderSummary component', () => {
 
     expect(
       within(cartItemContainers[0]).getByTestId('cart-item-image')
-    ).toHaveAttribute('src', 'images/products/athletic-cotton-socks-6-pairs.jpg');
+    ).toHaveAttribute('src', 'images/products/gray-hand-knit-wool-socks.jpg');
     expect(
       within(cartItemContainers[0]).getByTestId('cart-item-name')
-    ).toHaveTextContent('Black and Gray Athletic Cotton Socks - 6 Pairs');
+    ).toHaveTextContent('Gray Hand Knit Wool Socks');
     expect(
       within(cartItemContainers[0]).getByTestId('cart-item-price')
     ).toHaveTextContent('$10.90');

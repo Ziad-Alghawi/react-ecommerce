@@ -21,8 +21,8 @@ describe('CheckoutPage component', () => {
       deliveryOptionId: '1',
       product: {
         id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-        image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-        name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
+        image: "images/products/gray-hand-knit-wool-socks.jpg",
+        name: "Gray Hand Knit Wool Socks",
         rating: {
           stars: 4.5,
           count: 87
@@ -104,7 +104,7 @@ describe('CheckoutPage component', () => {
     // OrderSummary and PaymentSummary have their own, more detailed tests
     expect(screen.getByText('Review your order')).toBeInTheDocument();
     expect(
-      screen.getByText('Black and Gray Athletic Cotton Socks - 6 Pairs')
+      screen.getByText('Gray Hand Knit Wool Socks')
     ).toBeInTheDocument();
     expect(
       screen.getByText('Intermediate Size Basketball')

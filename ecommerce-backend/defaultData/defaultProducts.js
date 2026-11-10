@@ -1,7 +1,7 @@
 export const defaultProducts = [
   {
     "id": "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-    "image": "images/products/athletic-cotton-socks-6-pairs.jpg",
+    "image": "images/products/gray-hand-knit-wool-socks.jpg",
     "name": "Gray Hand Knit Wool Socks",
     "rating": {
       "stars": 4.5,
@@ -23,7 +23,7 @@ export const defaultProducts = [
   },
   {
     "id": "83d4ca15-0f35-48f5-b7a3-1ea210004f2e",
-    "image": "images/products/adults-plain-cotton-tshirt-2-pack-teal.jpg",
+    "image": "images/products/adults-plain-cotton-tshirt-2-pack.jpg",
     "name": "Adults Plain Cotton T-Shirt - 2 Pack",
     "rating": {
       "stars": 4.5,
@@ -111,7 +111,7 @@ export const defaultProducts = [
   },
   {
     "id": "b86ddc8b-3501-4b17-9889-a3bad6fb585f",
-    "image": "images/products/women-sandal-heels-white-pink.jpg",
+    "image": "images/products/women-pointed-toe-heels-white.jpg",
     "name": "Women's Pointed Toe Heels - White",
     "rating": {
       "stars": 4.5,
@@ -199,7 +199,7 @@ export const defaultProducts = [
   },
   {
     "id": "b0f17cc5-8b40-4ca5-9142-b61fe3d98c85",
-    "image": "images/products/men-stretch-wool-sweater-black.jpg",
+    "image": "images/products/women-chunky-knit-sweater-black.jpg",
     "name": "Women's Chunky Knit Sweater - Black",
     "rating": {
       "stars": 4.5,
@@ -276,7 +276,7 @@ export const defaultProducts = [
   },
   {
     "id": "d2785924-743d-49b3-8f03-ec258e640503",
-    "image": "images/products/women-knit-beanie-pom-pom-blue.jpg",
+    "image": "images/products/women-knit-beanie-pom-pom-yellow.jpg",
     "name": "Women's Knit Winter Beanie - Yellow",
     "rating": {
       "stars": 5,
@@ -320,7 +320,7 @@ export const defaultProducts = [
   },
   {
     "id": "4e37dd03-3b23-4bc6-9ff8-44e112a92c64",
-    "image": "images/products/non-stick-cooking-set-4-pieces.jpg",
+    "image": "images/products/non-stick-cookware-set-5-pieces.jpg",
     "name": "Non-Stick Cookware Set - 5 Pieces",
     "rating": {
       "stars": 4.5,
@@ -353,7 +353,7 @@ export const defaultProducts = [
   },
   {
     "id": "d339adf3-e004-4c20-a120-40e8874c66cb",
-    "image": "images/products/crystal-zirconia-stud-earrings-pink.jpg",
+    "image": "images/products/gold-flower-stud-earrings.jpg",
     "name": "Gold Flower Stud Earrings",
     "rating": {
       "stars": 4.5,
@@ -364,7 +364,7 @@ export const defaultProducts = [
   },
   {
     "id": "d37a651a-d501-483b-aae6-a9659b0757a0",
-    "image": "images/products/glass-screw-lid-food-containers.jpg",
+    "image": "images/products/glass-food-containers-bamboo-lids.jpg",
     "name": "Glass Food Containers With Bamboo Lids - 3 Pieces",
     "rating": {
       "stars": 4,
@@ -397,7 +397,7 @@ export const defaultProducts = [
   },
   {
     "id": "8a53b080-6d40-4a65-ab26-b24ecf700bce",
-    "image": "images/products/bath-towel-set-gray-rosewood.jpg",
+    "image": "images/products/bath-towels-2-pack-gray.jpg",
     "name": "Bath Towels 2 Pack - Gray",
     "rating": {
       "stars": 4.5,
@@ -430,7 +430,7 @@ export const defaultProducts = [
   },
   {
     "id": "bc2847e9-5323-403f-b7cf-57fde044a955",
-    "image": "images/products/men-cozy-fleece-hoodie-light-teal.jpg",
+    "image": "images/products/men-fleece-hoodie-white.jpg",
     "name": "Men's Fleece Hoodie - White",
     "rating": {
       "stars": 4.5,
@@ -441,7 +441,7 @@ export const defaultProducts = [
   },
   {
     "id": "36c64692-677f-4f58-b5ec-0dc2cf109e27",
-    "image": "images/products/artistic-bowl-set-6-piece.jpg",
+    "image": "images/products/artistic-ceramic-bowl-set.jpg",
     "name": "Artistic Ceramic Bowl Set",
     "rating": {
       "stars": 5,
