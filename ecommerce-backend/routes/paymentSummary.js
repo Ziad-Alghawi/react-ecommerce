@@ -1,4 +1,5 @@
 import express from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { CartItem } from '../models/CartItem.js';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
@@ -33,9 +34,9 @@ export async function calculatePaymentSummary(cartItems) {
   };
 }
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
   res.json(await calculatePaymentSummary(cartItems));
-});
+}));
 
 export default router;

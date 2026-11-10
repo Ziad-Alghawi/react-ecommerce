@@ -1,4 +1,5 @@
 import express from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption.js';
@@ -18,7 +19,7 @@ async function withProductDetails(order) {
   return { ...order.toJSON(), products };
 }
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const expand = req.query.expand;
   let orders = await Order.unscoped().findAll({
     where: { visitorId: req.visitorId },
@@ -30,9 +31,9 @@ router.get('/', async (req, res) => {
   }
 
   res.json(orders);
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
 
   if (cartItems.length === 0) {
@@ -65,9 +66,9 @@ router.post('/', async (req, res) => {
   await CartItem.destroy({ where: { visitorId: req.visitorId } });
 
   res.status(201).json(order);
-});
+}));
 
-router.get('/:orderId', async (req, res) => {
+router.get('/:orderId', asyncHandler(async (req, res) => {
   const { orderId } = req.params;
   const expand = req.query.expand;
 
@@ -82,6 +83,6 @@ router.get('/:orderId', async (req, res) => {
   }
 
   res.json(order);
-});
+}));
 
 export default router;

@@ -142,6 +142,17 @@ test('cart and order routes need a valid visitor ID', async () => {
   }
 });
 
+test('a failing database call returns a 500 error and the server keeps running', async () => {
+  // Sequelize throws when findByPk gets an object instead of an ID
+  const response = await api('/api/cart-items', {
+    visitorId: randomUUID(), method: 'POST', body: { productId: {}, quantity: 1 }
+  });
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), { error: 'Something went wrong!' });
+
+  assert.equal((await api('/api/products')).status, 200);
+});
+
 test('new visitors start with an empty cart and no orders', async () => {
   const visitorId = randomUUID();
   assert.deepEqual(await getCart(visitorId), []);

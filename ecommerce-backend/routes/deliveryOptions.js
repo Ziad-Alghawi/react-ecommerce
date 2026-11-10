@@ -1,9 +1,10 @@
 import express from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const expand = req.query.expand;
   let deliveryOptions = await DeliveryOption.findAll();
 
@@ -15,6 +16,6 @@ router.get('/', async (req, res) => {
   }
 
   res.json(deliveryOptions);
-});
+}));
 
 export default router;

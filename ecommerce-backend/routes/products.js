@@ -1,9 +1,10 @@
 import express from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { Product } from '../models/Product.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const search = req.query.search;
   let products = await Product.findAll();
 
@@ -18,6 +19,6 @@ router.get('/', async (req, res) => {
   }
 
   res.json(products);
-});
+}));
 
 export default router;

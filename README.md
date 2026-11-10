@@ -77,7 +77,7 @@ GitHub Actions runs all of these on every push.
 ├── docs/screenshots/     # README images
 ├── ecommerce-backend/    # Express API
 │   ├── defaultData/      # Demo products and delivery options
-│   ├── middleware/       # Visitor ID handling
+│   ├── middleware/       # Visitor ID and async error handling
 │   ├── models/           # Sequelize models
 │   ├── routes/           # API routes
 │   ├── test/             # API tests

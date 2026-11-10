@@ -1,11 +1,12 @@
 import express from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { CartItem } from '../models/CartItem.js';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const expand = req.query.expand;
   let cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
 
@@ -20,9 +21,9 @@ router.get('/', async (req, res) => {
   }
 
   res.json(cartItems);
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
 
   const product = await Product.findByPk(productId);
@@ -43,9 +44,9 @@ router.post('/', async (req, res) => {
   }
 
   res.status(201).json(cartItem);
-});
+}));
 
-router.put('/:productId', async (req, res) => {
+router.put('/:productId', asyncHandler(async (req, res) => {
   const { productId } = req.params;
   const { quantity, deliveryOptionId } = req.body;
 
@@ -71,9 +72,9 @@ router.put('/:productId', async (req, res) => {
 
   await cartItem.save();
   res.json(cartItem);
-});
+}));
 
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', asyncHandler(async (req, res) => {
   const { productId } = req.params;
 
   const cartItem = await CartItem.findOne({ where: { productId, visitorId: req.visitorId } });
@@ -83,6 +84,6 @@ router.delete('/:productId', async (req, res) => {
 
   await cartItem.destroy();
   res.status(204).send();
-});
+}));
 
 export default router;

@@ -22,7 +22,7 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Visitors:** the cart, order and payment summary routes need an `X-Visitor-Id` header with a UUID. Each ID has its own cart and orders, so a browser can keep its own data without an account. Requests without a valid ID get `400`.
 
-**Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`.
+**Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
 
 ## GET /api/products
 Returns a list of products.
