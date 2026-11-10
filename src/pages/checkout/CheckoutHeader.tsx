@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { getCartQuantity } from '../../utils/cart';
 import type { CartItem } from '../../types/store';
-import Logo from '../../assets/images/logo.png';
+import Logo from '../../assets/images/logo.webp';
 import MobileLogo from '../../assets/images/mobile-logo.png';
 import CheckoutLockIcon from '../../assets/images/icons/checkout-lock-icon.png';
 import './CheckoutHeader.css';
