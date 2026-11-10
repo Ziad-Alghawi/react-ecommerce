@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Fragment } from 'react';
-import BuyAgainIcon from '../../assets/images/icons/buy-again.png';
+import { Link } from 'react-router';
+import { CartIcon } from '../../components/Icons';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
 import { formatDeliveryStatus } from '../../utils/date';
@@ -30,7 +30,7 @@ function BuyAgainButton({ orderProduct, loadCart }: BuyAgainButtonProps) {
       {/* The spinner takes the icon's place, so the button doesn't change size */}
       {isAdding
         ? <ButtonSpinner />
-        : <img className="buy-again-icon" src={BuyAgainIcon} />}
+        : <CartIcon className="buy-again-icon" />}
       <span className="buy-again-message">Add to Cart</span>
     </button>
   );
@@ -45,10 +45,9 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
   return (
     <div className="order-details-grid">
       {order.products.map((orderProduct) => (
-        <Fragment key={orderProduct.productId}>
-          <div className="product-image-container">
-            <img src={orderProduct.product.image} />
-          </div>
+        <div key={orderProduct.productId} className="order-product">
+          <img className="order-product-image" src={orderProduct.product.image}
+            alt={orderProduct.product.name} width="720" height="720" />
 
           <div className="product-details"
             data-testid="order-product-details">
@@ -65,14 +64,11 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
             <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />
           </div>
 
-          <div className="product-actions">
-            <a href={`/tracking/${order.id}/${orderProduct.product.id}`}>
-              <button className="track-package-button button-secondary">
-                Track package
-              </button>
-            </a>
-          </div>
-        </Fragment>
+          <Link className="track-package-button button-secondary"
+            to={`/tracking/${order.id}/${orderProduct.product.id}`}>
+            Track package
+          </Link>
+        </div>
       ))}
     </div>
   );

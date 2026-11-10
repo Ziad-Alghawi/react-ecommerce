@@ -1,77 +1,88 @@
 .tracking-page {
-  max-width: 850px;
-  margin-top: var(--space-6);
-  margin-bottom: 100px;
-  padding-left: 30px;
-  padding-right: 30px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-8);
+}
 
-  margin-left: auto;
-  margin-right: auto;
+.tracking-page .order-tracking {
+  padding: var(--space-6);
 }
 
 .tracking-page .back-to-orders-link {
   display: inline-block;
-  margin-bottom: 30px;
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
 }
 
 .tracking-page .delivery-date {
-  font-size: 25px;
-  font-weight: 700;
-  margin-bottom: 10px;
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-2xl);
+  line-height: 1.2;
 }
 
-.tracking-page .product-info {
-  margin-bottom: 3px;
+.tracking-page .tracking-product {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .tracking-page .product-image {
-  max-width: 150px;
-  max-height: 150px;
-  margin-top: 25px;
-  margin-bottom: 50px;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.tracking-page .product-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.tracking-page .product-quantity {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .tracking-page .progress-labels-container {
   display: flex;
   justify-content: space-between;
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom: 15px;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
 }
 
 .tracking-page .current-status {
   color: var(--color-brand);
-}
-
-@media (max-width: 575px) {
-  .tracking-page .progress-labels-container {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 450px) {
-  .tracking-page .progress-labels-container {
-    flex-direction: column;
-    margin-bottom: 5px;
-  }
-
-  .tracking-page .progress-label {
-    margin-bottom: 3px;
-  }
+  font-weight: var(--font-weight-bold);
 }
 
 .tracking-page .progress-bar-container {
-  height: 25px;
-  width: 100%;
-
-  border: 1px solid var(--color-border-strong);
-  border-radius: 50px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border);
   overflow: hidden;
 }
 
 .tracking-page .progress-bar {
   height: 100%;
+  border-radius: var(--radius-full);
   background-color: var(--color-brand);
-  border-radius: 50px;
-  width: 50%;
+}
+
+@media (max-width: 640px) {
+  .tracking-page {
+    padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+
+  .tracking-page .order-tracking {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .tracking-page .delivery-date {
+    font-size: var(--font-size-xl);
+  }
+
+  .tracking-page .progress-labels-container {
+    font-size: var(--font-size-sm);
+  }
 }

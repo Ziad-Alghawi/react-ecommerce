@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
@@ -22,38 +22,39 @@ function PackageTracking({ order, orderProduct }: PackageTrackingProps) {
   const isDelivered = deliveryPercent === 100;
 
   return (
-    <div className="order-tracking">
-      <a className="back-to-orders-link link-primary" href="/orders">
+    <div className="order-tracking card">
+      <Link className="back-to-orders-link link-primary" to="/orders">
         View all orders
-      </a>
+      </Link>
 
-      <div className="delivery-date">
+      <h1 className="delivery-date">
         {formatDeliveryStatus(orderProduct.estimatedDeliveryTimeMs)}
-      </div>
+      </h1>
 
-      <div className="product-info">
-        {orderProduct.product.name}
+      <div className="tracking-product">
+        <img className="product-image" src={orderProduct.product.image}
+          alt={orderProduct.product.name} width="720" height="720" />
+        <div>
+          <div className="product-name">{orderProduct.product.name}</div>
+          <div className="product-quantity">Quantity: {orderProduct.quantity}</div>
+        </div>
       </div>
-
-      <div className="product-info">
-        Quantity: {orderProduct.quantity}
-      </div>
-
-      <img className="product-image" src={orderProduct.product.image} />
 
       <div className="progress-labels-container">
-        <div className={`progress-label ${isPreparing ? 'current-status' : ''}`}>
+        <div className={isPreparing ? 'current-status' : undefined}>
           Preparing
         </div>
-        <div className={`progress-label ${isShipped ? 'current-status' : ''}`}>
+        <div className={isShipped ? 'current-status' : undefined}>
           Shipped
         </div>
-        <div className={`progress-label ${isDelivered ? 'current-status' : ''}`}>
+        <div className={isDelivered ? 'current-status' : undefined}>
           Delivered
         </div>
       </div>
 
-      <div className="progress-bar-container">
+      <div className="progress-bar-container" role="progressbar"
+        aria-label="Delivery progress" aria-valuenow={Math.round(deliveryPercent)}
+        aria-valuemin={0} aria-valuemax={100}>
         <div className="progress-bar"
           style={{ width: `${deliveryPercent}%` }}></div>
       </div>
@@ -107,7 +108,7 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
     pageContent = (
       <div className="page-status" data-testid="package-not-found">
         <div>We couldn't find this package</div>
-        <a className="page-status-link link-primary" href="/orders">View all orders</a>
+        <Link className="page-status-link link-primary" to="/orders">View all orders</Link>
       </div>
     );
   }
@@ -119,9 +120,9 @@ export function TrackingPage({ cart, onRetry }: TrackingPageProps) {
 
       <Header cart={cart} />
 
-      <div className="tracking-page">
+      <main className="tracking-page">
         {pageContent}
-      </div>
+      </main>
     </>
   );
 }

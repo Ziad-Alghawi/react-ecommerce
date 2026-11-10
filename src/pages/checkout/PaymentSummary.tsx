@@ -20,10 +20,10 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
   });
 
   return (
-    <div className="payment-summary">
-      <div className="payment-summary-title">
+    <div className="payment-summary card">
+      <h2 className="payment-summary-title">
         Payment Summary
-      </div>
+      </h2>
 
       {paymentSummary && (
         <>

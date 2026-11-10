@@ -11,7 +11,7 @@ export function OrderGrid({ orders, loadCart }: OrderGridProps) {
   return (
     <div className="orders-grid">
       {orders.map((order) => (
-        <div key={order.id} className="order-container"
+        <div key={order.id} className="order-container card"
           data-testid="order-container">
           <OrderHeader order={order} />
 

@@ -16,8 +16,8 @@ export function DeliveryDate({ cartItem, deliveryOptions }: DeliveryDateProps) {
   }
 
   return (
-    <div className="delivery-date">
+    <h2 className="delivery-date">
       Delivery date: {formatDeliveryDate(selectedDeliveryOption.estimatedDeliveryTimeMs)}
-    </div>
+    </h2>
   );
 }

@@ -81,11 +81,11 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
 
       <CheckoutHeader cart={cart} />
 
-      <div className="checkout-page">
-        <div className="page-title">Review your order</div>
+      <main className="checkout-page">
+        <h1 className="page-title">Review your order</h1>
 
         {pageContent}
-      </div>
+      </main>
     </>
   );
 }

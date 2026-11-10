@@ -1,9 +1,9 @@
 import { Link } from 'react-router';
 import { getCartQuantity } from '../../utils/cart';
 import type { CartItem } from '../../types/store';
+import { LockIcon } from '../../components/Icons';
 import Logo from '../../assets/images/logo.webp';
 import MobileLogo from '../../assets/images/mobile-logo.png';
-import CheckoutLockIcon from '../../assets/images/icons/checkout-lock-icon.png';
 import './CheckoutHeader.css';
 
 interface CheckoutHeaderProps {
@@ -11,26 +11,29 @@ interface CheckoutHeaderProps {
 }
 
 export function CheckoutHeader({ cart }: CheckoutHeaderProps) {
+  const cartQuantity = getCartQuantity(cart);
+
   return (
-    <div className="checkout-header">
-      <div className="header-content"
-        data-testid="checkout-header">
-        <div className="checkout-header-left-section">
-          <Link to="/">
-            <img className="logo" src={Logo} />
-            <img className="mobile-logo" src={MobileLogo} />
-          </Link>
+    <header className="checkout-header">
+      <div className="checkout-header-content" data-testid="checkout-header">
+        <Link to="/" className="checkout-header-logo-link">
+          <img className="logo" src={Logo} alt="Ziad-Alghawi Store home"
+            width="150" height="44" />
+          <img className="mobile-logo" src={MobileLogo} alt="Ziad-Alghawi Store home"
+            width="26" height="30" />
+        </Link>
+
+        <div className="checkout-header-title">
+          Checkout (<Link className="link-primary" to="/">
+            {cartQuantity} {cartQuantity === 1 ? 'item' : 'items'}
+          </Link>)
         </div>
 
-        <div className="checkout-header-middle-section">
-          Checkout (<Link className="return-to-home-link"
-            to="/">{getCartQuantity(cart)} items</Link>)
-        </div>
-
-        <div className="checkout-header-right-section">
-          <img src={CheckoutLockIcon} />
+        <div className="checkout-header-secure">
+          <LockIcon />
+          <span className="checkout-header-secure-text">Secure checkout</span>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

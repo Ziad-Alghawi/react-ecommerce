@@ -11,10 +11,10 @@ interface DeliveryOptionsProps {
 
 export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: DeliveryOptionsProps) {
   return (
-    <div className="delivery-options">
-      <div className="delivery-options-title">
+    <fieldset className="delivery-options">
+      <legend className="delivery-options-title">
         Choose a delivery option:
-      </div>
+      </legend>
 
       {deliveryOptions.map((deliveryOption) => {
         const priceString = deliveryOption.priceCents > 0
@@ -29,11 +29,11 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: Deliver
         };
 
         return (
-          <div key={deliveryOption.id} className="delivery-option" onClick={updateDeliveryOption}
+          <label key={deliveryOption.id} className="delivery-option"
             data-testid="delivery-option">
             <input type="radio"
               checked={deliveryOption.id === cartItem.deliveryOptionId}
-              onChange={() => {}}
+              onChange={updateDeliveryOption}
               className="delivery-option-input"
               name={`delivery-option-${cartItem.productId}`}
               data-testid="delivery-option-input" />
@@ -45,9 +45,9 @@ export function DeliveryOptions({ cartItem, deliveryOptions, loadCart }: Deliver
                 {priceString}
               </div>
             </div>
-          </div>
+          </label>
         );
       })}
-    </div>
+    </fieldset>
   );
 }

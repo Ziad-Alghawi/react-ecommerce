@@ -61,7 +61,8 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
   return (
     <>
       <img className="product-image"
-        src={cartItem.product.image}
+        src={cartItem.product.image} alt={cartItem.product.name}
+        width="720" height="720"
         data-testid="cart-item-image" />
 
       <div className="cart-item-details">
@@ -77,6 +78,7 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
           <span data-testid="cart-item-quantity">
             Quantity: {isUpdatingQuantity
               ? <input type="text" className="quantity-textbox" value={quantity}
+                aria-label="New quantity" inputMode="numeric"
                 onChange={updateQuantityInput}
                 onKeyDown={handleQuantityKeyDown} />
               : <span className="quantity-label">{cartItem.quantity}</span>

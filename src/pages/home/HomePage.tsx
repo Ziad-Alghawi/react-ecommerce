@@ -77,7 +77,7 @@ export function HomePage({ cart, loadCart, onRetry }: HomePageProps) {
 
       <main className="home-page">
         <div className="home-intro">
-          <h1 className="home-intro-title">
+          <h1 className="page-title">
             {search ? `Results for "${search}"` : 'Everyday essentials, delivered'}
           </h1>
           {!search && (

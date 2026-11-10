@@ -21,15 +21,6 @@
   border-radius: var(--radius-sm);
 }
 
-/* The logo file has wide margins around the artwork, so crop them */
-.header .logo {
-  object-fit: cover;
-}
-
-.header .mobile-logo {
-  display: none;
-}
-
 .search-form {
   grid-area: search;
   display: flex;
@@ -118,7 +109,6 @@
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
-  box-sizing: border-box;
   border-radius: var(--radius-full);
   background-color: var(--color-brand-accent);
   color: var(--color-brand-dark);
@@ -135,14 +125,6 @@
       "search search";
     row-gap: var(--space-2);
     padding: var(--space-2) var(--space-4) var(--space-3);
-  }
-
-  .header .logo {
-    display: none;
-  }
-
-  .header .mobile-logo {
-    display: block;
   }
 
   .header-nav {

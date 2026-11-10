@@ -45,6 +45,12 @@
   --transition: 150ms ease;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -120,6 +126,42 @@ button, select {
 
 .button-primary:disabled {
   background-color: var(--color-brand);
+}
+
+.page-title {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-2xl);
+  line-height: 1.2;
+}
+
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The logo file has wide margins around the artwork, so crop them */
+.logo {
+  object-fit: cover;
+}
+
+.mobile-logo {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .logo {
+    display: none;
+  }
+
+  .mobile-logo {
+    display: block;
+  }
+
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
 }
 
 .limit-text-to-2-lines {
