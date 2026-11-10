@@ -22,8 +22,8 @@
 }
 
 .orders-page .order-header {
-  background-color: rgb(255, 255, 255);
-  border: 1px solid rgb(222, 222, 222);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
 
   display: flex;
   align-items: center;
@@ -83,7 +83,7 @@
 
 .orders-page .order-details-grid {
   padding: 40px 25px;
-  border: 1px solid rgb(222, 222, 222);
+  border: 1px solid var(--color-border);
   border-top: none;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
@@ -132,19 +132,11 @@
 }
 
 .orders-page .buy-again-button {
-  font-size: 14px;
   width: 140px;
-  height: 36px;
-  border-radius: 5px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .orders-page .buy-again-icon {
   width: 20px;
-  margin-right: 10px;
 }
 
 .orders-page .product-actions {
@@ -153,8 +145,6 @@
 
 .orders-page .track-package-button {
   width: 100%;
-  font-size: 14px;
-  padding: 8px;
 }
 
 @media (max-width: 800px) {
@@ -203,6 +193,5 @@
 
   .orders-page .track-package-button {
     width: 100%;
-    padding: 12px;
   }
 }

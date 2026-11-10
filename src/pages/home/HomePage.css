@@ -56,8 +56,8 @@
   padding-left: 25px;
   padding-right: 25px;
 
-  border-right: 1px solid rgb(240, 240, 240);
-  border-bottom: 1px solid rgb(240, 240, 240);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 
   display: flex;
   flex-direction: column;
@@ -95,7 +95,7 @@
 }
 
 .home-page .product-rating-count {
-  color: rgb(25, 135, 84);
+  color: var(--color-brand);
   cursor: auto;
   margin-top: 3px;
 }
@@ -114,7 +114,7 @@
 }
 
 .home-page .added-to-cart {
-  color: rgb(25, 135, 84);
+  color: var(--color-brand);
   font-size: 16px;
 
   display: flex;
@@ -131,7 +131,4 @@
 
 .home-page .add-to-cart-button {
   width: 100%;
-  padding: 8px;
-  height: 34px;
-  margin-top: 1px;
 }

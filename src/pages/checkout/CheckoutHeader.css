@@ -2,7 +2,7 @@
   height: 60px;
   padding-left: 30px;
   padding-right: 30px;
-  background-color: white;
+  background-color: var(--color-surface);
 
   display: flex;
   justify-content: center;
@@ -64,7 +64,7 @@
 }
 
 .checkout-header .return-to-home-link {
-  color: rgb(25, 135, 84);
+  color: var(--color-brand);
 
   text-decoration: none;
   cursor: pointer;

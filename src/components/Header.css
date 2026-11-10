@@ -1,6 +1,6 @@
 .header {
-  background-color: rgb(8, 79, 45);
-  color: white;
+  background-color: var(--color-brand-dark);
+  color: var(--color-text-inverse);
   padding-left: 15px;
   padding-right: 15px;
 
@@ -31,11 +31,11 @@
   border-radius: 2px;
   cursor: pointer;
   text-decoration: none;
-  border: 1px solid rgba(0, 0, 0, 0);
+  border: 1px solid transparent;
 }
 
 .header .header-link:hover {
-  border: 1px solid white;
+  border-color: var(--color-text-inverse);
 }
 
 .header .logo {
@@ -82,7 +82,7 @@
 }
 
 .header .search-button {
-  background-color: rgb(186, 255, 190);
+  background-color: var(--color-brand-subtle);
   border: none;
   width: 45px;
   height: 40px;
@@ -105,7 +105,7 @@
 }
 
 .header .orders-link {
-  color: white;
+  color: var(--color-text-inverse);
 
   display: flex;
   align-items: center;
@@ -124,7 +124,7 @@
 }
 
 .header .cart-link {
-  color: white;
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   position: relative;
@@ -141,7 +141,7 @@
 }
 
 .header .cart-quantity {
-  color: rgb(8, 79, 45);
+  color: var(--color-brand-dark);
   font-size: 14px;
   font-weight: 700;
 
