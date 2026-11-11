@@ -1,0 +1,16 @@
+name: Keep alive
+
+# Supabase pauses free projects after a week without activity, and loading
+# the products reads from the database
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Load the products
+        # The free Render service sleeps when idle and can take a minute to wake up
+        run: curl --fail --silent --show-error --max-time 120 --retry 3 --retry-delay 30 --retry-all-errors --output /dev/null https://react-ecommerce-8359.onrender.com/api/products
