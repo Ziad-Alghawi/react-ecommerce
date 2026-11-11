@@ -217,6 +217,14 @@ test('a logged in user has the same cart and orders in every browser', async () 
   assert.equal((await api(`/api/orders/${order.id}`, { token: await createToken() })).status, 404);
 });
 
+test("a user's ID sent as a guest's visitor ID can't open their cart", async () => {
+  const userId = randomUUID();
+  await addToCart({ token: await createToken(userId) });
+
+  const response = await api('/api/cart-items', { visitorId: userId.toUpperCase() });
+  assert.equal(response.status, 401);
+});
+
 test('logging in moves the guest cart and orders to the account', async () => {
   const guestId = randomUUID();
   const token = await createToken();
@@ -361,16 +369,31 @@ test('drops the least recently active visitor when there are too many', async ()
   assert.deepEqual(await getCart(oldest), []);
 });
 
-test('logged in users count toward the visitor limit too', async () => {
-  // The server was started with room for 3 visitors
-  const user = { token: await createToken() };
+test('logged in users are never dropped for the visitor limit, even after a restart', async () => {
+  // The server was started with room for 3 visitors, and only guests count
+  const user = { token: await createToken(), visitorId: randomUUID() };
+  const guests = Array.from({ length: 4 }, () => randomUUID());
   await addToCart(user);
+  await addToCart(guests[0]);
 
-  for (let i = 0; i < 3; i++) {
-    await getCart(randomUUID());
-  }
+  const fillWithNewGuests = async () => {
+    for (const guestId of guests.slice(1)) {
+      await getCart(guestId);
+    }
+  };
+  await fillWithNewGuests();
 
-  assert.deepEqual(await getCart(user), []);
+  assert.equal((await getCart(user)).length, 1);
+  assert.equal((await getCart({ token: user.token })).length, 1);
+  // The oldest guest made room for the others
+  assert.deepEqual(await getCart(guests[0]), []);
+
+  await stopServer();
+  await startServer();
+  await addToCart(guests[0]);
+  await fillWithNewGuests();
+
+  assert.equal((await getCart(user)).length, 1);
 });
 
 test('still counts saved visitors after a restart', async () => {

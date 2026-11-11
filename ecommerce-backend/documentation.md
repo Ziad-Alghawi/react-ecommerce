@@ -22,7 +22,7 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Visitors:** the cart, order and payment summary routes need an `X-Visitor-Id` header with a UUID. Each ID has its own cart and orders, so a browser can keep its own data without an account. Requests without a valid ID get `400`.
 
-**Accounts:** when `SUPABASE_URL` is set, these routes also accept `Authorization: Bearer <access token>` from Supabase Auth. A valid token uses the user's own cart and orders instead of the visitor's, and `X-Visitor-Id` is then optional. If both are sent, the visitor's cart and orders move to the user's account on the first request (quantities of the same product add up). A missing, expired or otherwise invalid token gets `401`. The visitor and order limits apply to users too.
+**Accounts:** when `SUPABASE_URL` is set, these routes also accept `Authorization: Bearer <access token>` from Supabase Auth. A valid token uses the user's own cart and orders instead of the visitor's, and `X-Visitor-Id` is then optional. If both are sent, the visitor's cart and orders move to the user's account on the first request (quantities of the same product add up). A missing, expired or otherwise invalid token gets `401`, and so does a user's ID sent as `X-Visitor-Id` without their token. The 50-order limit applies to users too, but only guests are dropped when there are more than 500 visitors: a user's cart and orders are always kept.
 
 **Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
 

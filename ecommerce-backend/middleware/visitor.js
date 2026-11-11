@@ -1,15 +1,25 @@
+import { Account } from '../models/Account.js';
 import { CartItem } from '../models/CartItem.js';
 import { Order } from '../models/Order.js';
 import { isUuid } from '../utils/isUuid.js';
 import { getUserId } from './auth.js';
 
-// The database is shared and small, so only the most recent visitors keep
-// their cart and orders. MAX_VISITORS can lower it, for example in tests
+// The database is shared and small, so only the most recent guests keep their
+// cart and orders. Logged in users always keep theirs. MAX_VISITORS can lower it, for example in tests
 const MAX_VISITORS = Number(process.env.MAX_VISITORS) || 500;
 
-// Visitor IDs from least to most recently active. A Set keeps insertion order,
+// Guest visitor IDs from least to most recently active. A Set keeps insertion order,
 // so moving a visitor to the end on each request leaves the oldest one first
 const visitors = new Set();
+const accountIds = new Set();
+
+async function rememberAccount(userId) {
+  if (!accountIds.has(userId)) {
+    // Parallel first requests may both insert, so a duplicate is fine
+    await Account.bulkCreate([{ id: userId }], { ignoreDuplicates: true });
+    accountIds.add(userId);
+  }
+}
 
 function markActive(visitorId) {
   visitors.delete(visitorId);
@@ -58,8 +68,10 @@ function moveGuestOnce(guestId, userId) {
   return moves.get(guestId);
 }
 
-// After a restart, pick up the visitors that are already in the database
+// After a restart, pick up the guests that are already in the database
 export async function loadVisitors() {
+  (await Account.findAll({ attributes: ['id'] })).forEach(({ id }) => accountIds.add(id));
+
   const attributes = ['visitorId', 'updatedAt'];
   const rows = [
     ...await CartItem.unscoped().findAll({ attributes }),
@@ -67,12 +79,14 @@ export async function loadVisitors() {
   ];
 
   rows.sort((a, b) => a.updatedAt - b.updatedAt);
-  rows.forEach((row) => markActive(row.visitorId));
+  rows
+    .filter((row) => !accountIds.has(row.visitorId))
+    .forEach((row) => markActive(row.visitorId));
   await dropOldestVisitors();
 }
 
 // Cart and order routes need to know whose cart and orders to use: the signed-in
-// user's, or else the guest's. Both are kept under visitorId and count toward the limits
+// user's, or else the guest's. Both are kept under visitorId and have the order limit
 export async function requireVisitor(req, res, next) {
   try {
     const userId = await getUserId(req);
@@ -83,14 +97,22 @@ export async function requireVisitor(req, res, next) {
 
     // The same ID in another case is the same visitor
     req.visitorId = userId ?? guestId.toLowerCase();
-
-    // Only guests in the list can have a cart or orders, so most requests skip this
-    const loggedInGuestId = userId && isUuid(guestId) && guestId.toLowerCase();
-    if (loggedInGuestId !== userId && visitors.has(loggedInGuestId)) {
-      await moveGuestOnce(loggedInGuestId, userId);
+    // A user's cart and orders are only for their token, never for their ID sent as a guest's
+    if (!userId && accountIds.has(req.visitorId)) {
+      return res.status(401).json({ error: 'Please log in to see this cart.' });
     }
-    markActive(req.visitorId);
-    await dropOldestVisitors();
+
+    if (userId) {
+      await rememberAccount(userId);
+      // Only guests in the list can have a cart or orders, so most requests skip this
+      const loggedInGuestId = isUuid(guestId) && guestId.toLowerCase();
+      if (loggedInGuestId !== userId && visitors.has(loggedInGuestId)) {
+        await moveGuestOnce(loggedInGuestId, userId);
+      }
+    } else {
+      markActive(req.visitorId);
+      await dropOldestVisitors();
+    }
   } catch (error) {
     return next(error);
   }
