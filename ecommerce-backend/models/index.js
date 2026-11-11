@@ -12,7 +12,16 @@ const defaultPort = defaultPorts[dbType];
 
 export let sequelize;
 
-if (isUsingRDS) {
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    dialectOptions: {
+      // Supabase signs its certificate with its own CA, which Node doesn't trust by default
+      ssl: { require: true, rejectUnauthorized: false }
+    },
+    logging: false
+  });
+} else if (isUsingRDS) {
   sequelize = new Sequelize({
     database: process.env.RDS_DB_NAME,
     username: process.env.RDS_USERNAME,

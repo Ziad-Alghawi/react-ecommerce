@@ -31,7 +31,14 @@ async function startServer() {
   baseUrl = `http://localhost:${port}`;
   server = spawn(process.execPath, [serverFile], {
     cwd: workDir,
-    env: { ...process.env, PORT: String(port), MAX_VISITORS: '3', MAX_ORDERS: '2' }
+    // Tests delete visitors, so they only reach Postgres when given a throwaway database
+    env: {
+      ...process.env,
+      PORT: String(port),
+      MAX_VISITORS: '3',
+      MAX_ORDERS: '2',
+      DATABASE_URL: process.env.TEST_DATABASE_URL || ''
+    }
   });
 
   await new Promise((resolve, reject) => {
