@@ -25,6 +25,39 @@ async function dropOldestVisitors() {
   }
 }
 
+// A guest's cart and orders go to their account when they log in, and items already
+// in the account's cart add up. The local SQLite file can't hold a transaction open,
+// so the guest's item is removed first: a failure part way can't count it twice
+async function moveToAccount(guestId, userId) {
+  const userItems = await CartItem.findAll({ where: { visitorId: userId } });
+  const guestItems = await CartItem.findAll({ where: { visitorId: guestId } });
+
+  for (const guestItem of guestItems) {
+    const userItem = userItems.find((item) => item.productId === guestItem.productId);
+    if (userItem) {
+      await guestItem.destroy();
+      userItem.quantity += guestItem.quantity;
+      await userItem.save();
+    } else {
+      guestItem.visitorId = userId;
+      await guestItem.save();
+    }
+  }
+
+  await Order.update({ visitorId: userId }, { where: { visitorId: guestId } });
+  visitors.delete(guestId);
+}
+
+// Moves still running, so parallel requests right after logging in don't move the same cart twice
+const moves = new Map();
+
+function moveGuestOnce(guestId, userId) {
+  if (!moves.has(guestId)) {
+    moves.set(guestId, moveToAccount(guestId, userId).finally(() => moves.delete(guestId)));
+  }
+  return moves.get(guestId);
+}
+
 // After a restart, pick up the visitors that are already in the database
 export async function loadVisitors() {
   const attributes = ['visitorId', 'updatedAt'];
@@ -50,6 +83,12 @@ export async function requireVisitor(req, res, next) {
 
     // The same ID in another case is the same visitor
     req.visitorId = userId ?? guestId.toLowerCase();
+
+    // Only guests in the list can have a cart or orders, so most requests skip this
+    const loggedInGuestId = userId && isUuid(guestId) && guestId.toLowerCase();
+    if (loggedInGuestId !== userId && visitors.has(loggedInGuestId)) {
+      await moveGuestOnce(loggedInGuestId, userId);
+    }
     markActive(req.visitorId);
     await dropOldestVisitors();
   } catch (error) {

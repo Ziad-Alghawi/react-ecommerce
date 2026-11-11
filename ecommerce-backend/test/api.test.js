@@ -217,6 +217,47 @@ test('a logged in user has the same cart and orders in every browser', async () 
   assert.equal((await api(`/api/orders/${order.id}`, { token: await createToken() })).status, 404);
 });
 
+test('logging in moves the guest cart and orders to the account', async () => {
+  const guestId = randomUUID();
+  const token = await createToken();
+  const otherProductId = '15b6fc6f-327a-4ec4-896f-486349e85a3d';
+
+  await addToCart(guestId);
+  const order = await (await api('/api/orders', { visitorId: guestId, method: 'POST' })).json();
+  await addToCart(guestId);
+  await api('/api/cart-items', {
+    visitorId: guestId, method: 'POST', body: { productId: otherProductId, quantity: 2 }
+  });
+  // Already in the account's cart from another device
+  await addToCart({ token });
+
+  // The first requests after logging in arrive together
+  const [cart] = await Promise.all([
+    getCart({ token, visitorId: guestId }),
+    getCart({ token, visitorId: guestId })
+  ]);
+
+  const quantities = Object.fromEntries(cart.map((item) => [item.productId, item.quantity]));
+  assert.deepEqual(quantities, { [productId]: 2, [otherProductId]: 2 });
+  const orders = await (await api('/api/orders', { token })).json();
+  assert.deepEqual(orders.map(({ id }) => id), [order.id]);
+
+  // Nothing is left for the guest, and nothing moves twice
+  assert.deepEqual(await getCart(guestId), []);
+  assert.deepEqual(await (await api('/api/orders', { visitorId: guestId })).json(), []);
+  assert.deepEqual(await getCart({ token, visitorId: guestId }), cart);
+});
+
+test('a guest who logs out and in again keeps what they added in between', async () => {
+  const guestId = randomUUID();
+  const token = await createToken();
+
+  await addToCart({ token, visitorId: guestId });
+  await addToCart(guestId);
+
+  assert.equal((await getCart({ token, visitorId: guestId }))[0].quantity, 2);
+});
+
 test('an invalid or expired token is refused, even with a visitor ID', async () => {
   const userId = randomUUID();
   const { privateKey: otherKey } = await generateKeyPair('ES256');
