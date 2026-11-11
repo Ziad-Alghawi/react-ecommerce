@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
+import http from 'node:http';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SignJWT, exportJWK, generateKeyPair } from 'jose';
 
 const serverFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
 // The database file is saved in the working directory, so use an empty
@@ -16,6 +18,9 @@ const productId = 'e43638ce-6aa0-4b85-b27f-e1d07eb678c6';
 
 let server;
 let baseUrl;
+let supabase;
+let supabaseUrl;
+let signingKey;
 
 function getFreePort() {
   return new Promise((resolve) => {
@@ -24,6 +29,37 @@ function getFreePort() {
       probe.close(() => resolve(port));
     });
   });
+}
+
+// Stands in for Supabase Auth, which publishes the public keys its tokens are signed with
+async function startSupabase() {
+  const { privateKey, publicKey } = await generateKeyPair('ES256');
+  signingKey = privateKey;
+  const keys = { keys: [{ ...await exportJWK(publicKey), kid: 'test-key', alg: 'ES256', use: 'sig' }] };
+
+  supabase = http.createServer((req, res) => {
+    if (req.url !== '/auth/v1/.well-known/jwks.json') {
+      res.writeHead(404).end();
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(keys));
+  });
+  await new Promise((resolve) => supabase.listen(0, resolve));
+  supabaseUrl = `http://localhost:${supabase.address().port}`;
+}
+
+function createToken(userId = randomUUID(), {
+  key = signingKey,
+  issuer = `${supabaseUrl}/auth/v1`,
+  expiresAt = '1h'
+} = {}) {
+  return new SignJWT({ role: 'authenticated' })
+    .setProtectedHeader({ alg: 'ES256', kid: 'test-key' })
+    .setIssuer(issuer)
+    .setAudience('authenticated')
+    .setSubject(userId)
+    .setExpirationTime(expiresAt)
+    .sign(key);
 }
 
 async function startServer() {
@@ -37,6 +73,7 @@ async function startServer() {
       PORT: String(port),
       MAX_VISITORS: '3',
       MAX_ORDERS: '2',
+      SUPABASE_URL: supabaseUrl,
       DATABASE_URL: process.env.TEST_DATABASE_URL || ''
     }
   });
@@ -55,9 +92,11 @@ async function stopServer() {
   await exited;
 }
 
-function api(urlPath, { visitorId, method = 'GET', body } = {}) {
+// A guest is their visitor ID. A logged in user is { token }, plus the browser's visitorId if any
+function api(urlPath, { visitorId, token, authorization = token && `Bearer ${token}`, method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (visitorId) headers['X-Visitor-Id'] = visitorId;
+  if (authorization) headers.Authorization = authorization;
   return fetch(baseUrl + urlPath, {
     method,
     headers,
@@ -65,20 +104,26 @@ function api(urlPath, { visitorId, method = 'GET', body } = {}) {
   });
 }
 
-async function addToCart(visitorId) {
+const identify = (who) => (typeof who === 'string' ? { visitorId: who } : who);
+
+async function addToCart(who) {
   const response = await api('/api/cart-items', {
-    visitorId, method: 'POST', body: { productId, quantity: 1 }
+    ...identify(who), method: 'POST', body: { productId, quantity: 1 }
   });
   assert.equal(response.status, 201);
 }
 
-async function getCart(visitorId) {
-  return (await api('/api/cart-items', { visitorId })).json();
+async function getCart(who) {
+  return (await api('/api/cart-items', identify(who))).json();
 }
 
-before(startServer);
+before(async () => {
+  await startSupabase();
+  await startServer();
+});
 after(async () => {
   await stopServer();
+  supabase.close();
   fs.rmSync(workDir, { recursive: true, force: true });
 });
 
@@ -125,28 +170,71 @@ test('an order costs what the payment summary showed', async () => {
   assert.equal(savedOrder.orderTimeMs, order.orderTimeMs);
 });
 
-test('refuses new orders once a visitor has reached the limit', async () => {
-  // The server was started with room for 2 orders per visitor
-  const visitorId = randomUUID();
-  const placeOrder = () => api('/api/orders', { visitorId, method: 'POST' });
+for (const [kind, createVisitor] of [
+  ['guest', async () => randomUUID()],
+  ['user', async () => ({ token: await createToken() })]
+]) {
+  test(`refuses new orders once a ${kind} has reached the limit`, async () => {
+    // The server was started with room for 2 orders per visitor
+    const visitor = await createVisitor();
+    const placeOrder = () => api('/api/orders', { ...identify(visitor), method: 'POST' });
 
-  for (let i = 0; i < 2; i++) {
-    await addToCart(visitorId);
-    assert.equal((await placeOrder()).status, 201);
-  }
+    for (let i = 0; i < 2; i++) {
+      await addToCart(visitor);
+      assert.equal((await placeOrder()).status, 201);
+    }
 
-  await addToCart(visitorId);
-  const response = await placeOrder();
-  assert.equal(response.status, 409);
-  assert.match((await response.json()).error, /up to 2 orders/);
-  // The cart is kept, so nothing is lost
-  assert.equal((await getCart(visitorId)).length, 1);
-});
+    await addToCart(visitor);
+    const response = await placeOrder();
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /up to 2 orders/);
+    // The cart is kept, so nothing is lost
+    assert.equal((await getCart(visitor)).length, 1);
+  });
+}
 
 test('cart and order routes need a valid visitor ID', async () => {
   for (const urlPath of ['/api/cart-items', '/api/orders', '/api/payment-summary']) {
     assert.equal((await api(urlPath)).status, 400, `${urlPath} without an ID`);
     assert.equal((await api(urlPath, { visitorId: 'not-a-uuid' })).status, 400, `${urlPath} with a bad ID`);
+  }
+});
+
+test('a logged in user has the same cart and orders in every browser', async () => {
+  const token = await createToken();
+  const laptop = { token, visitorId: randomUUID() };
+  const phone = { token, visitorId: randomUUID() };
+
+  await addToCart(laptop);
+  assert.equal((await getCart(phone)).length, 1);
+  // No visitor ID is needed with a token
+  assert.equal((await getCart({ token })).length, 1);
+  // The browser's own guest cart is separate
+  assert.deepEqual(await getCart(laptop.visitorId), []);
+
+  const order = await (await api('/api/orders', { ...phone, method: 'POST' })).json();
+  assert.equal((await api(`/api/orders/${order.id}`, { token })).status, 200);
+  assert.equal((await api(`/api/orders/${order.id}`, { token: await createToken() })).status, 404);
+});
+
+test('an invalid or expired token is refused, even with a visitor ID', async () => {
+  const userId = randomUUID();
+  const { privateKey: otherKey } = await generateKeyPair('ES256');
+  const badAuthorizations = {
+    'that is not a JWT': 'Bearer not-a-token',
+    'without Bearer': `Basic ${await createToken(userId)}`,
+    'signed with another key': `Bearer ${await createToken(userId, { key: otherKey })}`,
+    'from another project': `Bearer ${await createToken(userId, { issuer: 'https://other.supabase.co/auth/v1' })}`,
+    'that has expired': `Bearer ${await createToken(userId, { expiresAt: Math.floor(Date.now() / 1000) - 60 })}`,
+    'for a user ID that is not a UUID': `Bearer ${await createToken('not-a-uuid')}`
+  };
+
+  for (const [problem, authorization] of Object.entries(badAuthorizations)) {
+    for (const urlPath of ['/api/cart-items', '/api/orders', '/api/payment-summary']) {
+      const response = await api(urlPath, { authorization, visitorId: randomUUID() });
+      assert.equal(response.status, 401, `${urlPath} with a token ${problem}`);
+      assert.match((await response.json()).error, /log in again/);
+    }
   }
 });
 
@@ -230,6 +318,18 @@ test('drops the least recently active visitor when there are too many', async ()
   assert.equal((await getCart(third)).length, 1);
   assert.equal((await getCart(active)).length, 1);
   assert.deepEqual(await getCart(oldest), []);
+});
+
+test('logged in users count toward the visitor limit too', async () => {
+  // The server was started with room for 3 visitors
+  const user = { token: await createToken() };
+  await addToCart(user);
+
+  for (let i = 0; i < 3; i++) {
+    await getCart(randomUUID());
+  }
+
+  assert.deepEqual(await getCart(user), []);
 });
 
 test('still counts saved visitors after a restart', async () => {

@@ -1,6 +1,7 @@
 import { CartItem } from '../models/CartItem.js';
 import { Order } from '../models/Order.js';
 import { isUuid } from '../utils/isUuid.js';
+import { getUserId } from './auth.js';
 
 // The database is shared and small, so only the most recent visitors keep
 // their cart and orders. MAX_VISITORS can lower it, for example in tests
@@ -37,17 +38,18 @@ export async function loadVisitors() {
   await dropOldestVisitors();
 }
 
-// Cart and order routes need to know whose cart and orders to use
+// Cart and order routes need to know whose cart and orders to use: the signed-in
+// user's, or else the guest's. Both are kept under visitorId and count toward the limits
 export async function requireVisitor(req, res, next) {
-  const visitorId = req.get('X-Visitor-Id');
-  if (!isUuid(visitorId)) {
-    return res.status(400).json({ error: 'Missing or invalid X-Visitor-Id header' });
-  }
-
-  // The same ID in another case is the same visitor
-  req.visitorId = visitorId.toLowerCase();
-
   try {
+    const userId = await getUserId(req);
+    const guestId = req.get('X-Visitor-Id');
+    if (!userId && !isUuid(guestId)) {
+      return res.status(400).json({ error: 'Missing or invalid X-Visitor-Id header' });
+    }
+
+    // The same ID in another case is the same visitor
+    req.visitorId = userId ?? guestId.toLowerCase();
     markActive(req.visitorId);
     await dropOldestVisitors();
   } catch (error) {

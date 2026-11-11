@@ -1,0 +1,38 @@
+import { createRemoteJWKSet, errors, jwtVerify } from 'jose';
+import { isUuid } from '../utils/isUuid.js';
+
+// Supabase signs sessions with a private key and publishes the public keys,
+// so tokens are checked here without any secret. Without SUPABASE_URL, accounts are off
+const issuer = process.env.SUPABASE_URL && new URL('/auth/v1', process.env.SUPABASE_URL).href;
+const keys = issuer && createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`));
+const KEY_LOADING_ERRORS = [errors.JOSEError.code, errors.JWKSTimeout.code, errors.JWKSInvalid.code];
+
+function invalidSession() {
+  return Object.assign(new Error('Your session is invalid or has expired. Please log in again.'), { status: 401 });
+}
+
+// The ID of the user the request's Bearer token belongs to, or null for a guest
+export async function getUserId(req) {
+  const authorization = req.get('Authorization');
+  if (authorization === undefined) {
+    return null;
+  }
+
+  const token = authorization.match(/^Bearer (\S+)$/i)?.[1];
+  if (!token || !keys) {
+    throw invalidSession();
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, keys, { issuer, audience: 'authenticated' });
+    if (isUuid(payload.sub)) {
+      return payload.sub.toLowerCase();
+    }
+  } catch (error) {
+    // A bad token is the client's fault, but failing to load Supabase's keys is ours
+    if (!(error instanceof errors.JOSEError) || KEY_LOADING_ERRORS.includes(error.code)) {
+      throw error;
+    }
+  }
+  throw invalidSession();
+}
