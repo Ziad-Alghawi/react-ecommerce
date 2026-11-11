@@ -1,8 +1,10 @@
-import { it, expect, describe, beforeEach } from 'vitest';
+import { it, expect, describe, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
+import type { User } from '@supabase/supabase-js';
 import { Header } from './Header';
+import { AuthContext } from '../hooks/useAuth';
 
 function CurrentUrl() {
   const { pathname, search } = useLocation();
@@ -83,5 +85,50 @@ describe('Header component', () => {
 
     expect(searchBar).toHaveValue('');
     expect(screen.getByTestId('current-url')).toHaveTextContent(/^\/$/);
+  });
+
+  it('offers no login when accounts are turned off', () => {
+    render(
+      <MemoryRouter>
+        <Header cart={cart} />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByTestId('header-login-link')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('header-log-out-button')).not.toBeInTheDocument();
+  });
+
+  it('links a guest to the login page', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext value={{ user: null, logOut: vi.fn() }}>
+          <Header cart={cart} />
+        </AuthContext>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('header-login-link')).toHaveAttribute('href', '/login');
+    expect(screen.queryByTestId('header-log-out-button')).not.toBeInTheDocument();
+  });
+
+  it('shows who is logged in and logs them out', async () => {
+    const user = userEvent.setup();
+    const logOut = vi.fn();
+    render(
+      <MemoryRouter>
+        <AuthContext value={{ user: { email: 'ziad@example.com' } as User, logOut }}>
+          <Header cart={cart} />
+        </AuthContext>
+      </MemoryRouter>
+    );
+
+    const logOutButton = screen.getByTestId('header-log-out-button');
+    expect(logOutButton).toHaveTextContent('ziad@example.com');
+    expect(logOutButton).toHaveAccessibleName('Log out of ziad@example.com');
+    expect(screen.queryByTestId('header-login-link')).not.toBeInTheDocument();
+
+    await user.click(logOutButton);
+
+    expect(logOut).toHaveBeenCalledTimes(1);
   });
 });

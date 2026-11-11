@@ -5,9 +5,12 @@ import { HomePage } from './pages/home/HomePage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
+import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { ErrorMessage } from './components/PageStatus';
+import { ErrorMessage, LoadingMessage } from './components/PageStatus';
 import { ActionFailureContext } from './hooks/useAction';
+import { AuthContext, useAuthUser } from './hooks/useAuth';
+import { logOut, supabase } from './utils/supabase';
 import type { CartItem, CartStatus } from './types/store';
 import './App.css';
 
@@ -28,6 +31,9 @@ function App() {
   // The button action that failed, so "Try again" can repeat it
   const [failedAction, setFailedAction] = useState<{ retry: () => Promise<void>; path: string } | null>(null);
   const location = useLocation();
+  const user = useAuthUser();
+  // Whose cart and orders are shown. Pages load them again when it changes
+  const owner = user === undefined ? null : user?.id ?? 'guest';
 
   const loadCart = async () => {
     const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
@@ -40,9 +46,12 @@ function App() {
   };
 
   useEffect(() => {
+    if (!owner) {
+      return;
+    }
     setCartStatus('loading');
     loadCart().catch(() => setCartStatus('failed'));
-  }, [retryCount]);
+  }, [retryCount, owner]);
 
   useEffect(() => {
     // GET requests show their error on the page. Everything else (add to cart,
@@ -88,15 +97,22 @@ function App() {
   return (
     <>
       <div className="app-content">
-        <ActionFailureContext value={reportActionFailure}>
-          <Routes key={retryCount}>
-            <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-            <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
-            <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-            <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
-            <Route path="*" element={<NotFoundPage cart={cart} />} />
-          </Routes>
-        </ActionFailureContext>
+        <AuthContext value={supabase && { user: user ?? null, logOut }}>
+          <ActionFailureContext value={reportActionFailure}>
+            {owner ? (
+              <Routes key={`${retryCount}-${owner}`}>
+                <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
+                <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
+                {supabase && <Route path="login" element={<LoginPage cart={cart} />} />}
+                <Route path="*" element={<NotFoundPage cart={cart} />} />
+              </Routes>
+            ) : (
+              <LoadingMessage />
+            )}
+          </ActionFailureContext>
+        </AuthContext>
       </div>
 
       {actionFailed && (

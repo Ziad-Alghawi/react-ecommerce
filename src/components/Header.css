@@ -78,7 +78,9 @@
   gap: var(--space-2);
   min-height: 42px;
   padding: 0 var(--space-3);
+  border: none;
   border-radius: var(--radius-md);
+  background-color: transparent;
   color: var(--color-text-inverse);
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
@@ -89,6 +91,27 @@
 .header-link:hover,
 .header-link.active {
   background-color: var(--color-inverse-hover);
+}
+
+.header-link-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+}
+
+.header-account {
+  display: grid;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.header-account-email {
+  max-width: 160px;
+  overflow: hidden;
+  font-size: var(--font-size-xs);
+  font-weight: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cart-icon {
@@ -133,5 +156,13 @@
 
   .search-form {
     max-width: none;
+  }
+
+  .header-link {
+    padding: 0 var(--space-2);
+  }
+
+  .header-account-email {
+    display: none;
   }
 }

@@ -1,8 +1,9 @@
 import { NavLink, useNavigate, useSearchParams } from 'react-router';
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
+import { AuthContext } from '../hooks/useAuth';
 import type { CartItem } from '../types/store';
-import { CartIcon, SearchIcon } from './Icons';
+import { CartIcon, SearchIcon, UserIcon } from './Icons';
 import { Logo } from './Logo';
 import './Header.css';
 
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export function Header({ cart }: HeaderProps) {
   const navigate = useNavigate();
+  const auth = useContext(AuthContext);
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const cartQuantity = getCartQuantity(cart);
@@ -48,6 +50,23 @@ export function Header({ cart }: HeaderProps) {
           data-testid="header-orders-link">
           Orders
         </NavLink>
+
+        {auth?.user ? (
+          <button className="header-link" type="button" onClick={auth.logOut}
+            aria-label={`Log out of ${auth.user.email}`}
+            data-testid="header-log-out-button">
+            <UserIcon className="header-link-icon" />
+            <span className="header-account">
+              <span className="header-account-email">{auth.user.email}</span>
+              Log out
+            </span>
+          </button>
+        ) : auth && (
+          <NavLink className="header-link" to="/login" data-testid="header-login-link">
+            <UserIcon className="header-link-icon" />
+            Log in
+          </NavLink>
+        )}
 
         <NavLink className="header-link" to="/checkout"
           aria-label={`Cart, ${cartQuantity} ${cartQuantity === 1 ? 'item' : 'items'}`}

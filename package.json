@@ -12,6 +12,7 @@
     "dev:backend": "npm --prefix ecommerce-backend run dev"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "axios": "^1.8.4",
     "dayjs": "^1.11.13",
     "react": "^19.1.0",
