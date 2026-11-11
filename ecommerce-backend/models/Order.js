@@ -13,7 +13,11 @@ export const Order = sequelize.define('Order', {
   },
   orderTimeMs: {
     type: DataTypes.BIGINT,
-    allowNull: false
+    allowNull: false,
+    // Postgres returns BIGINT as a string. Millisecond timestamps fit safely in a JS number
+    get() {
+      return Number(this.getDataValue('orderTimeMs'));
+    }
   },
   totalCostCents: {
     type: DataTypes.INTEGER,

@@ -5,8 +5,16 @@ import { Product } from '../models/Product.js';
 import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption.js';
 import { CartItem } from '../models/CartItem.js';
 import { calculatePaymentSummary } from './paymentSummary.js';
+import { isUuid } from '../utils/isUuid.js';
 
 const router = express.Router();
+
+router.param('orderId', (req, res, next, orderId) => {
+  if (!isUuid(orderId)) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+  next();
+});
 
 // Keeps one visitor from filling the shared database. MAX_ORDERS can lower it, for example in tests
 const MAX_ORDERS = Number(process.env.MAX_ORDERS) || 50;

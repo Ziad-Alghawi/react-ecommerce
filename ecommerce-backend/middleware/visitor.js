@@ -1,10 +1,8 @@
 import { CartItem } from '../models/CartItem.js';
 import { Order } from '../models/Order.js';
+import { isUuid } from '../utils/isUuid.js';
 
-// The format crypto.randomUUID() makes in the browser (any UUID version 1-8)
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-// The SQLite database lives in memory, so only the most recent visitors keep
+// The database is shared and small, so only the most recent visitors keep
 // their cart and orders. MAX_VISITORS can lower it, for example in tests
 const MAX_VISITORS = Number(process.env.MAX_VISITORS) || 500;
 
@@ -42,7 +40,7 @@ export async function loadVisitors() {
 // Cart and order routes need to know whose cart and orders to use
 export async function requireVisitor(req, res, next) {
   const visitorId = req.get('X-Visitor-Id');
-  if (!visitorId || !UUID_PATTERN.test(visitorId)) {
+  if (!isUuid(visitorId)) {
     return res.status(400).json({ error: 'Missing or invalid X-Visitor-Id header' });
   }
 

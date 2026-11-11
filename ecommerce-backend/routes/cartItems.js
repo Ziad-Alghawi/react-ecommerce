@@ -3,8 +3,16 @@ import { asyncHandler } from '../middleware/asyncHandler.js';
 import { CartItem } from '../models/CartItem.js';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
+import { isUuid } from '../utils/isUuid.js';
 
 const router = express.Router();
+
+router.param('productId', (req, res, next, productId) => {
+  if (!isUuid(productId)) {
+    return res.status(404).json({ error: 'Cart item not found' });
+  }
+  next();
+});
 
 router.get('/', asyncHandler(async (req, res) => {
   const expand = req.query.expand;
@@ -26,7 +34,7 @@ router.get('/', asyncHandler(async (req, res) => {
 router.post('/', asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
 
-  const product = await Product.findByPk(productId);
+  const product = isUuid(productId) && await Product.findByPk(productId);
   if (!product) {
     return res.status(400).json({ error: 'Product not found' });
   }

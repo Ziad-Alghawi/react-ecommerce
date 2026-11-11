@@ -122,6 +122,7 @@ test('an order costs what the payment summary showed', async () => {
 
   const savedOrder = await (await api(`/api/orders/${order.id}?expand=products`, { visitorId })).json();
   assert.equal(savedOrder.products[0].product.id, productId);
+  assert.equal(savedOrder.orderTimeMs, order.orderTimeMs);
 });
 
 test('refuses new orders once a visitor has reached the limit', async () => {
@@ -149,10 +150,27 @@ test('cart and order routes need a valid visitor ID', async () => {
   }
 });
 
+test('malformed product and order IDs are not found', async () => {
+  const visitorId = randomUUID();
+  const addResponse = await api('/api/cart-items', {
+    visitorId, method: 'POST', body: { productId: 'not-a-uuid', quantity: 1 }
+  });
+  assert.equal(addResponse.status, 400);
+
+  for (const method of ['PUT', 'DELETE']) {
+    const response = await api('/api/cart-items/not-a-uuid', { visitorId, method, body: { quantity: 1 } });
+    assert.equal(response.status, 404, `${method} a cart item`);
+  }
+  assert.equal((await api('/api/orders/not-a-uuid', { visitorId })).status, 404);
+});
+
 test('a failing database call returns a 500 error and the server keeps running', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+
   // Sequelize throws when findByPk gets an object instead of an ID
-  const response = await api('/api/cart-items', {
-    visitorId: randomUUID(), method: 'POST', body: { productId: {}, quantity: 1 }
+  const response = await api(`/api/cart-items/${productId}`, {
+    visitorId, method: 'PUT', body: { deliveryOptionId: {} }
   });
   assert.equal(response.status, 500);
   assert.deepEqual(await response.json(), { error: 'Something went wrong!' });
