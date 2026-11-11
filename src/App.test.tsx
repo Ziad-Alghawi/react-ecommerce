@@ -260,7 +260,8 @@ describe('App when the API fails', () => {
     api['/api/orders'] = { data: {} };
     await user.click(screen.getByTestId('error-message-button'));
 
-    expect(await screen.findByText(product.name)).toBeInTheDocument();
+    // The cart on checkout shows the product name too, so wait for the orders page itself
+    expect(await screen.findByTestId('order-product-details')).toHaveTextContent(product.name);
     expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(2);
   });
 });
