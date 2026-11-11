@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { PaymentSummary } from './PaymentSummary';
 import axios from 'axios';
@@ -106,7 +106,8 @@ describe('PaymentSummary', () => {
     await user.click(screen.getByTestId('place-order-button'));
 
     expect(axios.post).toHaveBeenCalledWith('/api/orders');
+    // Navigating waits for the order and the cart, so it renders after the click has finished
+    await waitFor(() => expect(screen.getByTestId('url-path')).toHaveTextContent('/orders'));
     expect(loadCart).toHaveBeenCalled();
-    expect(screen.getByTestId('url-path')).toHaveTextContent('/orders');
   });
 });

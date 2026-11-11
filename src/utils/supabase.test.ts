@@ -1,4 +1,4 @@
-import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
+import { it, expect, describe, vi, beforeEach } from 'vitest';
 import { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
 
 const getSession = vi.fn();
@@ -8,12 +8,19 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({ auth: { getSession, signOut } })
 }));
 
-async function loadModule(isConfigured = true) {
+// The module reads its settings when it loads, so load it once with them and once without.
+// Doing this here rather than in each test keeps the slow first import out of the test timeouts
+async function loadModule(isConfigured: boolean) {
   vi.resetModules();
   vi.stubEnv('VITE_SUPABASE_URL', isConfigured ? 'https://demo.supabase.co' : '');
   vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', isConfigured ? 'sb_publishable_demo' : '');
-  return import('./supabase');
+  const module = await import('./supabase');
+  vi.unstubAllEnvs();
+  return module;
 }
+
+const configured = await loadModule(true);
+const notConfigured = await loadModule(false);
 
 const requestConfig = () => ({ headers: new AxiosHeaders() }) as InternalAxiosRequestConfig;
 
@@ -26,12 +33,8 @@ describe('supabase', () => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
   it('turns accounts off when the project is not configured', async () => {
-    const { supabase, addAccessToken } = await loadModule(false);
+    const { supabase, addAccessToken } = notConfigured;
 
     expect(supabase).toBeNull();
     const config = await addAccessToken(requestConfig());
@@ -40,7 +43,7 @@ describe('supabase', () => {
 
   it('sends the access token of a logged in user', async () => {
     getSession.mockResolvedValue({ data: { session: { access_token: 'token-1' } } });
-    const { addAccessToken } = await loadModule();
+    const { addAccessToken } = configured;
 
     const config = await addAccessToken(requestConfig());
 
@@ -49,7 +52,7 @@ describe('supabase', () => {
 
   it('sends no token for a guest', async () => {
     getSession.mockResolvedValue({ data: { session: null } });
-    const { addAccessToken } = await loadModule();
+    const { addAccessToken } = configured;
 
     const config = await addAccessToken(requestConfig());
 
@@ -57,7 +60,7 @@ describe('supabase', () => {
   });
 
   it('logs out when the API rejects the session, and only then', async () => {
-    const { logOutIfSessionRejected } = await loadModule();
+    const { logOutIfSessionRejected } = configured;
 
     await expect(logOutIfSessionRejected(rejectionWithStatus(500))).rejects.toThrow();
     expect(signOut).not.toHaveBeenCalled();
