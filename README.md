@@ -22,7 +22,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 ## Tech Stack
 
 - **Frontend:** React 19, TypeScript, Vite, React Router, Axios, Day.js
-- **Backend:** Node.js, Express, Sequelize, SQLite
+- **Backend:** Node.js, Express, Sequelize, Postgres on Supabase (SQLite locally)
 - **Testing and tooling:** Vitest, Testing Library, Node test runner, ESLint, GitHub Actions
 
 ## Run Locally
@@ -50,6 +50,20 @@ npm run dev
 
 The dev server forwards API requests to the backend, so no configuration is needed. Optional settings are described in [.env.example](.env.example) and [ecommerce-backend/.env.example](ecommerce-backend/.env.example).
 
+## Database
+
+Locally, the backend keeps its data in a SQLite file, so there's nothing to set up. In production it uses Postgres on Supabase, because the free Render server has no persistent disk: a SQLite file there was wiped on every deploy, restart and sleep, taking every visitor's cart and orders with it.
+
+To use Postgres, set `DATABASE_URL` to a connection string. For Supabase, copy the Session pooler URL from **Connect** in the project dashboard (the direct connection is IPv6 only) and fill in the database password. The server connects over SSL, creates the tables on startup and adds the demo products and delivery options only when those tables are empty, so data survives restarts and deploys.
+
+```bash
+cp ecommerce-backend/.env.example ecommerce-backend/.env
+# Fill in DATABASE_URL, then:
+cd ecommerce-backend && node --env-file=.env server.js
+```
+
+Supabase pauses free projects after a week without activity, so a [GitHub Actions workflow](.github/workflows/keep-alive.yml) loads the products from the live API every 3 days. It can also be run by hand from the Actions tab.
+
 ## Tests
 
 Frontend:
@@ -67,13 +81,15 @@ npm --prefix ecommerce-backend test
 npm --prefix ecommerce-backend run lint
 ```
 
+The backend tests use SQLite even when `DATABASE_URL` is set, because they delete data. To run them against Postgres, set `TEST_DATABASE_URL` to a throwaway database.
+
 GitHub Actions runs all of these on every push.
 
 ## Project Structure
 
 ```text
 .
-├── .github/workflows/    # CI pipeline
+├── .github/workflows/    # CI pipeline and database keep-alive
 ├── docs/screenshots/     # README images
 ├── ecommerce-backend/    # Express API
 │   ├── defaultData/      # Demo products and delivery options
@@ -81,6 +97,7 @@ GitHub Actions runs all of these on every push.
 │   ├── models/           # Sequelize models
 │   ├── routes/           # API routes
 │   ├── test/             # API tests
+│   ├── utils/            # Shared helpers
 │   ├── documentation.md  # API reference
 │   └── server.js         # Server entry point
 ├── public/               # Favicon, product photos and rating images
