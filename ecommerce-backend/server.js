@@ -11,7 +11,6 @@ import orderRoutes from './routes/orders.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
-import { Product } from './models/Product.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
 import { addDefaultData } from './defaultData/addDefaultData.js';
@@ -78,12 +77,7 @@ for (const model of [CartItem, Order]) {
 }
 
 await sequelize.sync();
-
-if (await Product.count() === 0) {
-  await addDefaultData();
-  console.log('Default data added to the database.');
-}
-
+await addDefaultData();
 await loadVisitors();
 
 app.listen(PORT, () => {

@@ -12,8 +12,15 @@ function withTimestamps(rows, timestamp) {
   }));
 }
 
+// Only fills empty tables, so a persistent database keeps its rows across restarts and deploys
 export async function addDefaultData() {
   const timestamp = Date.now();
-  await Product.bulkCreate(withTimestamps(defaultProducts, timestamp));
-  await DeliveryOption.bulkCreate(withTimestamps(defaultDeliveryOptions, timestamp));
+  const defaults = [[Product, defaultProducts], [DeliveryOption, defaultDeliveryOptions]];
+
+  for (const [model, rows] of defaults) {
+    if (await model.count() === 0) {
+      await model.bulkCreate(withTimestamps(rows, timestamp));
+      console.log(`Added the default ${model.getTableName()}.`);
+    }
+  }
 }

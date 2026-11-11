@@ -218,10 +218,14 @@ test('still counts saved visitors after a restart', async () => {
   const [saved, other] = [randomUUID(), randomUUID()];
   await addToCart(saved);
   await addToCart(other);
+  const getProducts = async () => (await api('/api/products')).json();
+  const products = await getProducts();
 
   await stopServer();
   await startServer();
 
+  // The default products are only added to an empty table
+  assert.deepEqual(await getProducts(), products);
   assert.equal((await getCart(saved)).length, 1);
 
   // Only works if the restarted server remembered both visitors: "saved"
