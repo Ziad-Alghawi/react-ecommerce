@@ -15,6 +15,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Delivery options with a live payment summary
 - Order placement and order history, with delivered or arriving status per package
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
+- Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
 - Package tracking with delivery progress
 - Loading, empty and error states, with a retry for failed changes
 - Responsive layout for phone and desktop
@@ -23,6 +24,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 
 - **Frontend:** React 19, TypeScript, Vite, React Router, Axios, Day.js
 - **Backend:** Node.js, Express, Sequelize, Postgres on Supabase (SQLite locally)
+- **Accounts:** Supabase Auth, with tokens verified in the API using jose
 - **Testing and tooling:** Vitest, Testing Library, Node test runner, ESLint, GitHub Actions
 
 ## Run Locally
@@ -64,6 +66,27 @@ cd ecommerce-backend && node --env-file=.env server.js
 
 Supabase pauses free projects after a week without activity, so a [GitHub Actions workflow](.github/workflows/keep-alive.yml) loads the products from the live API every 3 days. It can also be run by hand from the Actions tab.
 
+## Accounts
+
+Logging in is optional. Without the settings below, the store runs in guest-only mode: the login is hidden and each browser keeps its own cart, as before.
+
+To turn accounts on, use a Supabase project (it can be the same one as the database):
+
+1. In **Authentication > Sign In / Providers**, enable the Email provider. With **Confirm email** on, new users get a link to confirm their address before they can log in.
+2. In **Authentication > URL Configuration**, set the **Site URL** to the store's URL and add it, plus `http://localhost:5173` for local development, to the **Redirect URLs**. The confirmation link comes back to one of these.
+3. In **Project Settings > JWT Keys**, make sure the project signs tokens with an asymmetric key (ECC P-256 or RSA, the default for new projects). The API checks tokens against the project's public keys, so it needs no secret.
+4. Set the variables. `VITE_` ones are read when the frontend is built, so rebuild after changing them.
+
+| Variable | Where | Value |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | Frontend (`.env.local`) | Project URL, `https://<project-ref>.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Frontend (`.env.local`) | Publishable key (`sb_publishable_...`) from **Project Settings > API Keys** |
+| `SUPABASE_URL` | Backend (`ecommerce-backend/.env`) | The same Project URL |
+
+The publishable key is meant to be public. The secret key and the database password are never needed by the frontend.
+
+When a user is logged in, the frontend sends their access token with each API request. The API verifies it and uses the user ID in place of the visitor ID, so the cart and orders are the same on every device. On the first request after logging in, anything the browser had as a guest moves to the account. An invalid or expired token gets `401`, and the frontend then logs out and carries on as a guest.
+
 ## Tests
 
 Frontend:
@@ -81,7 +104,7 @@ npm --prefix ecommerce-backend test
 npm --prefix ecommerce-backend run lint
 ```
 
-The backend tests use SQLite even when `DATABASE_URL` is set, because they delete data. To run them against Postgres, set `TEST_DATABASE_URL` to a throwaway database.
+The backend tests use SQLite even when `DATABASE_URL` is set, because they delete data. To run them against Postgres, set `TEST_DATABASE_URL` to a throwaway database. The login tests sign their own tokens and serve the public key from a local stand-in for Supabase, so they need no project either.
 
 GitHub Actions runs all of these on every push.
 
@@ -93,7 +116,7 @@ GitHub Actions runs all of these on every push.
 ├── docs/screenshots/     # README images
 ├── ecommerce-backend/    # Express API
 │   ├── defaultData/      # Demo products and delivery options
-│   ├── middleware/       # Visitor ID and async error handling
+│   ├── middleware/       # Visitor ID, login tokens and async error handling
 │   ├── models/           # Sequelize models
 │   ├── routes/           # API routes
 │   ├── test/             # API tests
@@ -103,7 +126,7 @@ GitHub Actions runs all of these on every push.
 ├── public/               # Favicon, product photos and rating images
 ├── src/
 │   ├── components/       # Shared components
-│   ├── pages/            # Home, checkout, orders, tracking
+│   ├── pages/            # Home, checkout, orders, tracking, login
 │   ├── hooks/            # Shared hooks
 │   ├── types/            # Shared TypeScript types
 │   └── utils/            # Helpers and their tests
@@ -112,6 +135,6 @@ GitHub Actions runs all of these on every push.
 
 ## Background
 
-This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
+This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
 
 Product photos are from Unsplash and Pexels and credited in [CREDITS.md](public/images/products/CREDITS.md).
