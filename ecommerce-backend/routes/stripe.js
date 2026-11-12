@@ -9,6 +9,9 @@ import { createOrder, getOrderRefusal } from './orders.js';
 import { corsOrigins } from '../utils/corsOrigins.js';
 import { stripe } from '../utils/stripe.js';
 
+// The Stripe sandbox is shared with another app, so this store tags its sessions and skips the rest
+const APP_TAG = 'react-ecommerce';
+
 const router = express.Router();
 
 router.param('sessionId', (req, res, next, id) => (
@@ -102,9 +105,8 @@ router.post('/checkout-sessions', requireVisitor, asyncHandler(async (req, res) 
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
-    payment_method_types: ['card'],
     line_items: [...productLines, ...extraLines],
-    metadata: { visitorId: req.visitorId },
+    metadata: { app: APP_TAG, visitorId: req.visitorId },
     success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout`
   });
@@ -120,7 +122,7 @@ router.get('/checkout-sessions/:sessionId/order', requireVisitor, asyncHandler(a
     }
     throw error;
   });
-  if (session?.metadata?.visitorId !== req.visitorId) {
+  if (session?.metadata?.app !== APP_TAG || session.metadata.visitorId !== req.visitorId) {
     return res.status(404).json({ error: 'Payment not found' });
   }
   if (session.payment_status !== 'paid') {
@@ -140,7 +142,8 @@ export const handleWebhook = [requireStripe, asyncHandler(async (req, res) => {
   }
 
   const session = event.data.object;
-  if (event.type === 'checkout.session.completed' && session.payment_status === 'paid') {
+  if (event.type === 'checkout.session.completed' && session.metadata?.app === APP_TAG
+    && session.payment_status === 'paid') {
     await fulfillCheckout(session);
   }
   res.json({ received: true });
