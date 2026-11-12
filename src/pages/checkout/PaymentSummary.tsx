@@ -91,14 +91,20 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
           </div>
 
           {isCardPaymentOn && (
-            <button className="place-order-button button-primary"
-              data-testid="pay-with-card-button"
-              disabled={isOrderDisabled}
-              aria-busy={isRedirecting}
-              onClick={payWithCard}>
-              {isRedirecting && <ButtonSpinner />}
-              Pay with card
-            </button>
+            <>
+              <button className="place-order-button button-primary"
+                data-testid="pay-with-card-button"
+                disabled={isOrderDisabled}
+                aria-busy={isRedirecting}
+                onClick={payWithCard}>
+                {isRedirecting && <ButtonSpinner />}
+                Pay with card
+              </button>
+              <p className="card-test-note" data-testid="card-test-note">
+                <strong>Test mode:</strong> use card 4242 4242 4242 4242 with any future date and any CVC.
+                No real payment is made.
+              </p>
+            </>
           )}
 
           <button className={`place-order-button ${isCardPaymentOn ? 'button-secondary' : 'button-primary'}`}
