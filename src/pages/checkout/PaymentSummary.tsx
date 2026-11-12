@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { formatMoney } from '../../utils/money';
 import { ButtonSpinner } from '../../components/PageStatus';
@@ -18,6 +19,28 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
     await loadCart();
     navigate('/orders');
   });
+
+  const [isCardPaymentOn, setIsCardPaymentOn] = useState(false);
+
+  useEffect(() => {
+    const fetchStripeConfig = async () => {
+      try {
+        const response = await axios.get<{ cardPayment: boolean }>('/api/stripe/config');
+        setIsCardPaymentOn(response.data.cardPayment === true);
+      } catch {
+        // Paying on delivery still works, so there's nothing to show
+      }
+    };
+    fetchStripeConfig();
+  }, []);
+
+  // Stripe's page takes the payment, then sends the customer back to /checkout/success
+  const [payWithCard, isRedirecting] = useAction(async () => {
+    const response = await axios.post<{ url: string }>('/api/stripe/checkout-sessions');
+    window.location.assign(response.data.url);
+  });
+
+  const isOrderDisabled = paymentSummary?.totalItems === 0 || isPlacingOrder || isRedirecting;
 
   return (
     <div className="payment-summary card">
@@ -67,13 +90,24 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
             </div>
           </div>
 
-          <button className="place-order-button button-primary"
+          {isCardPaymentOn && (
+            <button className="place-order-button button-primary"
+              data-testid="pay-with-card-button"
+              disabled={isOrderDisabled}
+              aria-busy={isRedirecting}
+              onClick={payWithCard}>
+              {isRedirecting && <ButtonSpinner />}
+              Pay with card
+            </button>
+          )}
+
+          <button className={`place-order-button ${isCardPaymentOn ? 'button-secondary' : 'button-primary'}`}
             data-testid="place-order-button"
-            disabled={paymentSummary.totalItems === 0 || isPlacingOrder}
+            disabled={isOrderDisabled}
             aria-busy={isPlacingOrder}
             onClick={createOrder}>
             {isPlacingOrder && <ButtonSpinner />}
-            Place your order
+            {isCardPaymentOn ? 'Pay on delivery' : 'Place your order'}
           </button>
         </>
       )}

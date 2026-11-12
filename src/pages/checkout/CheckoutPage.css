@@ -146,6 +146,10 @@
   font-size: var(--font-size-md);
 }
 
+.checkout-page .place-order-button + .place-order-button {
+  margin-top: var(--space-2);
+}
+
 @media (max-width: 1000px) {
   .checkout-page .checkout-grid {
     grid-template-columns: minmax(0, 1fr);

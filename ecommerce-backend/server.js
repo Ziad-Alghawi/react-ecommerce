@@ -16,6 +16,8 @@ import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import adminRoutes from './routes/admin.js';
 import meRoutes from './routes/me.js';
+import stripeRoutes from './routes/stripe.js';
+import { corsOrigins } from './utils/corsOrigins.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
 import { requireAdmin } from './middleware/admin.js';
 import { CartItem } from './models/CartItem.js';
@@ -28,11 +30,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Comma-separated list of frontend origins allowed to call the API from another domain
-const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim());
 
 app.use(compression());
 app.use(cors({ origin: corsOrigins }));
@@ -47,6 +44,7 @@ app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
 app.use('/api/me', meRoutes);
+app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin', requireAdmin, adminRoutes);
 
 // The built frontend, including the product images from its public folder

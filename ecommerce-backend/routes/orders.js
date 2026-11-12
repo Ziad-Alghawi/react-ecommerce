@@ -36,17 +36,26 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json(orders);
 }));
 
+// Why the visitor can't order their cart, or null when they can
+export async function getOrderRefusal(visitorId, cartItems) {
+  if (cartItems.length === 0) {
+    return { status: 400, error: 'Cart is empty' };
+  }
+  if (await Order.count({ where: { visitorId } }) >= MAX_ORDERS) {
+    return {
+      status: 409,
+      error: `This demo store keeps up to ${MAX_ORDERS} orders per visitor, and you've reached the limit.`
+    };
+  }
+  return null;
+}
+
 router.post('/', asyncHandler(async (req, res) => {
   const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
 
-  if (cartItems.length === 0) {
-    return res.status(400).json({ error: 'Cart is empty' });
-  }
-
-  if (await Order.count({ where: { visitorId: req.visitorId } }) >= MAX_ORDERS) {
-    return res.status(409).json({
-      error: `This demo store keeps up to ${MAX_ORDERS} orders per visitor, and you've reached the limit.`
-    });
+  const refusal = await getOrderRefusal(req.visitorId, cartItems);
+  if (refusal) {
+    return res.status(refusal.status).json({ error: refusal.error });
   }
 
   const products = await Promise.all(cartItems.map(async (item) => {

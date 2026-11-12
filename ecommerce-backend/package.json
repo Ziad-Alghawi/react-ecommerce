@@ -25,7 +25,8 @@
     "pg": "^8.16.0",
     "sequelize": "^6.6.5",
     "sql.js": "1.10.3",
-    "sql.js-as-sqlite3": "0.2.1"
+    "sql.js-as-sqlite3": "0.2.1",
+    "stripe": "^23.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
