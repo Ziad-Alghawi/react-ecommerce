@@ -1,11 +1,10 @@
-import { useContext, useEffect, useState, type FormEvent } from 'react';
-import { Navigate } from 'react-router';
+import { useContext, useState } from 'react';
+import { Link, Navigate } from 'react-router';
 import { Header } from '../components/Header';
 import { PageTitle } from '../components/PageTitle';
 import { ButtonSpinner } from '../components/PageStatus';
 import { AuthContext } from '../hooks/useAuth';
-import { useAction } from '../hooks/useAction';
-import { loadSupabase } from '../utils/supabase';
+import { useAuthRequest } from '../hooks/useAuthRequest';
 import type { CartItem } from '../types/store';
 import './LoginPage.css';
 
@@ -18,43 +17,24 @@ export function LoginPage({ cart }: LoginPageProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [isAwaitingConfirmation, setIsAwaitingConfirmation] = useState(false);
 
-  // Start downloading Supabase while the user types
-  useEffect(() => {
-    loadSupabase().catch(() => {});
-  }, []);
-
-  const [submit, isPending] = useAction(async () => {
-    setError(null);
-    const supabase = await loadSupabase().catch(() => null);
-    if (!supabase) {
-      setError("We couldn't reach the login service. Check your connection and try again.");
-      return;
-    }
-
+  const { submitForm, isPending, error, clearError } = useAuthRequest(async (supabase) => {
     const credentials = { email, password };
     const { data, error } = isSignUp
       // The link in the confirmation email comes back to this site
       ? await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: window.location.origin } })
       : await supabase.auth.signInWithPassword(credentials);
 
-    if (error) {
-      setError(error.message);
-    } else if (!data.session) {
+    if (!error && !data.session) {
       setIsAwaitingConfirmation(true);
     }
+    return { error };
   });
-
-  const submitForm = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    submit();
-  };
 
   const switchMode = () => {
     setIsSignUp(!isSignUp);
-    setError(null);
+    clearError();
   };
 
   if (auth?.user) {
@@ -98,6 +78,12 @@ export function LoginPage({ cart }: LoginPageProps) {
                 onChange={(event) => setPassword(event.target.value)}
                 data-testid="login-password-input" />
             </label>
+
+            {!isSignUp && (
+              <Link className="login-forgot link-primary" to="/forgot-password" data-testid="login-forgot-link">
+                Forgot password?
+              </Link>
+            )}
 
             {error && <div className="login-error" role="alert" data-testid="login-error">{error}</div>}
 

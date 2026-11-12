@@ -20,6 +20,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Card payment with Stripe Checkout in test mode, next to paying on delivery
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
+- An account page with the user's email and links to their orders and to change their password, and a "Forgot password" email link to choose a new one
 - Admin page to add, edit and delete products and set their category and stock, and to create coupons, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
 - Package tracking with delivery progress
 - Loading, empty and error states, and small notifications that confirm actions like adding to the cart or explain why a change failed, with a retry. Screen readers announce them too
@@ -81,7 +82,7 @@ Logging in is optional. Without the settings below, the store runs in guest-only
 To turn accounts on, use a Supabase project (it can be the same one as the database):
 
 1. In **Authentication > Sign In / Providers**, enable the Email provider. With **Confirm email** on, new users get a link to confirm their address before they can log in.
-2. In **Authentication > URL Configuration**, set the **Site URL** to the store's URL and add it, plus `http://localhost:5173` for local development, to the **Redirect URLs**. The confirmation link comes back to one of these.
+2. In **Authentication > URL Configuration**, set the **Site URL** to the store's URL and add it, plus `http://localhost:5173` for local development, to the **Redirect URLs**. Add `/reset-password` on each too, such as `https://<your-store>/reset-password`, or use a wildcard like `https://<your-store>/**`. The confirmation and password reset links come back to one of these, and Supabase sends any other address to the Site URL instead.
 3. In **Project Settings > JWT Keys**, make sure the project signs tokens with an asymmetric key (ECC P-256 or RSA, the default for new projects). The API checks tokens against the project's public keys, so it needs no secret.
 4. Set the variables. `VITE_` ones are read when the frontend is built, so rebuild after changing them.
 
@@ -95,6 +96,12 @@ To turn accounts on, use a Supabase project (it can be the same one as the datab
 The publishable key is meant to be public. The secret key and the database password are never needed by the frontend.
 
 When a user is logged in, the frontend sends their access token with each API request. The API verifies it and uses the user ID in place of the visitor ID, so the cart and orders are the same on every device. On the first request after logging in, anything the browser had as a guest moves to the account. An invalid or expired token gets `401`, and the frontend then logs out and carries on as a guest.
+
+### Forgotten passwords
+
+**Forgot password?** on the login page asks for the email and has Supabase send a link to it. The page says the same whether or not the email has an account, so it can't be used to find out who shops here. The link logs the user in on `/reset-password`, where they choose a new password, and then goes to their account page. A link that was already used or has expired says so and offers a new one. The account page links to the same form to change the password while logged in.
+
+Supabase's built-in email service is meant for trying things out: it only sends to the addresses of the project's team and only a few emails an hour. For real customers, set up your own SMTP server in **Authentication > Emails > SMTP Settings**.
 
 ### Admins
 
@@ -183,7 +190,7 @@ GitHub Actions runs all of these on every push.
 ├── public/               # Favicon, product photos and rating images
 ├── src/
 │   ├── components/       # Shared components
-│   ├── pages/            # Home, product and reviews, checkout, orders, tracking, login, admin
+│   ├── pages/            # Home, product and reviews, checkout, orders, tracking, login, account, admin
 │   ├── hooks/            # Shared hooks
 │   ├── types/            # Shared TypeScript types
 │   └── utils/            # Helpers and their tests

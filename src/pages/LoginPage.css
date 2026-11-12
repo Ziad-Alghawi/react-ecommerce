@@ -26,6 +26,12 @@
   font-size: var(--font-size-sm);
 }
 
+.login-forgot {
+  justify-self: start;
+  margin-top: calc(-1 * var(--space-2));
+  font-size: var(--font-size-sm);
+}
+
 .login-submit {
   min-height: 44px;
   font-size: var(--font-size-md);

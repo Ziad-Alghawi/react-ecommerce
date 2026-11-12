@@ -29,8 +29,11 @@ function lazyPage<Props extends object>(loadPage: () => Promise<ComponentType<Pr
   ));
 }
 
-// The login page also brings in Supabase
+// The login and password pages also bring in Supabase
 const LoginPage = lazyPage(() => import('./pages/LoginPage').then((module) => module.LoginPage));
+const ForgotPasswordPage = lazyPage(() => import('./pages/ForgotPasswordPage').then((module) => module.ForgotPasswordPage));
+const ResetPasswordPage = lazyPage(() => import('./pages/ResetPasswordPage').then((module) => module.ResetPasswordPage));
+const AccountPage = lazyPage(() => import('./pages/AccountPage').then((module) => module.AccountPage));
 const AdminPage = lazyPage(() => import('./pages/admin/AdminPage').then((module) => module.AdminPage));
 const ProductPage = lazyPage(() => import('./pages/product/ProductPage').then((module) => module.ProductPage));
 
@@ -138,6 +141,9 @@ function App() {
                     <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                     <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
                     {isAuthEnabled && <Route path="login" element={<LoginPage cart={cart} />} />}
+                    {isAuthEnabled && <Route path="forgot-password" element={<ForgotPasswordPage cart={cart} />} />}
+                    {isAuthEnabled && <Route path="reset-password" element={<ResetPasswordPage cart={cart} />} />}
+                    {isAuthEnabled && <Route path="account" element={<AccountPage cart={cart} />} />}
                     {isAuthEnabled && <Route path="admin" element={<AdminPage cart={cart} onRetry={retry} />} />}
                     <Route path="*" element={<NotFoundPage cart={cart} />} />
                   </Routes>

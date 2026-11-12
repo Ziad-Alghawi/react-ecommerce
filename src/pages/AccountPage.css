@@ -1,0 +1,77 @@
+.account-page {
+  max-width: 720px;
+}
+
+.account-card {
+  margin-bottom: var(--space-5);
+  padding: var(--space-5);
+}
+
+.account-card-title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-lg);
+}
+
+.account-details {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.account-details div {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.account-details dt {
+  color: var(--color-text-muted);
+}
+
+.account-details dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.account-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.account-link {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow var(--transition), border-color var(--transition);
+}
+
+.account-link:hover {
+  border-color: var(--color-brand);
+  box-shadow: var(--shadow-md);
+}
+
+.account-link-title {
+  color: var(--color-brand);
+  font-weight: var(--font-weight-bold);
+}
+
+.account-link-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 640px) {
+  .account-card {
+    padding: var(--space-4);
+  }
+
+  .account-details div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

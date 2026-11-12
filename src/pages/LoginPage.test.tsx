@@ -101,6 +101,15 @@ describe('LoginPage component', () => {
     expect(screen.getByTestId('login-submit-button')).toBeEnabled();
   });
 
+  it('links to resetting a forgotten password, only when logging in', async () => {
+    renderLoginPage();
+
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/forgot-password');
+
+    await user.click(screen.getByTestId('login-switch-button'));
+    expect(screen.queryByRole('link', { name: 'Forgot password?' })).not.toBeInTheDocument();
+  });
+
   it('sends a logged in user to the home page', () => {
     renderLoginPage({ email: 'ziad@example.com' } as User);
 

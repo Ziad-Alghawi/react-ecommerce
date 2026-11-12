@@ -2,7 +2,6 @@ import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
 import { AuthContext } from '../hooks/useAuth';
-import { useToast } from '../hooks/useToast';
 import type { CartItem } from '../types/store';
 import { CartIcon, SearchIcon, UserIcon } from './Icons';
 import { Logo } from './Logo';
@@ -15,7 +14,6 @@ interface HeaderProps {
 export function Header({ cart }: HeaderProps) {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
-  const showToast = useToast();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const cartQuantity = getCartQuantity(cart);
@@ -60,19 +58,15 @@ export function Header({ cart }: HeaderProps) {
         </NavLink>
 
         {auth?.user ? (
-          <button className="header-link" type="button"
-            onClick={async () => {
-              await auth.logOut();
-              showToast("You're logged out");
-            }}
-            aria-label={`Log out of ${auth.user.email}`}
-            data-testid="header-log-out-button">
+          <NavLink className="header-link" to="/account"
+            aria-label={`Your account, ${auth.user.email}`}
+            data-testid="header-account-link">
             <UserIcon className="header-link-icon" />
             <span className="header-account">
               <span className="header-account-email">{auth.user.email}</span>
-              Log out
+              Account
             </span>
-          </button>
+          </NavLink>
         ) : auth && (
           <NavLink className="header-link" to="/login" data-testid="header-login-link">
             <UserIcon className="header-link-icon" />

@@ -95,7 +95,7 @@ describe('Header component', () => {
     );
 
     expect(screen.queryByTestId('header-login-link')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('header-log-out-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('header-account-link')).not.toBeInTheDocument();
   });
 
   it('links a guest to the login page', () => {
@@ -108,28 +108,23 @@ describe('Header component', () => {
     );
 
     expect(screen.getByTestId('header-login-link')).toHaveAttribute('href', '/login');
-    expect(screen.queryByTestId('header-log-out-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('header-account-link')).not.toBeInTheDocument();
   });
 
-  it('shows who is logged in and logs them out', async () => {
-    const user = userEvent.setup();
-    const logOut = vi.fn();
+  it('shows who is logged in, with a link to their account', () => {
     render(
       <MemoryRouter>
-        <AuthContext value={{ user: { email: 'ziad@example.com' } as User, logOut }}>
+        <AuthContext value={{ user: { email: 'ziad@example.com' } as User, isAdmin: false, logOut: vi.fn() }}>
           <Header cart={cart} />
         </AuthContext>
       </MemoryRouter>
     );
 
-    const logOutButton = screen.getByTestId('header-log-out-button');
-    expect(logOutButton).toHaveTextContent('ziad@example.com');
-    expect(logOutButton).toHaveAccessibleName('Log out of ziad@example.com');
+    const accountLink = screen.getByTestId('header-account-link');
+    expect(accountLink).toHaveTextContent('ziad@example.com');
+    expect(accountLink).toHaveAccessibleName('Your account, ziad@example.com');
+    expect(accountLink).toHaveAttribute('href', '/account');
     expect(screen.queryByTestId('header-login-link')).not.toBeInTheDocument();
-
-    await user.click(logOutButton);
-
-    expect(logOut).toHaveBeenCalledTimes(1);
   });
 
   it('links an admin to the admin page, and nobody else', () => {
