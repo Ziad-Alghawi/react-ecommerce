@@ -7,7 +7,8 @@ import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
 import { AuthContext } from '../../hooks/useAuth';
 import { AdminProductRow } from './AdminProductRow';
 import { ProductForm } from './ProductForm';
-import type { CartItem, Product } from '../../types/store';
+import { AdminCoupons } from './AdminCoupons';
+import type { CartItem, Coupon, Product } from '../../types/store';
 import './AdminPage.css';
 
 type PageStatus = 'loading' | 'ready' | 'failed' | 'forbidden';
@@ -22,6 +23,7 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [status, setStatus] = useState<PageStatus>('loading');
   const [editing, setEditing] = useState<Product | 'new' | null>(null);
 
@@ -33,12 +35,20 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
     setProducts(response.data);
   };
 
+  const loadCoupons = async () => {
+    const response = await axios.get<Coupon[]>('/api/admin/coupons');
+    if (!Array.isArray(response.data)) {
+      throw new Error('Unexpected coupons response');
+    }
+    setCoupons(response.data);
+  };
+
   useEffect(() => {
     if (!userId) {
       return;
     }
     // The API decides who is an admin, so a refused request is how this page finds out
-    Promise.all([axios.get<string[]>('/api/admin/images'), axios.get<string[]>('/api/products/categories'), loadProducts()])
+    Promise.all([axios.get<string[]>('/api/admin/images'), axios.get<string[]>('/api/products/categories'), loadProducts(), loadCoupons()])
       .then(([imagesResponse, categoriesResponse]) => {
         if (!Array.isArray(imagesResponse.data) || !Array.isArray(categoriesResponse.data)) {
           throw new Error('Unexpected images or categories response');
@@ -126,6 +136,8 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
             </tbody>
           </table>
         </div>
+
+        <AdminCoupons coupons={coupons} loadCoupons={loadCoupons} />
       </>
     );
   }

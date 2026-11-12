@@ -20,6 +20,8 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummaryType | null>(null);
   const [hasError, setHasError] = useState(false);
+  // Sent with the order, so the API can check it and work out the discount again
+  const [couponCode, setCouponCode] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDeliveryOptions = async () => {
@@ -36,21 +38,39 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
     fetchDeliveryOptions();
   }, []);
 
-  // Every change to the cart (quantity, delivery option...) changes the totals
+  // Every change to the cart (quantity, delivery option...) or the coupon changes the totals
   useEffect(() => {
+    let isLatestRequest = true;
+
     const fetchPaymentSummary = async () => {
       try {
-        const response = await axios.get<PaymentSummaryType>('/api/payment-summary');
+        const response = await axios.get<PaymentSummaryType>(couponCode
+          ? `/api/payment-summary?couponCode=${encodeURIComponent(couponCode)}`
+          : '/api/payment-summary');
         if (typeof response.data !== 'object') {
           throw new Error('Unexpected payment summary response');
         }
-        setPaymentSummary(response.data);
-      } catch {
-        setHasError(true);
+        if (isLatestRequest) {
+          setPaymentSummary(response.data);
+        }
+      } catch (error) {
+        if (!isLatestRequest) {
+          return;
+        }
+        // The coupon stopped working since it was applied, for example it expired. Carry on without it
+        if (couponCode && axios.isAxiosError(error) && error.response?.status === 400) {
+          setCouponCode(null);
+        } else {
+          setHasError(true);
+        }
       }
     };
     fetchPaymentSummary();
-  }, [cart]);
+
+    return () => {
+      isLatestRequest = false;
+    };
+  }, [cart, couponCode]);
 
   const isLoading = cartStatus === 'loading' || deliveryOptions.length === 0 || !paymentSummary;
 
@@ -58,7 +78,8 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
     <div className="checkout-grid">
       <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
 
-      <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+      <PaymentSummary paymentSummary={paymentSummary} couponCode={couponCode}
+        onCouponChange={setCouponCode} loadCart={loadCart} />
     </div>
   );
 

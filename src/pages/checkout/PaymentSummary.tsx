@@ -4,18 +4,21 @@ import { useNavigate } from 'react-router';
 import { formatMoney } from '../../utils/money';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { CouponForm } from './CouponForm';
 import type { LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 
 interface PaymentSummaryProps {
   paymentSummary: PaymentSummaryType | null;
+  couponCode: string | null;
+  onCouponChange: (couponCode: string | null) => void;
   loadCart: LoadCart;
 }
 
-export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps) {
+export function PaymentSummary({ paymentSummary, couponCode, onCouponChange, loadCart }: PaymentSummaryProps) {
   const navigate = useNavigate();
 
   const [createOrder, isPlacingOrder] = useAction(async () => {
-    await axios.post('/api/orders');
+    await axios.post('/api/orders', { couponCode });
     await loadCart();
     navigate('/orders');
   });
@@ -36,7 +39,7 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
 
   // Stripe's page takes the payment, then sends the customer back to /checkout/success
   const [payWithCard, isRedirecting] = useAction(async () => {
-    const response = await axios.post<{ url: string }>('/api/stripe/checkout-sessions');
+    const response = await axios.post<{ url: string }>('/api/stripe/checkout-sessions', { couponCode });
     window.location.assign(response.data.url);
   });
 
@@ -57,6 +60,16 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
               {formatMoney(paymentSummary.productCostCents)}
             </div>
           </div>
+
+          {paymentSummary.discountCents > 0 && (
+            <div className="payment-summary-row discount-row"
+              data-testid="payment-summary-discount">
+              <div>Discount ({paymentSummary.coupon?.code}):</div>
+              <div className="payment-summary-money">
+                {formatMoney(-paymentSummary.discountCents)}
+              </div>
+            </div>
+          )}
 
           <div className="payment-summary-row"
             data-testid="payment-summary-shipping-cost">
@@ -89,6 +102,9 @@ export function PaymentSummary({ paymentSummary, loadCart }: PaymentSummaryProps
               {formatMoney(paymentSummary.totalCostCents)}
             </div>
           </div>
+
+          <CouponForm appliedCoupon={paymentSummary.coupon} onApply={onCouponChange}
+            onRemove={() => onCouponChange(null)} />
 
           {isCardPaymentOn && (
             <>

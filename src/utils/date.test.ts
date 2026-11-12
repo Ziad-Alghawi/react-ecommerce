@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
-import { formatDeliveryDate, formatDeliveryStatus, formatReviewDate } from './date';
+import { formatDeliveryDate, formatDeliveryStatus, formatDate } from './date';
 
 describe('formatDeliveryDate', () => {
   it('shows the weekday, month and day', () => {
@@ -7,9 +7,9 @@ describe('formatDeliveryDate', () => {
   });
 });
 
-describe('formatReviewDate', () => {
+describe('formatDate', () => {
   it('shows the month, day and year', () => {
-    expect(formatReviewDate(new Date(2025, 4, 18, 9).toISOString())).toBe('May 18, 2025');
+    expect(formatDate(new Date(2025, 4, 18, 9).toISOString())).toBe('May 18, 2025');
   });
 });
 

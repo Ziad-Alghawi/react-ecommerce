@@ -25,6 +25,8 @@ const newProduct = {
   stock: 25
 };
 
+const newCoupon = { code: 'spring25', percentOff: 25, expiresAt: '2099-06-30T23:59:59.000Z', active: true };
+
 let server;
 let baseUrl;
 let supabase;
@@ -36,6 +38,7 @@ const webhookSecret = 'whsec_test_secret';
 // The Checkout Sessions the server created, by ID, and their line items
 const stripeSessions = new Map();
 const stripeLineItems = new Map();
+const stripeCoupons = new Map();
 
 function getFreePort() {
   return new Promise((resolve) => {
@@ -80,10 +83,18 @@ async function startStripe() {
     const send = (status, body) => res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body));
     const [, sessionId, lineItemsPath] = req.url.match(/^\/v1\/checkout\/sessions(?:\/(\w+)(\/line_items)?)?/) ?? [];
 
+    let body = '';
+    for await (const chunk of req) body += chunk;
+
+    if (req.method === 'POST' && req.url === '/v1/coupons') {
+      const fields = parseStripeForm(body);
+      const coupon = { ...fields, id: `coupon_${randomUUID().replaceAll('-', '')}`, object: 'coupon', amount_off: Number(fields.amount_off) };
+      stripeCoupons.set(coupon.id, coupon);
+      return send(200, coupon);
+    }
+
     if (req.method === 'POST' && req.url === '/v1/checkout/sessions') {
-      let body = '';
-      for await (const chunk of req) body += chunk;
-      const { line_items: lines, metadata, success_url, cancel_url } = parseStripeForm(body);
+      const { line_items: lines, metadata, success_url, cancel_url, discounts } = parseStripeForm(body);
 
       const lineItems = Object.values(lines).map(({ price_data: price, quantity }) => ({
         description: price.product_data.name,
@@ -95,7 +106,8 @@ async function startStripe() {
         id: `cs_test_${randomUUID().replaceAll('-', '')}`,
         object: 'checkout.session',
         url: 'https://checkout.stripe.com/c/pay/test',
-        amount_total: lineItems.reduce((total, line) => total + line.amount_total, 0),
+        amount_total: lineItems.reduce((total, line) => total + line.amount_total, 0)
+          - Object.values(discounts ?? {}).reduce((total, { coupon }) => total + stripeCoupons.get(coupon).amount_off, 0),
         payment_status: 'unpaid',
         metadata,
         success_url,
@@ -623,7 +635,10 @@ test("admin routes need an admin's valid token", async () => {
     ['GET', '/api/admin/images'],
     ['POST', '/api/admin/products', newProduct],
     ['PUT', `/api/admin/products/${productId}`, newProduct],
-    ['DELETE', `/api/admin/products/${productId}`]
+    ['DELETE', `/api/admin/products/${productId}`],
+    ['GET', '/api/admin/coupons'],
+    ['POST', '/api/admin/coupons', newCoupon],
+    ['PUT', `/api/admin/coupons/${randomUUID()}`, newCoupon]
   ];
   const refusals = [
     ['without a token', {}, 401],
@@ -1165,6 +1180,159 @@ test('card payment checks the stock first, then takes it once paid without going
   assert.equal((await getOrders(visitorId)).length, 1);
   assert.equal(await getStock(product.id), 0);
   await deleteProduct(product);
+});
+
+async function createCoupon(fields) {
+  const response = await api('/api/admin/coupons', { ...await asAdmin(), method: 'POST', body: { ...newCoupon, ...fields } });
+  assert.equal(response.status, 201);
+  return response.json();
+}
+
+// 2 socks at $10.90 with $4.99 shipping
+async function createSocksCart(who) {
+  await addProduct(who, productId, 2);
+  await api(`/api/cart-items/${productId}`, { ...identify(who), method: 'PUT', body: { deliveryOptionId: '2' } });
+}
+
+test('a coupon takes its percentage off the items, before tax, in the summary and the order', async () => {
+  const visitorId = randomUUID();
+  await createSocksCart(visitorId);
+
+  const summary = await (await api('/api/payment-summary?couponCode=%20welcome10%20', { visitorId })).json();
+  assert.deepEqual(summary.coupon, { code: 'WELCOME10', percentOff: 10 });
+  assert.equal(summary.productCostCents, 2180);
+  assert.equal(summary.discountCents, 218);
+  assert.equal(summary.totalCostBeforeTaxCents, 2180 - 218 + 499);
+  assert.equal(summary.taxCents, 246);
+  assert.equal(summary.totalCostCents, 2707);
+
+  const withoutCoupon = await (await api('/api/payment-summary', { visitorId })).json();
+  assert.equal(withoutCoupon.coupon, null);
+  assert.equal(withoutCoupon.discountCents, 0);
+
+  // Only the code is sent. The discount comes from the database
+  const response = await api('/api/orders', {
+    visitorId, method: 'POST', body: { couponCode: 'Welcome10', discountCents: 2000, totalCostCents: 1 }
+  });
+  assert.equal(response.status, 201);
+  assert.equal((await response.json()).totalCostCents, 2707);
+});
+
+test('refuses a coupon that does not exist, is turned off or has expired', async () => {
+  await createCoupon({ code: 'OLDSALE', expiresAt: '2020-01-01T00:00:00.000Z' });
+  await createCoupon({ code: 'PAUSED', active: false });
+  const visitorId = randomUUID();
+  await createSocksCart(visitorId);
+
+  for (const [code, error] of [
+    ['nope', "NOPE isn't a valid coupon code."],
+    ['paused', "PAUSED isn't a valid coupon code."],
+    ['oldsale', 'The coupon OLDSALE has expired.']
+  ]) {
+    const summary = await api(`/api/payment-summary?couponCode=${code}`, { visitorId });
+    assert.equal(summary.status, 400, code);
+    assert.equal((await summary.json()).error, error);
+
+    const order = await api('/api/orders', { visitorId, method: 'POST', body: { couponCode: code } });
+    assert.equal(order.status, 400, code);
+    const session = await api('/api/stripe/checkout-sessions', {
+      visitorId, method: 'POST', headers: { Origin: baseUrl }, body: { couponCode: code }
+    });
+    assert.equal(session.status, 400, code);
+  }
+  assert.deepEqual(await getOrders(visitorId), []);
+  assert.equal((await getCart(visitorId))[0].quantity, 2);
+});
+
+test('tells checkout whether a coupon code works, and what it gives', async () => {
+  const response = await api('/api/coupons/welcome10');
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { code: 'WELCOME10', percentOff: 10 });
+
+  for (const [code, error] of [['nope', "NOPE isn't a valid coupon code."], ['OLDSALE', 'The coupon OLDSALE has expired.']]) {
+    const refused = await api(`/api/coupons/${code}`);
+    assert.equal(refused.status, 404, code);
+    assert.equal((await refused.json()).error, error);
+  }
+});
+
+test('card payment charges the discounted total, through a Stripe coupon for this payment', async () => {
+  const visitorId = randomUUID();
+  await createSocksCart(visitorId);
+  const summary = await (await api('/api/payment-summary?couponCode=WELCOME10', { visitorId })).json();
+
+  const response = await api('/api/stripe/checkout-sessions', {
+    visitorId, method: 'POST', headers: { Origin: baseUrl }, body: { couponCode: 'welcome10' }
+  });
+  assert.equal(response.status, 201);
+  const session = [...stripeSessions.values()].at(-1);
+  const coupon = [...stripeCoupons.values()].at(-1);
+
+  assert.equal(session.amount_total, summary.totalCostCents);
+  assert.equal(coupon.amount_off, 218);
+  assert.equal(coupon.duration, 'once');
+  assert.equal(coupon.name, 'WELCOME10 (10% off)');
+  assert.deepEqual(coupon.metadata, { app: 'react-ecommerce' });
+
+  session.payment_status = 'paid';
+  assert.equal((await (await getPaidOrder(visitorId, session)).json()).totalCostCents, 2707);
+});
+
+test('an admin creates, lists and edits coupons', async () => {
+  const admin = await asAdmin();
+  const coupon = await createCoupon({ code: ' autumn15 ', percentOff: 15, expiresAt: null });
+  assert.equal(coupon.code, 'AUTUMN15');
+  assert.equal(coupon.expiresAt, null);
+  assert.equal(coupon.active, true);
+
+  const duplicate = await api('/api/admin/coupons', { ...admin, method: 'POST', body: { ...newCoupon, code: 'Autumn15' } });
+  assert.equal(duplicate.status, 409);
+
+  const coupons = await (await api('/api/admin/coupons', admin)).json();
+  assert.deepEqual(coupons.map(({ code }) => code).filter((code) => ['WELCOME10', 'AUTUMN15'].includes(code)), ['WELCOME10', 'AUTUMN15']);
+
+  const changes = { code: 'AUTUMN20', percentOff: 20, expiresAt: '2099-11-30T23:59:59.000Z', active: false };
+  const updateResponse = await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: changes });
+  assert.equal(updateResponse.status, 200);
+  const { code, percentOff, expiresAt, active } = await updateResponse.json();
+  assert.deepEqual({ code, percentOff, expiresAt, active }, changes);
+
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  assert.equal((await api('/api/payment-summary?couponCode=AUTUMN20', { visitorId })).status, 400);
+  await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: { ...changes, active: true } });
+  assert.equal((await (await api('/api/payment-summary?couponCode=AUTUMN20', { visitorId })).json()).coupon.percentOff, 20);
+
+  const taken = await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: { ...changes, code: 'WELCOME10' } });
+  assert.equal(taken.status, 409);
+  for (const id of [randomUUID(), 'not-a-uuid']) {
+    assert.equal((await api(`/api/admin/coupons/${id}`, { ...admin, method: 'PUT', body: changes })).status, 404);
+  }
+});
+
+test('refuses coupon fields that are missing or invalid', async () => {
+  const admin = await asAdmin();
+  const invalidFields = {
+    'without a code': { code: undefined },
+    'with a code of 2 characters': { code: 'AB' },
+    'with a code over 20 characters': { code: 'A'.repeat(21) },
+    'with spaces inside the code': { code: 'SPRING 25' },
+    'without a percentage': { percentOff: undefined },
+    'with 0% off': { percentOff: 0 },
+    'with more than 90% off': { percentOff: 91 },
+    'with a percentage that is not whole': { percentOff: 12.5 },
+    'with an expiry that is not a date': { expiresAt: 'next week' },
+    'with an expiry as a number': { expiresAt: 1700000000000 },
+    'without active': { active: undefined },
+    'with active as text': { active: 'yes' }
+  };
+
+  for (const [problem, fields] of Object.entries(invalidFields)) {
+    const response = await api('/api/admin/coupons', { ...admin, method: 'POST', body: { ...newCoupon, ...fields } });
+    assert.equal(response.status, 400, `creating a coupon ${problem}`);
+    assert.ok((await response.json()).error);
+  }
+  assert.ok(!(await (await api('/api/admin/coupons', admin)).json()).some(({ code }) => code === 'SPRING25'));
 });
 
 test('orders paid on delivery say so', async () => {

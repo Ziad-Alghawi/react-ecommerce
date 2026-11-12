@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { User } from '@supabase/supabase-js';
+import dayjs from 'dayjs';
 import { AdminPage } from './AdminPage';
 import { AuthContext } from '../../hooks/useAuth';
 
@@ -29,13 +30,20 @@ const basketball = {
   category: 'Sports'
 };
 
+const welcome = { id: 'c1f6a8a2-4b7e-4f0e-9d3b-1a2b3c4d5e6f', code: 'WELCOME10', percentOff: 10, expiresAt: null, active: true };
+const oldSale = { id: 'd2a7b9c3-5c8f-4a1f-8e4c-2b3c4d5e6f70', code: 'OLDSALE', percentOff: 30, expiresAt: '2020-01-31T22:59:59.999Z', active: true };
+const paused = { id: 'e3b8cad4-6d90-4b2a-9f5d-3c4d5e6f7081', code: 'PAUSED', percentOff: 5, expiresAt: null, active: false };
+
 const workingApi = {
   'get /api/products': { data: [socks, basketball] },
   'get /api/admin/images': { data: [basketball.image, socks.image] },
   'get /api/products/categories': { data: ['Clothing', 'Accessories', 'Sports'] },
   'post /api/admin/products': { status: 201, data: {} },
   [`put /api/admin/products/${socks.id}`]: { data: {} },
-  [`delete /api/admin/products/${socks.id}`]: { status: 204 }
+  [`delete /api/admin/products/${socks.id}`]: { status: 204 },
+  'get /api/admin/coupons': { data: [welcome, oldSale, paused] },
+  'post /api/admin/coupons': { status: 201, data: {} },
+  [`put /api/admin/coupons/${welcome.id}`]: { data: {} }
 };
 
 describe('AdminPage component', () => {
@@ -113,7 +121,7 @@ describe('AdminPage component', () => {
     expect(rows[0]).toHaveTextContent('20 in stock');
     expect(rows[1]).toHaveTextContent('Only 2 left');
     expect(rows[0]).toHaveTextContent('socks, wool');
-    expect(screen.getByRole('table')).toHaveAccessibleName('2 products in the store');
+    expect(screen.getByRole('table', { name: '2 products in the store' })).toBeInTheDocument();
   });
 
   it('adds a product with one of the store images', async () => {
@@ -206,5 +214,48 @@ describe('AdminPage component', () => {
 
     expect(screen.getByTestId('admin-confirm-delete-button')).toBeInTheDocument();
     expect(requestsTo(`delete /api/admin/products/${socks.id}`)).toEqual([]);
+  });
+
+  it('lists the coupons with when they expire and whether they work', async () => {
+    renderAdminPage();
+
+    const rows = await screen.findAllByTestId('admin-coupon-row');
+    expect(rows.map((row) => [...row.querySelectorAll('td')].slice(0, 4).map((cell) => cell.textContent))).toEqual([
+      ['WELCOME10', '10% off', 'Never', 'Active'],
+      ['OLDSALE', '30% off', 'January 31, 2020', 'Expired'],
+      ['PAUSED', '5% off', 'Never', 'Off']
+    ]);
+  });
+
+  it('adds a coupon that works until the end of its last day', async () => {
+    renderAdminPage();
+    await user.click(await screen.findByTestId('admin-add-coupon-button'));
+
+    await user.type(screen.getByTestId('admin-coupon-code-input'), 'spring25');
+    await user.type(screen.getByTestId('admin-coupon-percent-input'), '25');
+    await user.type(screen.getByTestId('admin-coupon-expiry-input'), '2099-06-30');
+    await user.click(screen.getByTestId('admin-coupon-save-button'));
+
+    await waitFor(() => expect(screen.queryByTestId('admin-coupon-form')).not.toBeInTheDocument());
+    expect(requestsTo('post /api/admin/coupons')[0].body).toEqual({
+      code: 'spring25', percentOff: 25, expiresAt: dayjs('2099-06-30').endOf('day').toISOString(), active: true
+    });
+    expect(requestsTo('get /api/admin/coupons')).toHaveLength(2);
+  });
+
+  it('turns a coupon off, keeping its other details', async () => {
+    renderAdminPage();
+    await user.click(await screen.findByRole('button', { name: 'Edit WELCOME10' }));
+
+    expect(screen.getByTestId('admin-coupon-code-input')).toHaveValue('WELCOME10');
+    expect(screen.getByTestId('admin-coupon-percent-input')).toHaveValue(10);
+    expect(screen.getByTestId('admin-coupon-expiry-input')).toHaveValue('');
+    await user.click(screen.getByTestId('admin-coupon-active-input'));
+    await user.click(screen.getByTestId('admin-coupon-save-button'));
+
+    await waitFor(() => expect(screen.queryByTestId('admin-coupon-form')).not.toBeInTheDocument());
+    expect(requestsTo(`put /api/admin/coupons/${welcome.id}`)[0].body).toEqual({
+      code: 'WELCOME10', percentOff: 10, expiresAt: null, active: false
+    });
   });
 });

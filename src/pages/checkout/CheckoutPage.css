@@ -139,6 +139,56 @@
   font-weight: var(--font-weight-bold);
 }
 
+.checkout-page .discount-row {
+  color: var(--color-brand);
+  font-weight: var(--font-weight-medium);
+}
+
+.checkout-page .coupon-form,
+.checkout-page .coupon-applied {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.checkout-page .coupon-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-medium);
+}
+
+.checkout-page .coupon-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.checkout-page .coupon-row input {
+  flex: 1;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.checkout-page .coupon-error {
+  margin-top: var(--space-2);
+  color: var(--color-error);
+}
+
+.checkout-page .coupon-hint {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.checkout-page .coupon-applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-brand-active);
+}
+
 .checkout-page .place-order-button {
   width: 100%;
   min-height: 48px;

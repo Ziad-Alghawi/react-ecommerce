@@ -24,8 +24,9 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 - [POST /api/orders](#post-apiorders)
 - [GET /api/orders/:orderId](#get-apiordersorderid)
 
-**Payment Summary, Reset**
+**Payment Summary, Coupons, Reset**
 - [GET /api/payment-summary](#get-apipayment-summary)
+- [GET /api/coupons/:code](#get-apicouponscode)
 - [POST /api/reset](#post-apireset)
 
 **Card Payment**
@@ -40,6 +41,9 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 - [POST /api/admin/products](#post-apiadminproducts)
 - [PUT /api/admin/products/:productId](#put-apiadminproductsproductid)
 - [DELETE /api/admin/products/:productId](#delete-apiadminproductsproductid)
+- [GET /api/admin/coupons](#get-apiadmincoupons)
+- [POST /api/admin/coupons](#post-apiadmincoupons)
+- [PUT /api/admin/coupons/:couponId](#put-apiadmincouponscouponid)
 
 **Visitors:** the cart, order, payment summary and Checkout Session routes need an `X-Visitor-Id` header with a UUID. Each ID has its own cart and orders, so a browser can keep its own data without an account. Requests without a valid ID get `400`.
 
@@ -50,6 +54,8 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 **Reviews:** reading reviews works for everyone. Writing, editing and deleting one needs `Authorization: Bearer <access token>`, and the user always comes from the verified token, never from the request body. Only a user who has ordered the product can review it, once. Only the author can edit a review, and the author or an admin can delete it. After every change the product's `rating` is worked out again from its demo rating and its reviews, rounded to the nearest half star.
 
 **Stock:** a cart can't hold more of a product than its `stock`, and neither payment method orders more than is left. Paying on delivery takes the whole order out of stock at once, or refuses it. A card order takes its items when Stripe says it's paid, and since it's paid by then, an item that sold out meanwhile stops at 0.
+
+**Coupons:** the payment summary, placing an order and starting a card payment all take an optional `couponCode`, in any case. The API looks it up and works out the discount itself every time, so a coupon that expires or is turned off before paying no longer counts, and a discount sent by the browser is ignored. A coupon takes its percentage off the items, before shipping and tax. A code that doesn't exist, is turned off or has expired gets `400` with the reason.
 
 **Card payment:** only on when `STRIPE_SECRET_KEY` is a Stripe test key. Otherwise every `/api/stripe` route except `GET /api/stripe/config` answers `404`. The API sets all prices from the database, and an order paid by card is only created once Stripe says the session is paid.
 
@@ -305,6 +311,14 @@ Returns all orders, sorted by most recent first.
 ## POST /api/orders
 Creates a new order from the current cart items.
 
+**Request:**
+```js
+{
+  // Optional
+  "couponCode": "string"
+}
+```
+
 **Response:**
 ```js
 {
@@ -323,7 +337,7 @@ Creates a new order from the current cart items.
 }
 ```
 - Side effect: Cart is emptied, and its items are taken out of stock
-- Status 400 if the cart is empty
+- Status 400 if the cart is empty, or with the reason if the coupon can't be used
 - Status 409 if the visitor or user already has 50 orders, or with the reason if an item has less stock than the cart has
 
 ## GET /api/orders/:orderId
@@ -358,17 +372,39 @@ Returns a specific order.
 ## GET /api/payment-summary
 Calculates and returns the payment summary for the current cart.
 
+**Query Parameters:**
+- `couponCode=...` (optional): a coupon to take off the items
+
 **Response:**
 ```js
 {
   "totalItems": "number",
   "productCostCents": "number",
+  // The coupon used, as saved, or null
+  "coupon": { "code": "string", "percentOff": "number" },
+  // 0 without a coupon
+  "discountCents": "number",
   "shippingCostCents": "number",
   "totalCostBeforeTaxCents": "number",
   "taxCents": "number",
   "totalCostCents": "number"
 }
 ```
+
+- Status 400 with the reason if the coupon can't be used
+
+## GET /api/coupons/:code
+Says whether a coupon code can be used now, so checkout can tell the customer before applying it. Works for everyone.
+
+**Response:**
+```js
+{
+  // As saved, in capitals
+  "code": "string",
+  "percentOff": "number"
+}
+```
+- Status 404 with the reason if the code doesn't exist, is turned off or has expired
 
 ## POST /api/reset
 Resets the database to its default state. Only available when `NODE_ENV` is not `production`.
@@ -391,7 +427,7 @@ Tells the frontend whether to offer card payment. Works for everyone.
 ## POST /api/stripe/checkout-sessions
 Starts paying for the current cart by card. Creates a Stripe Checkout Session with a line per cart item, priced from the database, plus shipping and tax from [GET /api/payment-summary](#get-apipayment-summary), so it charges exactly the summary's total. The session's metadata has `app: "react-ecommerce"` and the visitor or user ID. The cart stays as it is until the payment is confirmed.
 
-Takes no body. The `Origin` header must be the store's own address or one of `CORS_ORIGIN`, because Stripe sends the customer back there: to `/checkout/success?session_id=...` after paying, or to `/checkout` on cancel.
+Takes an optional `{ "couponCode": "string" }`. The discount is given to Stripe as a coupon made for this one payment, so the customer sees it on Stripe's page and the charge matches the summary. The `Origin` header must be the store's own address or one of `CORS_ORIGIN`, because Stripe sends the customer back there: to `/checkout/success?session_id=...` after paying, or to `/checkout` on cancel.
 
 **Response:**
 ```js
@@ -401,7 +437,7 @@ Takes no body. The `Origin` header must be the store's own address or one of `CO
 }
 ```
 - Status 201 with the URL
-- Status 400 if the cart is empty or the origin isn't the store's
+- Status 400 if the cart is empty or the origin isn't the store's, or with the reason if the coupon can't be used
 - Status 404 when card payment is off
 - Status 409 if the visitor or user already has 50 orders, or with the reason if an item has less stock than the cart has
 
@@ -490,3 +526,56 @@ Hides a product from the store. Carts and orders that have it keep working.
 **Response:**
 - Status 204 (No response)
 - Status 404 if the product doesn't exist or was already deleted
+
+## GET /api/admin/coupons
+Returns every coupon, oldest first, including those turned off or expired.
+
+**Response:**
+```js
+[
+  {
+    "id": "uuid",
+    "code": "string",
+    "percentOff": "number",
+    // Null for a coupon that never expires
+    "expiresAt": "string",
+    "active": "boolean",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+]
+```
+
+## POST /api/admin/coupons
+Adds a coupon.
+
+**Request:**
+```js
+{
+  // 3 to 20 letters or digits. Saved in capitals
+  "code": "string",
+  // A whole number from 1 to 90
+  "percentOff": "number",
+  // A date, or null for a coupon that never expires
+  "expiresAt": "string",
+  // Whether customers can use it
+  "active": "boolean"
+}
+```
+
+**Response:**
+- Status 201 with the new coupon, in the same shape as [GET /api/admin/coupons](#get-apiadmincoupons)
+- Status 400 with the reason if a field is missing or invalid
+- Status 409 if another coupon has the same code
+
+## PUT /api/admin/coupons/:couponId
+Changes a coupon. Takes the same fields as [POST /api/admin/coupons](#post-apiadmincoupons), all of them required.
+
+**URL Parameters:**
+- `couponId`: ID of the coupon to change
+
+**Response:**
+- Status 200 with the changed coupon
+- Status 400 with the reason if a field is missing or invalid
+- Status 404 if the coupon doesn't exist
+- Status 409 if another coupon has the same code

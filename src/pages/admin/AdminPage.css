@@ -15,6 +15,50 @@
   margin: 0;
 }
 
+.admin-section {
+  margin-top: var(--space-7);
+}
+
+.admin-section-title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.admin-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.admin-status-active {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-active);
+}
+
+.admin-status-expired {
+  background-color: var(--color-error-subtle);
+  color: var(--color-error);
+}
+
 .admin-form {
   display: grid;
   gap: var(--space-4);
@@ -30,6 +74,7 @@
 .admin-form-row {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
   gap: var(--space-4);
 }
 
@@ -223,6 +268,11 @@
 
   .admin-cell-image {
     grid-row: span 5;
+  }
+
+  .admin-coupons-table tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--space-1);
   }
 
   .admin-cell-actions {

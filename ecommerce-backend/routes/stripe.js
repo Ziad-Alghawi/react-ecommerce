@@ -9,6 +9,7 @@ import { createOrder, getOrderRefusal } from './orders.js';
 import { corsOrigins } from '../utils/corsOrigins.js';
 import { stripe } from '../utils/stripe.js';
 import { takePaidStock } from '../utils/stock.js';
+import { readCoupon } from '../middleware/coupon.js';
 
 // The Stripe sandbox is shared with another app, so this store tags its sessions and skips the rest
 const APP_TAG = 'react-ecommerce';
@@ -82,7 +83,7 @@ router.get('/config', (req, res) => {
 
 router.use(requireStripe);
 
-router.post('/checkout-sessions', requireVisitor, asyncHandler(async (req, res) => {
+router.post('/checkout-sessions', requireVisitor, readCoupon, asyncHandler(async (req, res) => {
   const origin = req.get('Origin');
   if (!isStoreOrigin(req, origin)) {
     return res.status(400).json({ error: 'Card payment only works from the store' });
@@ -99,15 +100,28 @@ router.post('/checkout-sessions', requireVisitor, asyncHandler(async (req, res) 
     const product = await Product.findByPk(productId, { paranoid: false });
     return lineItem(product.name, product.priceCents, quantity, { productId, deliveryOptionId });
   }));
-  const { shippingCostCents, taxCents } = await calculatePaymentSummary(cartItems);
+  const { shippingCostCents, taxCents, discountCents } = await calculatePaymentSummary(cartItems, req.coupon);
   const extraLines = [
     ['Shipping & handling', shippingCostCents],
     ['Estimated tax (10%)', taxCents]
   ].filter(([, amountCents]) => amountCents > 0).map(([name, amountCents]) => lineItem(name, amountCents));
 
+  // Stripe takes a discount as a coupon of its own, made for this one payment
+  const discounts = discountCents > 0 ? [{
+    coupon: (await stripe.coupons.create({
+      amount_off: discountCents,
+      currency: 'usd',
+      duration: 'once',
+      max_redemptions: 1,
+      name: `${req.coupon.code} (${req.coupon.percentOff}% off)`,
+      metadata: { app: APP_TAG }
+    })).id
+  }] : undefined;
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [...productLines, ...extraLines],
+    discounts,
     metadata: { app: APP_TAG, visitorId: req.visitorId },
     success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout`

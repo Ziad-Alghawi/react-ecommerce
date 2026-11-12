@@ -14,6 +14,8 @@ import orderRoutes from './routes/orders.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import adminRoutes from './routes/admin.js';
+import adminCouponRoutes from './routes/adminCoupons.js';
+import couponRoutes from './routes/coupons.js';
 import meRoutes from './routes/me.js';
 import stripeRoutes, { handleWebhook } from './routes/stripe.js';
 import { corsOrigins } from './utils/corsOrigins.js';
@@ -43,8 +45,10 @@ app.use('/api/cart-items', requireVisitor, cartItemRoutes);
 app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
+app.use('/api/coupons', couponRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/admin/coupons', requireAdmin, adminCouponRoutes);
 app.use('/api/admin', requireAdmin, adminRoutes);
 
 // The built frontend, including the product images from its public folder

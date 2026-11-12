@@ -10,6 +10,7 @@ vi.mock('axios');
 describe('PaymentSummary', () => {
   let paymentSummary;
   let loadCart;
+  let onCouponChange;
   let user;
 
   beforeEach(() => {
@@ -19,10 +20,13 @@ describe('PaymentSummary', () => {
       shippingCostCents: 499,
       totalCostBeforeTaxCents: 4774,
       taxCents: 477,
-      totalCostCents: 5251
+      totalCostCents: 5251,
+      coupon: null,
+      discountCents: 0
     };
 
     loadCart = vi.fn();
+    onCouponChange = vi.fn();
     user = userEvent.setup();
   });
 
@@ -31,6 +35,8 @@ describe('PaymentSummary', () => {
       <MemoryRouter>
         <PaymentSummary
           paymentSummary={{ ...paymentSummary, totalItems: 0 }}
+          couponCode={null}
+          onCouponChange={onCouponChange}
           loadCart={loadCart}
         />
       </MemoryRouter>
@@ -44,7 +50,7 @@ describe('PaymentSummary', () => {
     axios.post.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
     render(
       <MemoryRouter>
-        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+        <PaymentSummary paymentSummary={paymentSummary} couponCode={null} onCouponChange={onCouponChange} loadCart={loadCart} />
       </MemoryRouter>
     );
 
@@ -61,7 +67,7 @@ describe('PaymentSummary', () => {
   it('displays the correct details', async () => {
     render(
       <MemoryRouter>
-        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+        <PaymentSummary paymentSummary={paymentSummary} couponCode={null} onCouponChange={onCouponChange} loadCart={loadCart} />
       </MemoryRouter>
     );
 
@@ -88,13 +94,42 @@ describe('PaymentSummary', () => {
     expect(
       screen.getByTestId('payment-summary-total')
     ).toHaveTextContent('$52.51');
+    expect(screen.queryByTestId('payment-summary-discount')).not.toBeInTheDocument();
+  });
+
+  it('shows the coupon discount and sends the code with either way of paying', async () => {
+    axios.get.mockResolvedValueOnce({ data: { cardPayment: true } });
+    axios.post.mockResolvedValue({ data: { url: 'https://checkout.stripe.com/c/pay/cs_test_1' } });
+    vi.stubGlobal('location', { ...window.location, assign: vi.fn() });
+    const discounted = {
+      ...paymentSummary, coupon: { code: 'WELCOME10', percentOff: 10 }, discountCents: 428,
+      totalCostBeforeTaxCents: 4346, taxCents: 435, totalCostCents: 4781
+    };
+    render(
+      <MemoryRouter>
+        <PaymentSummary paymentSummary={discounted} couponCode="WELCOME10" onCouponChange={onCouponChange} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('payment-summary-discount')).toHaveTextContent('Discount (WELCOME10):-$4.28');
+    expect(screen.getByTestId('payment-summary-total')).toHaveTextContent('$47.81');
+    expect(screen.getByTestId('coupon-applied')).toHaveTextContent('WELCOME10 applied: 10% off your items');
+
+    await user.click(await screen.findByTestId('pay-with-card-button'));
+    expect(axios.post).toHaveBeenCalledWith('/api/stripe/checkout-sessions', { couponCode: 'WELCOME10' });
+    await user.click(screen.getByTestId('place-order-button'));
+    expect(axios.post).toHaveBeenCalledWith('/api/orders', { couponCode: 'WELCOME10' });
+
+    await user.click(screen.getByTestId('coupon-remove-button'));
+    expect(onCouponChange).toHaveBeenCalledWith(null);
+    vi.unstubAllGlobals();
   });
 
   it('only offers paying on delivery when card payment is off', async () => {
     axios.get.mockResolvedValueOnce({ data: { cardPayment: false } });
     render(
       <MemoryRouter>
-        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+        <PaymentSummary paymentSummary={paymentSummary} couponCode={null} onCouponChange={onCouponChange} loadCart={loadCart} />
       </MemoryRouter>
     );
 
@@ -111,7 +146,7 @@ describe('PaymentSummary', () => {
     vi.stubGlobal('location', { ...window.location, assign });
     render(
       <MemoryRouter>
-        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+        <PaymentSummary paymentSummary={paymentSummary} couponCode={null} onCouponChange={onCouponChange} loadCart={loadCart} />
       </MemoryRouter>
     );
 
@@ -122,7 +157,7 @@ describe('PaymentSummary', () => {
     await user.click(payWithCardButton);
 
     // The cart and prices stay on the server, so nothing is sent
-    expect(axios.post).toHaveBeenCalledWith('/api/stripe/checkout-sessions');
+    expect(axios.post).toHaveBeenCalledWith('/api/stripe/checkout-sessions', { couponCode: null });
     expect(assign).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_test_1');
     vi.unstubAllGlobals();
   });
@@ -135,14 +170,14 @@ describe('PaymentSummary', () => {
 
     render(
       <MemoryRouter>
-        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+        <PaymentSummary paymentSummary={paymentSummary} couponCode={null} onCouponChange={onCouponChange} loadCart={loadCart} />
         <Location />
       </MemoryRouter>
     );
 
     await user.click(screen.getByTestId('place-order-button'));
 
-    expect(axios.post).toHaveBeenCalledWith('/api/orders');
+    expect(axios.post).toHaveBeenCalledWith('/api/orders', { couponCode: null });
     // Navigating waits for the order and the cart, so it renders after the click has finished
     await waitFor(() => expect(screen.getByTestId('url-path')).toHaveTextContent('/orders'));
     expect(loadCart).toHaveBeenCalled();

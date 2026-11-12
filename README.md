@@ -15,11 +15,12 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Stock for every product: the shop says when only a few are left, out of stock products can't be added to the cart, and placing an order takes its items out of stock with either payment method
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
+- Coupons: the customer types a code at checkout and the discount is taken off the items, whether they pay on delivery or by card. Try `WELCOME10` for 10% off
 - Order placement and order history, with delivered or arriving status per package
 - Card payment with Stripe Checkout in test mode, next to paying on delivery
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
-- Admin page to add, edit and delete products and set their category and stock, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
+- Admin page to add, edit and delete products and set their category and stock, and to create coupons, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
 - Package tracking with delivery progress
 - Loading, empty and error states, with a retry for failed changes
 - Responsive layout for phone and desktop
@@ -97,7 +98,7 @@ When a user is logged in, the frontend sends their access token with each API re
 
 ### Admins
 
-Admins get an **Admin** link in the header, to a page where they add, edit and delete products. A new product uses one of the store's existing photos and starts without a rating.
+Admins get an **Admin** link in the header, to a page where they add, edit and delete products, set each product's category and stock, and manage coupons. A new product uses one of the store's existing photos and starts without a rating.
 
 To make an account an admin, sign up in the store, then in the Supabase dashboard open **Authentication > Users**, click the user and copy their **User UID**. Put it in `ADMIN_USER_IDS` in the backend's settings (several IDs are separated by commas) and restart the backend.
 
@@ -112,6 +113,12 @@ Every product has its own page, linked from the shop and from past orders, with 
 The API checks all of this itself, and takes the user from the verified token only. A review shows a masked name, the first 2 characters of the reviewer's email followed by "***" (such as "ja***"), or "Customer" when the token has no email. Only this masked name is saved with the review, never the email.
 
 The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews are added to it: after every new, edited or deleted review, the API works out the average of the demo rating and the reviews, rounded to the nearest half star, and saves it on the product. The shop and the product page read the same saved rating, so they always match.
+
+### Coupons
+
+Admins create coupons on the admin page, with a code, a percentage off, an optional last day and whether it's active. The store starts with `WELCOME10`, 10% off with no end date, and checkout suggests it.
+
+Checkout only sends the code. The API looks it up and works out the discount for the payment summary, the order and the card payment every time, so a discount can't be changed in the browser and a coupon that's turned off or expires before paying stops counting. The discount comes off the items before shipping and tax. For card payment, the API gives Stripe a coupon made for that one payment, so Stripe's page shows the discount and charges the same total.
 
 ## Card Payment
 

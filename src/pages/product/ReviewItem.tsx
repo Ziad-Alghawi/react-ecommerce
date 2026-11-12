@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { RatingStars } from '../../components/Rating';
 import { useAction } from '../../hooks/useAction';
-import { formatReviewDate } from '../../utils/date';
+import { formatDate } from '../../utils/date';
 import type { Review } from '../../types/store';
 
 interface ReviewItemProps {
@@ -28,7 +28,7 @@ export function ReviewItem({ review, canDelete, onEdit, onDeleted }: ReviewItemP
         <span className="review-verified">Verified purchase</span>
       </div>
       <div className="review-meta">
-        {review.authorName}{review.isMine && ' (you)'} · {formatReviewDate(review.createdAt)}
+        {review.authorName}{review.isMine && ' (you)'} · {formatDate(review.createdAt)}
       </div>
       {review.text && <p className="review-text">{review.text}</p>}
 

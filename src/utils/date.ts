@@ -4,7 +4,7 @@ export function formatDeliveryDate(timeMs: number) {
   return dayjs(timeMs).format('dddd, MMMM D');
 }
 
-export function formatReviewDate(date: string) {
+export function formatDate(date: string) {
   return dayjs(date).format('MMMM D, YYYY');
 }
 

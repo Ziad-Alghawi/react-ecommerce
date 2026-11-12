@@ -1,8 +1,10 @@
 import { Op } from 'sequelize';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
+import { Coupon } from '../models/Coupon.js';
 import { defaultProducts } from './defaultProducts.js';
 import { defaultDeliveryOptions } from './defaultDeliveryOptions.js';
+import { defaultCoupons } from './defaultCoupons.js';
 
 // The models are sorted by createdAt, so each row gets its own timestamp to keep the list order
 function withTimestamps(rows, timestamp) {
@@ -32,7 +34,7 @@ async function fillNewProductColumns() {
 // Only fills empty tables, so a persistent database keeps its rows across restarts and deploys
 export async function addDefaultData() {
   const timestamp = Date.now();
-  const defaults = [[Product, defaultProducts], [DeliveryOption, defaultDeliveryOptions]];
+  const defaults = [[Product, defaultProducts], [DeliveryOption, defaultDeliveryOptions], [Coupon, defaultCoupons]];
 
   for (const [model, rows] of defaults) {
     // Hidden products still take up their IDs

@@ -1,5 +1,6 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import axios from 'axios';
 import { CheckoutPage } from './CheckoutPage';
@@ -70,7 +71,9 @@ describe('CheckoutPage component', () => {
       shippingCostCents: 499,
       totalCostBeforeTaxCents: 4774,
       taxCents: 477,
-      totalCostCents: 5251
+      totalCostCents: 5251,
+      coupon: null,
+      discountCents: 0
     };
 
     axios.get.mockImplementation(async (url) => {
@@ -79,6 +82,12 @@ describe('CheckoutPage component', () => {
       }
       if (url === '/api/payment-summary') {
         return { data: paymentSummary };
+      }
+      if (url === '/api/coupons/welcome10') {
+        return { data: { code: 'WELCOME10', percentOff: 10 } };
+      }
+      if (url === '/api/payment-summary?couponCode=WELCOME10') {
+        return { data: { ...paymentSummary, coupon: { code: 'WELCOME10', percentOff: 10 }, discountCents: 428, totalCostCents: 4781 } };
       }
     });
   });
@@ -129,5 +138,52 @@ describe('CheckoutPage component', () => {
       .toHaveTextContent('Your cart is empty');
     expect(screen.getByRole('link', { name: 'Browse products' })).toHaveAttribute('href', '/');
     expect(screen.queryByTestId('place-order-button')).not.toBeInTheDocument();
+  });
+
+  it('applies a coupon, and the API works out the new totals', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <CheckoutPage cart={cart} cartStatus="ready" loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    await user.type(await screen.findByTestId('coupon-input'), ' welcome10 ');
+    await user.click(screen.getByTestId('coupon-apply-button'));
+
+    expect(axios.get).toHaveBeenCalledWith('/api/coupons/welcome10');
+    expect(axios.get).toHaveBeenLastCalledWith('/api/payment-summary?couponCode=WELCOME10');
+    expect(await screen.findByTestId('payment-summary-discount')).toHaveTextContent('-$4.28');
+    expect(screen.getByTestId('payment-summary-total')).toHaveTextContent('$47.81');
+
+    await user.click(screen.getByTestId('coupon-remove-button'));
+    await waitFor(() => expect(screen.queryByTestId('payment-summary-discount')).not.toBeInTheDocument());
+    expect(axios.get).toHaveBeenLastCalledWith('/api/payment-summary');
+  });
+
+  it('drops a coupon that stopped working since it was applied', async () => {
+    const user = userEvent.setup();
+    const getFromApi = axios.get.getMockImplementation();
+    axios.get.mockImplementation(async (url) => {
+      if (url === '/api/payment-summary?couponCode=WELCOME10') {
+        throw Object.assign(new Error('Request failed with status code 400'), {
+          isAxiosError: true, response: { status: 400, data: { error: 'The coupon WELCOME10 has expired.' } }
+        });
+      }
+      return getFromApi(url);
+    });
+    axios.isAxiosError.mockImplementation((error) => Boolean(error?.isAxiosError));
+    render(
+      <MemoryRouter>
+        <CheckoutPage cart={cart} cartStatus="ready" loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    await user.type(await screen.findByTestId('coupon-input'), 'welcome10');
+    await user.click(screen.getByTestId('coupon-apply-button'));
+
+    await waitFor(() => expect(axios.get).toHaveBeenLastCalledWith('/api/payment-summary'));
+    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('coupon-applied')).not.toBeInTheDocument();
   });
 });

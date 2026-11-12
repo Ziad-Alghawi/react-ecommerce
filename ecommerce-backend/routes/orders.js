@@ -5,6 +5,7 @@ import { Product } from '../models/Product.js';
 import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption.js';
 import { CartItem } from '../models/CartItem.js';
 import { calculatePaymentSummary } from './paymentSummary.js';
+import { readCoupon } from '../middleware/coupon.js';
 import { rejectInvalidId } from '../utils/isUuid.js';
 import { getStockShortage, giveBackStock, takeStock } from '../utils/stock.js';
 
@@ -52,7 +53,7 @@ export async function getOrderRefusal(visitorId, cartItems) {
   return shortage && { status: 409, error: shortage };
 }
 
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', readCoupon, asyncHandler(async (req, res) => {
   const cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
 
   const refusal = await getOrderRefusal(req.visitorId, cartItems);
@@ -60,7 +61,7 @@ router.post('/', asyncHandler(async (req, res) => {
     return res.status(refusal.status).json({ error: refusal.error });
   }
 
-  const { totalCostCents } = await calculatePaymentSummary(cartItems);
+  const { totalCostCents } = await calculatePaymentSummary(cartItems, req.coupon);
   // Another order may have taken the last ones since the check above
   if (!await takeStock(cartItems)) {
     return res.status(409).json({ error: await getStockShortage(cartItems) });

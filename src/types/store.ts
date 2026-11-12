@@ -51,9 +51,24 @@ export interface DeliveryOption {
   estimatedDeliveryTimeMs: number;
 }
 
+export interface AppliedCoupon {
+  code: string;
+  percentOff: number;
+}
+
+export interface Coupon extends AppliedCoupon {
+  id: string;
+  // Null for a coupon that never expires
+  expiresAt: string | null;
+  active: boolean;
+}
+
 export interface PaymentSummary {
   totalItems: number;
   productCostCents: number;
+  coupon: AppliedCoupon | null;
+  // Taken off the items, before tax
+  discountCents: number;
   shippingCostCents: number;
   totalCostBeforeTaxCents: number;
   taxCents: number;
