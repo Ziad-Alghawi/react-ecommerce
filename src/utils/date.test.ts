@@ -1,9 +1,15 @@
 import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
-import { formatDeliveryDate, formatDeliveryStatus } from './date';
+import { formatDeliveryDate, formatDeliveryStatus, formatReviewDate } from './date';
 
 describe('formatDeliveryDate', () => {
   it('shows the weekday, month and day', () => {
     expect(formatDeliveryDate(new Date(2025, 4, 18).getTime())).toBe('Sunday, May 18');
+  });
+});
+
+describe('formatReviewDate', () => {
+  it('shows the month, day and year', () => {
+    expect(formatReviewDate(new Date(2025, 4, 18, 9).toISOString())).toBe('May 18, 2025');
   });
 });
 

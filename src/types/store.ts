@@ -14,6 +14,25 @@ export interface Product {
   deletedAt?: string | null;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  // The part of the reviewer's email before the @, or "Customer"
+  authorName: string;
+  stars: number;
+  text: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isMine: boolean;
+}
+
+export interface ProductReviews {
+  // Newest first
+  reviews: Review[];
+  // Whether the user has ordered the product, which reviewing needs
+  canReview: boolean;
+}
+
 export interface CartItem {
   productId: string;
   quantity: number;

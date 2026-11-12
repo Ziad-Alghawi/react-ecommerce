@@ -64,7 +64,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-input, select, button {
+input, select, textarea, button {
   font: inherit;
   color: inherit;
 }
@@ -228,6 +228,7 @@ button, select {
 }
 
 select,
+textarea,
 input[type="text"],
 input[type="number"],
 input[type="email"],
@@ -241,6 +242,7 @@ input[type="password"] {
 }
 
 select:focus-visible,
+textarea:focus-visible,
 input:focus-visible {
   outline-offset: 0;
   border-color: var(--color-focus);
@@ -254,9 +256,15 @@ input:focus-visible {
   font-weight: var(--font-weight-medium);
 }
 
-.form-field input {
+.form-field input,
+.form-field textarea {
   min-height: 42px;
   font-size: var(--font-size-md);
+}
+
+.form-field textarea {
+  padding: var(--space-2);
+  resize: vertical;
 }
 
 /* Read by screen readers, but not shown */

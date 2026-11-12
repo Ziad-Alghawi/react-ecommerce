@@ -6,9 +6,18 @@ import { PageTitle } from '../../components/PageTitle';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
 import { AddToCart } from '../../components/AddToCart';
 import { ProductRating } from '../../components/Rating';
+import { Reviews } from './Reviews';
 import { formatMoney } from '../../utils/money';
 import type { CartItem, LoadCart, Product } from '../../types/store';
 import './ProductPage.css';
+
+async function fetchProduct(productId: string | undefined) {
+  const response = await axios.get<Product>(`/api/products/${productId}`);
+  if (typeof response.data?.id !== 'string') {
+    throw new Error('Unexpected product response');
+  }
+  return response.data;
+}
 
 interface ProductPageProps {
   cart: CartItem[];
@@ -23,51 +32,46 @@ export function ProductPage({ cart, loadCart, onRetry }: ProductPageProps) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get<Product>(`/api/products/${productId}`);
-        if (typeof response.data?.id !== 'string') {
-          throw new Error('Unexpected product response');
-        }
-        setProduct(response.data);
-      } catch (error) {
-        // Trying again can't help when the product doesn't exist
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          setIsNotFound(true);
-        } else {
-          setHasError(true);
-        }
+    fetchProduct(productId).then(setProduct, (error) => {
+      // Trying again can't help when the product doesn't exist
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        setIsNotFound(true);
+      } else {
+        setHasError(true);
       }
-    };
-    fetchProduct();
+    });
   }, [productId]);
 
   let pageContent = <LoadingMessage />;
 
   if (product) {
     pageContent = (
-      <article className="product-details card">
-        <div className="product-details-image-container">
-          <img className="product-details-image" src={product.image} alt={product.name}
-            width="480" height="480" />
-        </div>
-
-        <div className="product-details-info">
-          <h1 className="page-title">{product.name}</h1>
-          <ProductRating rating={product.rating} />
-          <div className="product-details-price" data-testid="product-price">
-            {formatMoney(product.priceCents)}
+      <>
+        <article className="product-details card">
+          <div className="product-details-image-container">
+            <img className="product-details-image" src={product.image} alt={product.name}
+              width="480" height="480" />
           </div>
 
-          {product.deletedAt ? (
-            <div className="product-details-unavailable" data-testid="product-unavailable">
-              No longer available
+          <div className="product-details-info">
+            <h1 className="page-title">{product.name}</h1>
+            <ProductRating rating={product.rating} />
+            <div className="product-details-price" data-testid="product-price">
+              {formatMoney(product.priceCents)}
             </div>
-          ) : (
-            <AddToCart product={product} loadCart={loadCart} />
-          )}
-        </div>
-      </article>
+
+            {product.deletedAt ? (
+              <div className="product-details-unavailable" data-testid="product-unavailable">
+                No longer available
+              </div>
+            ) : (
+              <AddToCart product={product} loadCart={loadCart} />
+            )}
+          </div>
+        </article>
+
+        <Reviews productId={product.id} onReviewsChange={async () => setProduct(await fetchProduct(productId))} />
+      </>
     );
   } else if (hasError) {
     pageContent = <ErrorMessage onButtonClick={onRetry} />;
