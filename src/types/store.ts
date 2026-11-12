@@ -10,6 +10,8 @@ export interface Product {
   rating: Rating;
   priceCents: number;
   keywords?: string[];
+  // Set when an admin deleted it. The shop no longer lists it, but old orders still show it
+  deletedAt?: string | null;
 }
 
 export interface CartItem {

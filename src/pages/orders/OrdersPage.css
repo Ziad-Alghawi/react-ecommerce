@@ -66,6 +66,16 @@
   min-width: 150px;
 }
 
+/* Takes the place of the Add to Cart button, at the same height */
+.orders-page .product-unavailable {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
 .orders-page .buy-again-icon {
   width: 18px;
   height: 18px;

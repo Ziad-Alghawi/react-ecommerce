@@ -60,7 +60,13 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
               Quantity: {orderProduct.quantity}
             </div>
 
-            <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />
+            {orderProduct.product.deletedAt ? (
+              <div className="product-unavailable" data-testid="product-unavailable">
+                No longer available
+              </div>
+            ) : (
+              <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />
+            )}
           </div>
 
           <Link className="track-package-button button-secondary"
