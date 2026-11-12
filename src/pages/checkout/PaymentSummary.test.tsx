@@ -90,6 +90,43 @@ describe('PaymentSummary', () => {
     ).toHaveTextContent('$52.51');
   });
 
+  it('only offers paying on delivery when card payment is off', async () => {
+    axios.get.mockResolvedValueOnce({ data: { cardPayment: false } });
+    render(
+      <MemoryRouter>
+        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(axios.get).toHaveBeenCalledWith('/api/stripe/config'));
+    expect(screen.getByTestId('place-order-button')).toHaveTextContent('Place your order');
+    expect(screen.queryByTestId('pay-with-card-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('card-test-note')).not.toBeInTheDocument();
+  });
+
+  it('pays with card on Stripe, with the test card shown', async () => {
+    axios.get.mockResolvedValueOnce({ data: { cardPayment: true } });
+    axios.post.mockResolvedValueOnce({ data: { url: 'https://checkout.stripe.com/c/pay/cs_test_1' } });
+    const assign = vi.fn();
+    vi.stubGlobal('location', { ...window.location, assign });
+    render(
+      <MemoryRouter>
+        <PaymentSummary paymentSummary={paymentSummary} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const payWithCardButton = await screen.findByTestId('pay-with-card-button');
+    expect(screen.getByTestId('card-test-note')).toHaveTextContent('Test mode: use card 4242 4242 4242 4242');
+    expect(screen.getByTestId('place-order-button')).toHaveTextContent('Pay on delivery');
+
+    await user.click(payWithCardButton);
+
+    // The cart and prices stay on the server, so nothing is sent
+    expect(axios.post).toHaveBeenCalledWith('/api/stripe/checkout-sessions');
+    expect(assign).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_test_1');
+    vi.unstubAllGlobals();
+  });
+
   it('places an order and goes to the orders page', async () => {
     function Location() {
       const location = useLocation();

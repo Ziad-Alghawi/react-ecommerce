@@ -136,6 +136,19 @@ describe('OrdersPage component', () => {
     ).toBeInTheDocument();
   });
 
+  it('says how each order was paid', async () => {
+    orders[0].paymentMethod = 'card';
+    orders[1].paymentMethod = 'delivery';
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} />
+      </MemoryRouter>
+    );
+
+    const payments = await screen.findAllByTestId('order-payment');
+    expect(payments.map((payment) => payment.textContent)).toEqual(['Paid by card', 'Pay on delivery']);
+  });
+
   it('says whether each package was delivered or is still on its way', async () => {
     // Between the two delivery dates of the first order
     vi.setSystemTime(new Date(2024, 7, 14, 12));

@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
@@ -28,6 +28,12 @@ let baseUrl;
 let supabase;
 let supabaseUrl;
 let signingKey;
+let stripeApi;
+let stripeSettings;
+const webhookSecret = 'whsec_test_secret';
+// The Checkout Sessions the server created, by ID, and their line items
+const stripeSessions = new Map();
+const stripeLineItems = new Map();
 
 function getFreePort() {
   return new Promise((resolve) => {
@@ -55,6 +61,67 @@ async function startSupabase() {
   supabaseUrl = `http://localhost:${supabase.address().port}`;
 }
 
+// Stripe's API takes form fields like line_items[0][price_data][unit_amount]=1090
+function parseStripeForm(body) {
+  const fields = {};
+  for (const [name, value] of new URLSearchParams(body)) {
+    const keys = name.split(/\]?\[|\]/).filter(Boolean);
+    const parent = keys.slice(0, -1).reduce((object, key) => (object[key] ??= {}), fields);
+    parent[keys.at(-1)] = value;
+  }
+  return fields;
+}
+
+// Stands in for the Stripe API. It keeps the sessions the server creates, which tests then mark paid
+async function startStripe() {
+  stripeApi = http.createServer(async (req, res) => {
+    const send = (status, body) => res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body));
+    const [, sessionId, lineItemsPath] = req.url.match(/^\/v1\/checkout\/sessions(?:\/(\w+)(\/line_items)?)?/) ?? [];
+
+    if (req.method === 'POST' && req.url === '/v1/checkout/sessions') {
+      let body = '';
+      for await (const chunk of req) body += chunk;
+      const { line_items: lines, metadata, success_url, cancel_url } = parseStripeForm(body);
+
+      const lineItems = Object.values(lines).map(({ price_data: price, quantity }) => ({
+        description: price.product_data.name,
+        quantity: Number(quantity),
+        amount_total: Number(price.unit_amount) * Number(quantity),
+        price: { unit_amount: Number(price.unit_amount), product: { metadata: price.product_data.metadata ?? {} } }
+      }));
+      const session = {
+        id: `cs_test_${randomUUID().replaceAll('-', '')}`,
+        object: 'checkout.session',
+        url: 'https://checkout.stripe.com/c/pay/test',
+        amount_total: lineItems.reduce((total, line) => total + line.amount_total, 0),
+        payment_status: 'unpaid',
+        metadata,
+        success_url,
+        cancel_url
+      };
+      stripeSessions.set(session.id, session);
+      stripeLineItems.set(session.id, lineItems);
+      return send(200, session);
+    }
+
+    if (req.method === 'GET' && stripeSessions.has(sessionId) && lineItemsPath) {
+      // Takes a moment like the real API, so requests that arrive together overlap
+      setTimeout(() => send(200, { object: 'list', data: stripeLineItems.get(sessionId), has_more: false }), 50);
+      return;
+    }
+    if (req.method === 'GET' && stripeSessions.has(sessionId)) {
+      return send(200, stripeSessions.get(sessionId));
+    }
+    send(404, { error: { type: 'invalid_request_error', code: 'resource_missing', message: 'No such checkout session' } });
+  });
+  await new Promise((resolve) => stripeApi.listen(0, resolve));
+  stripeSettings = {
+    STRIPE_SECRET_KEY: 'sk_test_stand_in',
+    STRIPE_WEBHOOK_SECRET: webhookSecret,
+    STRIPE_API_URL: `http://localhost:${stripeApi.address().port}`
+  };
+}
+
 function createToken(userId = randomUUID(), {
   key = signingKey,
   issuer = `${supabaseUrl}/auth/v1`,
@@ -70,7 +137,7 @@ function createToken(userId = randomUUID(), {
     .sign(key);
 }
 
-async function startServer() {
+async function startServer(settings = {}) {
   const port = await getFreePort();
   baseUrl = `http://localhost:${port}`;
   // Like a local run, the Supabase project only comes from .env. Real environment variables
@@ -86,7 +153,9 @@ MAX_ORDERS=50
     // Spaces and capitals as someone might paste them
     ADMIN_USER_IDS: ` ${adminId.toUpperCase()} ,${randomUUID()}`,
     // Tests delete visitors, so they only reach Postgres when given a throwaway database
-    DATABASE_URL: process.env.TEST_DATABASE_URL || ''
+    DATABASE_URL: process.env.TEST_DATABASE_URL || '',
+    ...stripeSettings,
+    ...settings
   };
   delete env.SUPABASE_URL;
 
@@ -107,8 +176,10 @@ async function stopServer() {
 }
 
 // A guest is their visitor ID. A logged in user is { token }, plus the browser's visitorId if any
-function api(urlPath, { visitorId, token, authorization = token && `Bearer ${token}`, method = 'GET', body } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+function api(urlPath, {
+  visitorId, token, authorization = token && `Bearer ${token}`, method = 'GET', body, headers: extraHeaders
+} = {}) {
+  const headers = { 'Content-Type': 'application/json', ...extraHeaders };
   if (visitorId) headers['X-Visitor-Id'] = visitorId;
   if (authorization) headers.Authorization = authorization;
   return fetch(baseUrl + urlPath, {
@@ -167,13 +238,51 @@ async function getRating(id) {
   return (await (await api(`/api/products/${id}`)).json()).rating;
 }
 
+async function getOrders(who) {
+  return (await api('/api/orders', identify(who))).json();
+}
+
+function checkout(who, origin = baseUrl) {
+  return api('/api/stripe/checkout-sessions', { ...identify(who), method: 'POST', headers: { Origin: origin } });
+}
+
+// What clicking Pay with card does. Returns the session the Stripe stand-in got
+async function startCheckout(who) {
+  const response = await checkout(who);
+  assert.equal(response.status, 201);
+  assert.equal((await response.json()).url, 'https://checkout.stripe.com/c/pay/test');
+  return [...stripeSessions.values()].at(-1);
+}
+
+// What the success page asks for after Stripe sends the customer back
+function getPaidOrder(who, session) {
+  return api(`/api/stripe/checkout-sessions/${session.id}/order`, identify(who));
+}
+
+// Signed like Stripe signs webhooks: an HMAC of the timestamp and the exact body
+function sendWebhook(event, { secret = webhookSecret, body = JSON.stringify(event) } = {}) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = createHmac('sha256', secret).update(`${timestamp}.${JSON.stringify(event)}`).digest('hex');
+  return fetch(`${baseUrl}/api/stripe/webhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Stripe-Signature': `t=${timestamp},v1=${signature}` },
+    body
+  });
+}
+
+function checkoutCompleted(session) {
+  return { id: `evt_${randomUUID()}`, object: 'event', type: 'checkout.session.completed', data: { object: session } };
+}
+
 before(async () => {
   await startSupabase();
+  await startStripe();
   await startServer();
 });
 after(async () => {
   await stopServer();
   supabase.close();
+  stripeApi.close();
   fs.rmSync(workDir, { recursive: true, force: true });
 });
 
@@ -789,6 +898,153 @@ test('recalculates the rating from the demo rating and reviews after every chang
   assert.deepEqual(await getRating(productId), { stars: 4.5, count: 87 });
 
   await api(`/api/admin/products/${product.id}`, { ...await asAdmin(), method: 'DELETE' });
+});
+
+test('pays by card through a Checkout Session priced from the database', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  await api(`/api/cart-items/${productId}`, {
+    visitorId, method: 'PUT', body: { quantity: 2, deliveryOptionId: '2' }
+  });
+  const summary = await (await api('/api/payment-summary', { visitorId })).json();
+
+  // Prices sent by the browser are ignored
+  const response = await api('/api/stripe/checkout-sessions', {
+    visitorId, method: 'POST', headers: { Origin: baseUrl }, body: { totalCostCents: 1, priceCents: 1 }
+  });
+  assert.equal(response.status, 201);
+  const session = [...stripeSessions.values()].at(-1);
+
+  assert.equal(session.amount_total, summary.totalCostCents);
+  const lines = stripeLineItems.get(session.id).map(({ description, quantity, amount_total }) => [description, quantity, amount_total]);
+  assert.deepEqual(lines, [
+    ['Gray Hand Knit Wool Socks', 2, 2180],
+    ['Shipping & handling', 1, 499],
+    ['Estimated tax (10%)', 1, 268]
+  ]);
+  assert.deepEqual(session.metadata, { app: 'react-ecommerce', visitorId });
+  assert.equal(session.success_url, `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`);
+  // Cancelling goes back to checkout, where the cart is unchanged
+  assert.equal(session.cancel_url, `${baseUrl}/checkout`);
+  assert.equal((await getCart(visitorId))[0].quantity, 2);
+  assert.deepEqual(await getOrders(visitorId), []);
+});
+
+test('refuses a Checkout Session for an empty cart or from another site', async () => {
+  const visitorId = randomUUID();
+  assert.equal((await checkout(visitorId)).status, 400);
+
+  await addToCart(visitorId);
+  assert.equal((await checkout(visitorId, 'https://example.com')).status, 400);
+  assert.equal((await checkout(visitorId, 'null')).status, 400);
+  assert.equal((await checkout({})).status, 400);
+  // The development frontend is allowed by CORS_ORIGIN
+  assert.equal((await checkout(visitorId, 'http://localhost:5173')).status, 201);
+});
+
+for (const [kind, createVisitor] of [
+  ['guest', async () => randomUUID()],
+  ['user', async () => ({ token: await createToken() })]
+]) {
+  test(`a paid session makes one card order for a ${kind}, even when the webhook and success page both run`, async () => {
+    const visitor = await createVisitor();
+    await addToCart(visitor);
+    const summary = await (await api('/api/payment-summary', identify(visitor))).json();
+    const session = await startCheckout(visitor);
+
+    assert.equal((await getPaidOrder(visitor, session)).status, 409);
+    assert.equal((await getCart(visitor)).length, 1);
+
+    session.payment_status = 'paid';
+    // Both paths at once, with the success page loaded twice
+    const responses = await Promise.all([
+      sendWebhook(checkoutCompleted(session)),
+      getPaidOrder(visitor, session),
+      getPaidOrder(visitor, session)
+    ]);
+    assert.deepEqual(responses.map(({ status }) => status), [200, 200, 200]);
+    const [, first, second] = await Promise.all(responses.map((response) => response.json()));
+    assert.equal(first.id, second.id);
+
+    const orders = await getOrders(visitor);
+    assert.deepEqual(orders.map(({ id }) => id), [first.id]);
+    assert.equal(orders[0].paymentMethod, 'card');
+    assert.equal(orders[0].totalCostCents, summary.totalCostCents);
+    assert.deepEqual(orders[0].products.map(({ productId, quantity }) => ({ productId, quantity })), [{ productId, quantity: 1 }]);
+    assert.deepEqual(await getCart(visitor), []);
+
+    // A late webhook or reload leaves the next cart alone
+    await addToCart(visitor);
+    assert.equal((await sendWebhook(checkoutCompleted(session))).status, 200);
+    assert.equal((await getPaidOrder(visitor, session)).status, 200);
+    assert.equal((await getOrders(visitor)).length, 1);
+    assert.equal((await getCart(visitor)).length, 1);
+
+    assert.equal((await getPaidOrder(randomUUID(), session)).status, 404);
+  });
+}
+
+test('orders paid on delivery say so', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  const order = await (await api('/api/orders', { visitorId, method: 'POST' })).json();
+  assert.equal(order.paymentMethod, 'delivery');
+});
+
+test('refuses webhooks without a valid Stripe signature', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  const session = await startCheckout(visitorId);
+  session.payment_status = 'paid';
+  const event = checkoutCompleted(session);
+
+  assert.equal((await sendWebhook(event, { secret: 'whsec_someone_else' })).status, 400);
+  assert.equal((await sendWebhook(event, { body: JSON.stringify({ ...event, id: 'evt_changed' }) })).status, 400);
+  const unsigned = await fetch(`${baseUrl}/api/stripe/webhook`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event)
+  });
+  assert.equal(unsigned.status, 400);
+
+  assert.deepEqual(await getOrders(visitorId), []);
+  assert.equal((await getCart(visitorId)).length, 1);
+});
+
+test('ignores Stripe events for sessions of the other app in the sandbox', async () => {
+  const visitorId = randomUUID();
+  await addToCart(visitorId);
+  const session = await startCheckout(visitorId);
+  session.payment_status = 'paid';
+
+  for (const metadata of [{ app: 'other-app', visitorId }, { visitorId }, {}]) {
+    const response = await sendWebhook(checkoutCompleted({ ...session, metadata }));
+    assert.equal(response.status, 200, JSON.stringify(metadata));
+  }
+  assert.equal((await sendWebhook({ ...checkoutCompleted(session), type: 'payment_intent.succeeded' })).status, 200);
+  assert.deepEqual(await getOrders(visitorId), []);
+  assert.equal((await getCart(visitorId)).length, 1);
+
+  // Nor does the success page take one
+  session.metadata = { ...session.metadata, app: 'other-app' };
+  assert.equal((await getPaidOrder(visitorId, session)).status, 404);
+  assert.equal((await getPaidOrder(visitorId, { id: 'cs_test_missing' })).status, 404);
+});
+
+test('card payment is off without a Stripe test key, and paying on delivery still works', async () => {
+  for (const STRIPE_SECRET_KEY of ['', 'sk_live_not_for_a_demo']) {
+    await stopServer();
+    await startServer({ STRIPE_SECRET_KEY });
+
+    assert.deepEqual(await (await api('/api/stripe/config')).json(), { cardPayment: false }, STRIPE_SECRET_KEY);
+    const visitorId = randomUUID();
+    await addToCart(visitorId);
+    assert.equal((await checkout(visitorId)).status, 404);
+    assert.equal((await sendWebhook(checkoutCompleted({ id: 'cs_test_off', metadata: {} }))).status, 404);
+    assert.equal((await api('/api/orders', { visitorId, method: 'POST' })).status, 201);
+  }
+
+  await stopServer();
+  await startServer();
+  assert.deepEqual(await (await api('/api/stripe/config')).json(), { cardPayment: true });
 });
 
 // Hides the whole catalog, so it runs last

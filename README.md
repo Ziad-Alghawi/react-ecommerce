@@ -15,6 +15,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
 - Order placement and order history, with delivered or arriving status per package
+- Card payment with Stripe Checkout in test mode, next to paying on delivery
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
 - Admin page to add, edit and delete products, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
@@ -27,6 +28,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - **Frontend:** React 19, TypeScript, Vite, React Router, Axios, Day.js
 - **Backend:** Node.js, Express, Sequelize, Postgres on Supabase (SQLite locally)
 - **Accounts:** Supabase Auth, with tokens verified in the API using jose
+- **Payments:** Stripe Checkout, in test mode
 - **Testing and tooling:** Vitest, Testing Library, Node test runner, ESLint, GitHub Actions
 
 ## Run Locally
@@ -110,6 +112,29 @@ The API checks all of this itself, and takes the user from the verified token on
 
 The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews are added to it: after every new, edited or deleted review, the API works out the average of the demo rating and the reviews, rounded to the nearest half star, and saves it on the product. The shop and the product page read the same saved rating, so they always match.
 
+## Card Payment
+
+Checkout offers **Pay with card** next to **Pay on delivery**, for guests and logged in users alike. It uses Stripe Checkout in test mode, so no money moves: pay with the test card `4242 4242 4242 4242`, any future date and any CVC. Without `STRIPE_SECRET_KEY`, the button is hidden and checkout works as before.
+
+- The API builds the Checkout Session from the cart in the database: a line per product, plus shipping and tax from the same payment summary checkout shows, so Stripe charges exactly the order total. Nothing the browser sends sets a price.
+- The order is only created once Stripe says the session is paid, by whichever comes first: the webhook (`checkout.session.completed`) or the success page Stripe sends the customer back to, which asks the API to check the session. So it also works locally without a webhook. An order's Stripe session ID is unique in the database, so one payment makes exactly one order, and only the request that created it empties the cart.
+- Cancelling on Stripe's page goes back to checkout with the cart unchanged.
+- The Stripe sandbox is shared with another app, so every session is tagged with `app: "react-ecommerce"` in its metadata, and the webhook answers `200` and does nothing for events without the tag.
+- Only a test key (`sk_test_` or `rk_test_`) turns card payment on. With a live key, the server logs a warning and leaves it off.
+- Orders show whether they were paid by card or are paid on delivery.
+
+To set it up, in the Stripe Dashboard in test mode:
+
+1. Copy the secret key from **Developers > API keys** into `STRIPE_SECRET_KEY`.
+2. For the deployed store, add an endpoint in **Developers > Webhooks** with the URL `https://<your-store>/api/stripe/webhook` and the event `checkout.session.completed`, then copy its signing secret into `STRIPE_WEBHOOK_SECRET`. Locally, the webhook is optional: `stripe listen --forward-to localhost:3000/api/stripe/webhook` prints a signing secret to use.
+
+| Variable | Where | Value |
+| --- | --- | --- |
+| `STRIPE_SECRET_KEY` | Backend (`ecommerce-backend/.env`) | Test secret key (`sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` | Backend (`ecommerce-backend/.env`) | Webhook signing secret (`whsec_...`) |
+
+The frontend needs no Stripe key, because the customer pays on Stripe's own page.
+
 ## Tests
 
 Frontend:
@@ -127,7 +152,7 @@ npm --prefix ecommerce-backend test
 npm --prefix ecommerce-backend run lint
 ```
 
-The backend tests use SQLite even when `DATABASE_URL` is set, because they delete data. To run them against Postgres, set `TEST_DATABASE_URL` to a throwaway database. The login tests sign their own tokens and serve the public key from a local stand-in for Supabase, so they need no project either.
+The backend tests use SQLite even when `DATABASE_URL` is set, because they delete data. To run them against Postgres, set `TEST_DATABASE_URL` to a throwaway database. The login tests sign their own tokens and serve the public key from a local stand-in for Supabase, so they need no project either. The card payment tests do the same with a local stand-in for the Stripe API, and sign their own webhook events.
 
 GitHub Actions runs all of these on every push.
 
@@ -158,6 +183,6 @@ GitHub Actions runs all of these on every push.
 
 ## Background
 
-This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an admin page for products, product pages with reviews, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
+This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an admin page for products, product pages with reviews, card payment with Stripe, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
 
 Product photos are from Unsplash and Pexels and credited in [CREDITS.md](public/images/products/CREDITS.md).
