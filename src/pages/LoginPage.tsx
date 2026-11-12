@@ -1,11 +1,11 @@
-import { useContext, useState, type FormEvent } from 'react';
+import { useContext, useEffect, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router';
 import { Header } from '../components/Header';
 import { PageTitle } from '../components/PageTitle';
 import { ButtonSpinner } from '../components/PageStatus';
 import { AuthContext } from '../hooks/useAuth';
 import { useAction } from '../hooks/useAction';
-import { supabase } from '../utils/supabase';
+import { loadSupabase } from '../utils/supabase';
 import type { CartItem } from '../types/store';
 import './LoginPage.css';
 
@@ -21,13 +21,24 @@ export function LoginPage({ cart }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isAwaitingConfirmation, setIsAwaitingConfirmation] = useState(false);
 
+  // Start downloading Supabase while the user types
+  useEffect(() => {
+    loadSupabase().catch(() => {});
+  }, []);
+
   const [submit, isPending] = useAction(async () => {
     setError(null);
+    const supabase = await loadSupabase().catch(() => null);
+    if (!supabase) {
+      setError("We couldn't reach the login service. Check your connection and try again.");
+      return;
+    }
+
     const credentials = { email, password };
     const { data, error } = isSignUp
       // The link in the confirmation email comes back to this site
-      ? await supabase!.auth.signUp({ ...credentials, options: { emailRedirectTo: window.location.origin } })
-      : await supabase!.auth.signInWithPassword(credentials);
+      ? await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: window.location.origin } })
+      : await supabase.auth.signInWithPassword(credentials);
 
     if (error) {
       setError(error.message);

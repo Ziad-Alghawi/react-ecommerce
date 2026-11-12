@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Routes, Route, useLocation } from 'react-router';
 import { HomePage } from './pages/home/HomePage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
-import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorMessage, LoadingMessage } from './components/PageStatus';
 import { ActionFailureContext } from './hooks/useAction';
 import { AuthContext, useAuthUser } from './hooks/useAuth';
-import { logOut, supabase } from './utils/supabase';
+import { isAuthEnabled, logOut } from './utils/supabase';
 import type { CartItem, CartStatus } from './types/store';
 import './App.css';
+
+// Only people who open it download the login page and Supabase. If that fails, for example
+// offline or after a new deploy renamed the file, reloading fetches it again
+const LoginPage = lazy(() => import('./pages/LoginPage').then(
+  (module) => ({ default: module.LoginPage }),
+  () => ({
+    default: () => (
+      <ErrorMessage detail="Check your connection and try again." onButtonClick={() => window.location.reload()} />
+    )
+  })
+));
 
 // The API answers a request it won't accept (4xx) with the reason. Repeating it can't help
 function getRejectionReason(error: unknown) {
@@ -97,7 +107,7 @@ function App() {
   return (
     <>
       <div className="app-content">
-        <AuthContext value={supabase && { user: user ?? null, logOut }}>
+        <AuthContext value={isAuthEnabled ? { user: user ?? null, logOut } : null}>
           <ActionFailureContext value={reportActionFailure}>
             {owner ? (
               <Routes key={`${retryCount}-${owner}`}>
@@ -105,7 +115,13 @@ function App() {
                 <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
                 <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                 <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
-                {supabase && <Route path="login" element={<LoginPage cart={cart} />} />}
+                {isAuthEnabled && (
+                  <Route path="login" element={
+                    <Suspense fallback={<LoadingMessage />}>
+                      <LoginPage cart={cart} />
+                    </Suspense>
+                  } />
+                )}
                 <Route path="*" element={<NotFoundPage cart={cart} />} />
               </Routes>
             ) : (

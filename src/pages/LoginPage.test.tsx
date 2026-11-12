@@ -5,18 +5,17 @@ import { MemoryRouter, useLocation } from 'react-router';
 import type { User } from '@supabase/supabase-js';
 import { LoginPage } from './LoginPage';
 import { AuthContext } from '../hooks/useAuth';
-import { supabase } from '../utils/supabase';
+import { loadSupabase } from '../utils/supabase';
 
-vi.mock('../utils/supabase', () => ({
-  supabase: {
-    auth: {
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn()
-    }
-  }
+const { signInWithPassword, signUp } = vi.hoisted(() => ({
+  signInWithPassword: vi.fn(),
+  signUp: vi.fn()
 }));
 
-const { signInWithPassword, signUp } = vi.mocked(supabase!.auth);
+vi.mock('../utils/supabase', () => ({
+  loadSupabase: vi.fn()
+}));
+
 const session = { access_token: 'token' };
 
 function CurrentPath() {
@@ -39,6 +38,7 @@ describe('LoginPage component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(loadSupabase).mockResolvedValue({ auth: { signInWithPassword, signUp } } as never);
     user = userEvent.setup();
   });
 
@@ -88,6 +88,17 @@ describe('LoginPage component', () => {
     });
     expect(signInWithPassword).not.toHaveBeenCalled();
     expect(await screen.findByTestId('login-confirmation')).toHaveTextContent('ziad@example.com');
+  });
+
+  it('says so when the login service cannot be downloaded', async () => {
+    vi.mocked(loadSupabase).mockRejectedValue(new Error('Offline'));
+    renderLoginPage();
+
+    await fillIn();
+    await user.click(screen.getByTestId('login-submit-button'));
+
+    expect(await screen.findByTestId('login-error')).toHaveTextContent("couldn't reach the login service");
+    expect(screen.getByTestId('login-submit-button')).toBeEnabled();
   });
 
   it('sends a logged in user to the home page', () => {
