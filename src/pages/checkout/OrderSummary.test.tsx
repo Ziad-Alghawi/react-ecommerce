@@ -27,6 +27,7 @@ describe('OrderSummary component', () => {
           count: 87
         },
         priceCents: 1090,
+        stock: 20,
         keywords: ["socks", "sports", "apparel"]
       }
     }, {
@@ -42,6 +43,7 @@ describe('OrderSummary component', () => {
           count: 127
         },
         priceCents: 2095,
+        stock: 15,
         keywords: ["sports", "basketballs"]
       }
     }];
@@ -201,6 +203,19 @@ describe('OrderSummary component', () => {
 
     expect(deleteButton).toBeEnabled();
     expect(loadCart).toHaveBeenCalledTimes(1);
+  });
+
+  it('warns when the cart has more than is left in stock', () => {
+    cart[0].product.stock = 1;
+    cart[1].product.stock = 0;
+    render(
+      <MemoryRouter>
+        <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
+      </MemoryRouter>
+    );
+
+    const warnings = screen.getAllByTestId('cart-item-stock-warning');
+    expect(warnings.map((warning) => warning.textContent)).toEqual(['Only 1 left', 'Out of stock']);
   });
 
   it('does not render anything if cart is empty', () => {

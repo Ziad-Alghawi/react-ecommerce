@@ -24,6 +24,7 @@ export function ProductForm({ product, images, categories, onSaved, onCancel }: 
   const [keywords, setKeywords] = useState(product?.keywords?.join(', ') ?? '');
   const [image, setImage] = useState(product?.image ?? '');
   const [category, setCategory] = useState(product?.category ?? '');
+  const [stock, setStock] = useState(product ? String(product.stock) : '');
 
   const [save, isSaving] = useAction(async () => {
     const fields = {
@@ -31,6 +32,7 @@ export function ProductForm({ product, images, categories, onSaved, onCancel }: 
       priceCents: Math.round(Number(price) * 100),
       image,
       category,
+      stock: Number(stock),
       keywords: keywords.split(',').map((keyword) => keyword.trim()).filter(Boolean)
     };
     if (product) {
@@ -66,6 +68,13 @@ export function ProductForm({ product, images, categories, onSaved, onCancel }: 
           <input type="number" required min="0.01" max="10000" step="0.01" inputMode="decimal" value={price}
             onChange={(event) => setPrice(event.target.value)}
             data-testid="admin-price-input" />
+        </label>
+
+        <label className="form-field">
+          Stock
+          <input type="number" required min="0" max="100000" step="1" inputMode="numeric" value={stock}
+            onChange={(event) => setStock(event.target.value)}
+            data-testid="admin-stock-input" />
         </label>
       </div>
 

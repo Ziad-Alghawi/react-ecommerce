@@ -38,7 +38,8 @@ describe('OrdersPage component', () => {
             stars: 4.5,
             count: 87
           },
-          priceCents: 1090
+          priceCents: 1090,
+          stock: 20
         }
       }, {
         productId: "83d4ca15-0f35-48f5-b7a3-1ea210004f2e",
@@ -52,7 +53,8 @@ describe('OrdersPage component', () => {
             stars: 4.5,
             count: 56
           },
-          priceCents: 799
+          priceCents: 799,
+          stock: 20
         }
       }]
     }, {
@@ -71,7 +73,8 @@ describe('OrdersPage component', () => {
             stars: 4,
             count: 127
           },
-          priceCents: 2095
+          priceCents: 2095,
+          stock: 15
         }
       }]
     }];
@@ -227,5 +230,18 @@ describe('OrdersPage component', () => {
     expect(within(oldOrder).queryByTestId('buy-again-button')).not.toBeInTheDocument();
     expect(within(oldOrder).getByRole('link', { name: 'Track package' })).toBeInTheDocument();
     expect(screen.getAllByTestId('buy-again-button')).toHaveLength(2);
+  });
+
+  it('says a product is out of stock instead of offering it again', async () => {
+    orders[1].products[0].product.stock = 0;
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} />
+      </MemoryRouter>
+    );
+
+    const [, oldOrder] = await screen.findAllByTestId('order-container');
+    expect(within(oldOrder).getByTestId('product-unavailable')).toHaveTextContent('Out of stock');
+    expect(within(oldOrder).queryByTestId('buy-again-button')).not.toBeInTheDocument();
   });
 });

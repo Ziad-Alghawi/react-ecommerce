@@ -16,6 +16,7 @@ const socks = {
     count: 87
   },
   priceCents: 1090,
+  stock: 20,
   keywords: ['socks', 'sports', 'apparel']
 };
 
@@ -28,6 +29,7 @@ const basketball = {
     count: 127
   },
   priceCents: 2095,
+  stock: 15,
   keywords: ['sports', 'basketballs']
 };
 

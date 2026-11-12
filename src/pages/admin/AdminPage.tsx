@@ -112,6 +112,7 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
                 <th scope="col"><span className="visually-hidden">Image</span></th>
                 <th scope="col">Name</th>
                 <th scope="col">Price</th>
+                <th scope="col">Stock</th>
                 <th scope="col">Category</th>
                 <th scope="col">Keywords</th>
                 <th scope="col"><span className="visually-hidden">Actions</span></th>

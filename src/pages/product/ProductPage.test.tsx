@@ -14,6 +14,7 @@ const product = {
   name: 'Gray Hand Knit Wool Socks',
   rating: { stars: 4.5, count: 89 },
   priceCents: 1090,
+  stock: 20,
   keywords: ['socks'],
   category: 'Home & Kitchen',
   deletedAt: null

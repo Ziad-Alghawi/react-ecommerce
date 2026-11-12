@@ -3,6 +3,7 @@ import axios from 'axios';
 import { formatMoney } from '../../utils/money';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { describeStock } from '../../utils/stock';
 import type { CartItem, LoadCart } from '../../types/store';
 
 interface CartItemDetailsProps {
@@ -74,6 +75,11 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
           data-testid="cart-item-price">
           {formatMoney(cartItem.product.priceCents)}
         </div>
+        {cartItem.quantity > cartItem.product.stock && (
+          <div className="stock-note" data-testid="cart-item-stock-warning">
+            {describeStock(cartItem.product.stock)}
+          </div>
+        )}
         <div className="product-quantity">
           <span data-testid="cart-item-quantity">
             Quantity: {isUpdatingQuantity

@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
 import { defaultProducts } from './defaultProducts.js';
@@ -13,14 +14,18 @@ function withTimestamps(rows, timestamp) {
 }
 
 // A database from before a product column was added has it empty, so the demo products get
-// theirs from the demo data. Products an admin added keep it empty until an admin sets it
+// theirs from the demo data. Products an admin added have no category and no stock until an admin sets them
 async function fillNewProductColumns() {
-  const products = await Product.findAll({ where: { category: null }, paranoid: false });
+  const products = await Product.findAll({
+    where: { [Op.or]: [{ category: null }, { stock: null }] },
+    paranoid: false
+  });
   for (const product of products) {
     const defaults = defaultProducts.find(({ id }) => id === product.id);
-    if (defaults) {
-      await product.update({ category: defaults.category });
-    }
+    await product.update({
+      category: product.category ?? defaults?.category ?? null,
+      stock: product.stock ?? defaults?.stock ?? 0
+    });
   }
 }
 

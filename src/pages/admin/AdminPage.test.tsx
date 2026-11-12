@@ -13,6 +13,7 @@ const socks = {
   name: 'Gray Hand Knit Wool Socks',
   rating: { stars: 4.5, count: 87 },
   priceCents: 1090,
+  stock: 20,
   keywords: ['socks', 'wool'],
   category: 'Clothing'
 };
@@ -23,6 +24,7 @@ const basketball = {
   name: 'Intermediate Size Basketball',
   rating: { stars: 4, count: 127 },
   priceCents: 2095,
+  stock: 2,
   keywords: ['sports', 'basketballs'],
   category: 'Sports'
 };
@@ -108,6 +110,8 @@ describe('AdminPage component', () => {
     expect(rows[0]).toHaveTextContent('Gray Hand Knit Wool Socks');
     expect(rows[0]).toHaveTextContent('$10.90');
     expect(rows[0]).toHaveTextContent('Clothing');
+    expect(rows[0]).toHaveTextContent('20 in stock');
+    expect(rows[1]).toHaveTextContent('Only 2 left');
     expect(rows[0]).toHaveTextContent('socks, wool');
     expect(screen.getByRole('table')).toHaveAccessibleName('2 products in the store');
   });
@@ -120,6 +124,7 @@ describe('AdminPage component', () => {
     expect(within(form).getAllByRole('radio')).toHaveLength(2);
     await user.type(screen.getByTestId('admin-name-input'), 'Plaid Wool Scarf');
     await user.type(screen.getByTestId('admin-price-input'), '15.5');
+    await user.type(screen.getByTestId('admin-stock-input'), '40');
     await user.type(screen.getByTestId('admin-keywords-input'), ' scarves,  plaid ,');
     await user.selectOptions(screen.getByTestId('admin-category-select'), 'Accessories');
     await user.click(within(form).getByRole('radio', { name: 'gray hand knit wool socks' }));
@@ -128,7 +133,7 @@ describe('AdminPage component', () => {
     await waitFor(() => expect(screen.queryByTestId('admin-product-form')).not.toBeInTheDocument());
     expect(requestsTo('post /api/admin/products')).toEqual([{
       request: 'post /api/admin/products',
-      body: { name: 'Plaid Wool Scarf', priceCents: 1550, image: socks.image, category: 'Accessories', keywords: ['scarves', 'plaid'] }
+      body: { name: 'Plaid Wool Scarf', priceCents: 1550, image: socks.image, category: 'Accessories', stock: 40, keywords: ['scarves', 'plaid'] }
     }]);
     expect(requestsTo('get /api/products')).toHaveLength(2);
   });
@@ -139,6 +144,7 @@ describe('AdminPage component', () => {
 
     await user.type(screen.getByTestId('admin-name-input'), 'Plaid Wool Scarf');
     await user.type(screen.getByTestId('admin-price-input'), '15');
+    await user.type(screen.getByTestId('admin-stock-input'), '5');
     await user.click(screen.getByTestId('admin-save-button'));
     await user.click(screen.getByRole('radio', { name: 'gray hand knit wool socks' }));
     expect(screen.getByTestId('admin-category-select')).toBeInvalid();
@@ -157,6 +163,7 @@ describe('AdminPage component', () => {
     expect(screen.getByTestId('admin-keywords-input')).toHaveValue('socks, wool');
     expect(screen.getByRole('radio', { name: 'gray hand knit wool socks' })).toBeChecked();
     expect(screen.getByTestId('admin-category-select')).toHaveValue('Clothing');
+    expect(screen.getByTestId('admin-stock-input')).toHaveValue(20);
 
     await user.clear(screen.getByTestId('admin-price-input'));
     await user.type(screen.getByTestId('admin-price-input'), '12.99');
@@ -164,7 +171,7 @@ describe('AdminPage component', () => {
 
     await waitFor(() => expect(screen.queryByTestId('admin-product-form')).not.toBeInTheDocument());
     expect(requestsTo(`put /api/admin/products/${socks.id}`)[0].body).toEqual({
-      name: socks.name, priceCents: 1299, image: socks.image, category: 'Clothing', keywords: ['socks', 'wool']
+      name: socks.name, priceCents: 1299, image: socks.image, category: 'Clothing', stock: 20, keywords: ['socks', 'wool']
     });
   });
 

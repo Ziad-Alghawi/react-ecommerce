@@ -12,13 +12,14 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 
 - Product catalog with search by name or keyword, category links, a price range and sorting by price, rating or newest, all kept in the URL so links and the back button work
 - Product pages with customer reviews: customers who ordered a product can rate and review it, and its rating includes their reviews
+- Stock for every product: the shop says when only a few are left, out of stock products can't be added to the cart, and placing an order takes its items out of stock with either payment method
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
 - Order placement and order history, with delivered or arriving status per package
 - Card payment with Stripe Checkout in test mode, next to paying on delivery
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
-- Admin page to add, edit and delete products and set their category, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
+- Admin page to add, edit and delete products and set their category and stock, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
 - Package tracking with delivery progress
 - Loading, empty and error states, with a retry for failed changes
 - Responsive layout for phone and desktop
@@ -119,6 +120,7 @@ Checkout offers **Pay with card** next to **Pay on delivery**, for guests and lo
 - The API builds the Checkout Session from the cart in the database: a line per product, plus shipping and tax from the same payment summary checkout shows, so Stripe charges exactly the order total. Nothing the browser sends sets a price.
 - The order is only created once Stripe says the session is paid, by whichever comes first: the webhook (`checkout.session.completed`) or the success page Stripe sends the customer back to, which asks the API to check the session. So it also works locally without a webhook. An order's Stripe session ID is unique in the database, so one payment makes exactly one order, and only the request that created it empties the cart.
 - Cancelling on Stripe's page goes back to checkout with the cart unchanged.
+- Stock is checked before the customer goes to Stripe and taken when the payment is confirmed. The order is already paid by then, so if an item sold out in the meantime, its stock stops at 0 instead of going negative.
 - The Stripe sandbox is shared with another app, so every session is tagged with `app: "react-ecommerce"` in its metadata, and the webhook answers `200` and does nothing for events without the tag.
 - Only a test key (`sk_test_` or `rk_test_`) turns card payment on. With a live key, the server logs a warning and leaves it off.
 - Orders show whether they were paid by card or are paid on delivery.

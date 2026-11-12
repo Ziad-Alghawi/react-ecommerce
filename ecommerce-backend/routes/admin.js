@@ -7,6 +7,7 @@ const router = express.Router();
 
 const MAX_NAME_LENGTH = 100;
 const MAX_PRICE_CENTS = 1000000;
+const MAX_STOCK = 100000;
 // Keywords are saved comma-separated in a 255 character column
 const MAX_KEYWORDS = 10;
 const MAX_KEYWORD_LENGTH = 20;
@@ -30,7 +31,7 @@ function readKeywords(keywords) {
 }
 
 // The fields an admin can set, or the reason they're refused. The rating is never set here
-async function readProductFields({ name, priceCents, image, keywords, category }) {
+async function readProductFields({ name, priceCents, image, keywords, category, stock }) {
   const trimmedName = typeof name === 'string' ? name.trim() : '';
   if (!trimmedName || trimmedName.length > MAX_NAME_LENGTH) {
     return { error: `Name is required and can be up to ${MAX_NAME_LENGTH} characters` };
@@ -47,6 +48,10 @@ async function readProductFields({ name, priceCents, image, keywords, category }
     };
   }
 
+  if (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK) {
+    return { error: `Stock must be a whole number from 0 to ${MAX_STOCK}` };
+  }
+
   if (!PRODUCT_CATEGORIES.includes(category)) {
     return { error: `Category must be one of: ${PRODUCT_CATEGORIES.join(', ')}` };
   }
@@ -55,7 +60,7 @@ async function readProductFields({ name, priceCents, image, keywords, category }
     return { error: 'Image must be one of the product images' };
   }
 
-  return { fields: { name: trimmedName, priceCents, image, keywords: trimmedKeywords, category } };
+  return { fields: { name: trimmedName, priceCents, image, keywords: trimmedKeywords, category, stock } };
 }
 
 router.get('/images', asyncHandler(async (req, res) => {

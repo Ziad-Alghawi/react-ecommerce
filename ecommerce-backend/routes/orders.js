@@ -6,6 +6,7 @@ import { DeliveryOption, estimateDeliveryTimeMs } from '../models/DeliveryOption
 import { CartItem } from '../models/CartItem.js';
 import { calculatePaymentSummary } from './paymentSummary.js';
 import { rejectInvalidId } from '../utils/isUuid.js';
+import { getStockShortage, giveBackStock, takeStock } from '../utils/stock.js';
 
 const router = express.Router();
 
@@ -47,7 +48,8 @@ export async function getOrderRefusal(visitorId, cartItems) {
       error: `This demo store keeps up to ${MAX_ORDERS} orders per visitor, and you've reached the limit.`
     };
   }
-  return null;
+  const shortage = await getStockShortage(cartItems);
+  return shortage && { status: 409, error: shortage };
 }
 
 router.post('/', asyncHandler(async (req, res) => {
@@ -59,7 +61,18 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
   const { totalCostCents } = await calculatePaymentSummary(cartItems);
-  const order = await createOrder(req.visitorId, cartItems, { totalCostCents });
+  // Another order may have taken the last ones since the check above
+  if (!await takeStock(cartItems)) {
+    return res.status(409).json({ error: await getStockShortage(cartItems) });
+  }
+
+  let order;
+  try {
+    order = await createOrder(req.visitorId, cartItems, { totalCostCents });
+  } catch (error) {
+    await giveBackStock(cartItems);
+    throw error;
+  }
 
   await CartItem.destroy({ where: { visitorId: req.visitorId } });
 

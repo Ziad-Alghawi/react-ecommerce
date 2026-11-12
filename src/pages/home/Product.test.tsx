@@ -28,6 +28,7 @@ describe('Product component', () => {
         count: 87
       },
       priceCents: 1090,
+      stock: 20,
       keywords: ['socks', 'sports', 'apparel']
     };
     loadCart = vi.fn();
@@ -98,5 +99,35 @@ describe('Product component', () => {
 
     expect(addToCartButton).toBeEnabled();
     expect(screen.queryByTestId('button-spinner')).not.toBeInTheDocument();
+  });
+
+  it('says how many are left when stock is low, and offers no more than that', () => {
+    product.stock = 3;
+    renderProduct();
+
+    expect(screen.getByTestId('stock-note')).toHaveTextContent('Only 3 left');
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual(['1', '2', '3']);
+    expect(screen.getByTestId('add-to-cart-button')).toBeEnabled();
+  });
+
+  it('says nothing about stock when there is plenty', () => {
+    renderProduct();
+
+    expect(screen.queryByTestId('stock-note')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(10);
+  });
+
+  it('can not be added to the cart when out of stock', async () => {
+    product.stock = 0;
+    axios.post.mockClear();
+    renderProduct();
+
+    expect(screen.getByTestId('stock-note')).toHaveTextContent('Out of stock');
+    expect(screen.getByTestId('quantity-select-selector')).toBeDisabled();
+    const addToCartButton = screen.getByTestId('add-to-cart-button');
+    expect(addToCartButton).toBeDisabled();
+
+    await user.click(addToCartButton);
+    expect(axios.post).not.toHaveBeenCalled();
   });
 });

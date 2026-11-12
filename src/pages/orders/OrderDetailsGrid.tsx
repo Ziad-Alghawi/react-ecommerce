@@ -60,9 +60,9 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
               Quantity: {orderProduct.quantity}
             </div>
 
-            {orderProduct.product.deletedAt ? (
+            {orderProduct.product.deletedAt || orderProduct.product.stock === 0 ? (
               <div className="product-unavailable" data-testid="product-unavailable">
-                No longer available
+                {orderProduct.product.deletedAt ? 'No longer available' : 'Out of stock'}
               </div>
             ) : (
               <BuyAgainButton orderProduct={orderProduct} loadCart={loadCart} />

@@ -9,6 +9,14 @@ const router = express.Router();
 
 router.param('productId', rejectInvalidId('Cart item not found'));
 
+// Why the cart can't hold this many of the product, or null when it can
+function getStockError(product, quantity) {
+  if (quantity <= product.stock) {
+    return null;
+  }
+  return product.stock === 0 ? `${product.name} is out of stock.` : `Only ${product.stock} of ${product.name} left in stock.`;
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   const expand = req.query.expand;
   let cartItems = await CartItem.findAll({ where: { visitorId: req.visitorId } });
@@ -39,6 +47,11 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
   let cartItem = await CartItem.findOne({ where: { productId, visitorId: req.visitorId } });
+  const stockError = getStockError(product, (cartItem?.quantity ?? 0) + quantity);
+  if (stockError) {
+    return res.status(409).json({ error: cartItem ? `${stockError} You already have ${cartItem.quantity} in your cart.` : stockError });
+  }
+
   if (cartItem) {
     cartItem.quantity += quantity;
     await cartItem.save();
@@ -61,6 +74,10 @@ router.put('/:productId', asyncHandler(async (req, res) => {
   if (quantity !== undefined) {
     if (typeof quantity !== 'number' || quantity < 1) {
       return res.status(400).json({ error: 'Quantity must be a number greater than 0' });
+    }
+    const stockError = getStockError(await Product.findByPk(productId, { paranoid: false }), quantity);
+    if (stockError) {
+      return res.status(409).json({ error: stockError });
     }
     cartItem.quantity = quantity;
   }

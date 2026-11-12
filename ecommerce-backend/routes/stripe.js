@@ -8,6 +8,7 @@ import { calculatePaymentSummary } from './paymentSummary.js';
 import { createOrder, getOrderRefusal } from './orders.js';
 import { corsOrigins } from '../utils/corsOrigins.js';
 import { stripe } from '../utils/stripe.js';
+import { takePaidStock } from '../utils/stock.js';
 
 // The Stripe sandbox is shared with another app, so this store tags its sessions and skips the rest
 const APP_TAG = 'react-ecommerce';
@@ -63,6 +64,7 @@ async function fulfillCheckout(session) {
     throw error;
   }
 
+  await takePaidStock(items);
   await CartItem.destroy({ where: { visitorId } });
   return order;
 }

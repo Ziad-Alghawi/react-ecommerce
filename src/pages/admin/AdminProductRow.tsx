@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
 import { formatMoney } from '../../utils/money';
+import { describeStock, LOW_STOCK } from '../../utils/stock';
 import type { Product } from '../../types/store';
 
 interface AdminProductRowProps {
@@ -26,6 +27,9 @@ export function AdminProductRow({ product, onEdit, onDeleted }: AdminProductRowP
       </td>
       <td className="admin-cell-name">{product.name}</td>
       <td className="admin-cell-price">{formatMoney(product.priceCents)}</td>
+      <td className="admin-cell-stock">
+        {product.stock <= LOW_STOCK ? <span className="stock-note">{describeStock(product.stock)}</span> : `${product.stock} in stock`}
+      </td>
       <td className="admin-cell-category">{product.category}</td>
       <td className="admin-cell-keywords">{product.keywords?.join(', ')}</td>
       <td className="admin-cell-actions">

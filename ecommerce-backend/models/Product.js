@@ -44,6 +44,10 @@ export const Product = sequelize.define('Product', {
   category: {
     type: DataTypes.STRING
   },
+  // How many can still be ordered. Empty only in a database from before stock, until addDefaultData fills it
+  stock: {
+    type: DataTypes.INTEGER
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },

@@ -268,6 +268,17 @@ input:focus-visible {
   resize: vertical;
 }
 
+.stock-note {
+  margin-top: var(--space-2);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.stock-note-out {
+  color: var(--color-text-muted);
+}
+
 /* Read by screen readers, but not shown */
 .visually-hidden {
   position: absolute;

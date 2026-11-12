@@ -21,7 +21,8 @@ const newProduct = {
   priceCents: 1599,
   image: 'images/products/gray-hand-knit-wool-socks.jpg',
   keywords: ['scarves', 'plaid'],
-  category: 'Accessories'
+  category: 'Accessories',
+  stock: 25
 };
 
 let server;
@@ -235,6 +236,29 @@ function postReview(who, body, id = productId) {
 
 async function getReviews(who = {}, id = productId) {
   return (await api(reviewsPath(id), who)).json();
+}
+
+async function getStock(id) {
+  return (await (await api(`/api/products/${id}`)).json()).stock;
+}
+
+async function setStock(product, stock) {
+  const response = await api(`/api/admin/products/${product.id}`, {
+    ...await asAdmin(), method: 'PUT', body: { ...newProduct, name: product.name, stock }
+  });
+  assert.equal(response.status, 200);
+}
+
+function addProduct(who, id, quantity = 1) {
+  return api('/api/cart-items', { ...identify(who), method: 'POST', body: { productId: id, quantity } });
+}
+
+function placeOrder(who) {
+  return api('/api/orders', { ...identify(who), method: 'POST' });
+}
+
+async function deleteProduct(product) {
+  await api(`/api/admin/products/${product.id}`, { ...await asAdmin(), method: 'DELETE' });
 }
 
 async function getRating(id) {
@@ -637,10 +661,11 @@ test('an admin adds, edits and deletes a product', async () => {
   assert.equal(product.name, newProduct.name);
   assert.deepEqual(product.keywords, newProduct.keywords);
   assert.equal(product.category, newProduct.category);
+  assert.equal(product.stock, newProduct.stock);
   assert.deepEqual(product.rating, { stars: 0, count: 0 });
   assert.deepEqual((await getProducts('plaid')).map(({ id }) => id), [product.id]);
 
-  const changes = { ...newProduct, name: 'Cashmere Scarf', priceCents: 1299, keywords: [], category: 'Clothing', rating: { stars: 5, count: 1 } };
+  const changes = { ...newProduct, name: 'Cashmere Scarf', priceCents: 1299, keywords: [], category: 'Clothing', stock: 0, rating: { stars: 5, count: 1 } };
   const updateResponse = await api(`/api/admin/products/${product.id}`, { ...admin, method: 'PUT', body: changes });
   assert.equal(updateResponse.status, 200);
   const updated = await updateResponse.json();
@@ -648,6 +673,7 @@ test('an admin adds, edits and deletes a product', async () => {
   assert.equal(updated.priceCents, 1299);
   assert.deepEqual(updated.keywords, []);
   assert.equal(updated.category, 'Clothing');
+  assert.equal(updated.stock, 0);
   assert.deepEqual(updated.rating, { stars: 0, count: 0 });
   assert.deepEqual((await getProducts('cashmere')).map(({ id }) => id), [product.id]);
 
@@ -686,6 +712,11 @@ test('refuses product fields that are missing or invalid', async () => {
     'with a keyword over 20 characters': { keywords: ['k'.repeat(21)] },
     'with more than 10 keywords': { keywords: Array.from({ length: 11 }, (_, i) => `keyword${i}`) },
     'without a category': { category: undefined },
+    'without stock': { stock: undefined },
+    'with negative stock': { stock: -1 },
+    'with stock that is not whole': { stock: 2.5 },
+    'with stock as text': { stock: '10' },
+    'with stock over 100,000': { stock: 100001 },
     'with an unknown category': { category: 'Spaceships' }
   };
 
@@ -702,6 +733,66 @@ test('refuses product fields that are missing or invalid', async () => {
   assert.deepEqual((await getProducts('plaid')).map(({ id }) => id), [product.id]);
   assert.equal((await getProducts('plaid'))[0].name, newProduct.name);
   await api(`/api/admin/products/${product.id}`, { ...admin, method: 'DELETE' });
+});
+
+test('the cart holds no more of a product than is in stock', async () => {
+  const product = await createProduct({ ...newProduct, stock: 3 });
+  const visitorId = randomUUID();
+
+  assert.equal((await addProduct(visitorId, product.id, 2)).status, 201);
+  const tooMany = await addProduct(visitorId, product.id, 2);
+  assert.equal(tooMany.status, 409);
+  assert.equal((await tooMany.json()).error, 'Only 3 of Plaid Wool Scarf left in stock. You already have 2 in your cart.');
+  assert.equal((await getCart(visitorId))[0].quantity, 2);
+
+  const updatePath = `/api/cart-items/${product.id}`;
+  assert.equal((await api(updatePath, { visitorId, method: 'PUT', body: { quantity: 4 } })).status, 409);
+  assert.equal((await api(updatePath, { visitorId, method: 'PUT', body: { quantity: 3 } })).status, 200);
+
+  await setStock(product, 0);
+  const soldOut = await addProduct(randomUUID(), product.id);
+  assert.equal(soldOut.status, 409);
+  assert.equal((await soldOut.json()).error, 'Plaid Wool Scarf is out of stock.');
+  // Lowering the quantity always works
+  await setStock(product, 1);
+  assert.equal((await api(updatePath, { visitorId, method: 'PUT', body: { quantity: 1 } })).status, 200);
+  await deleteProduct(product);
+});
+
+test('placing an order takes its items out of stock, all or none', async () => {
+  const scarf = await createProduct({ ...newProduct, stock: 5 });
+  const hat = await createProduct({ ...newProduct, name: 'Wool Hat', stock: 1 });
+  const visitorId = randomUUID();
+  await addProduct(visitorId, scarf.id, 2);
+  await addProduct(visitorId, hat.id, 1);
+
+  // The hat sells out after it went in the cart
+  await setStock(hat, 0);
+  const refused = await placeOrder(visitorId);
+  assert.equal(refused.status, 409);
+  assert.equal((await refused.json()).error, 'Wool Hat is out of stock. Remove it from your cart to continue.');
+  assert.equal(await getStock(scarf.id), 5);
+  assert.deepEqual(await getOrders(visitorId), []);
+  assert.equal((await getCart(visitorId)).length, 2);
+
+  await api(`/api/cart-items/${hat.id}`, { visitorId, method: 'DELETE' });
+  assert.equal((await placeOrder(visitorId)).status, 201);
+  assert.equal(await getStock(scarf.id), 3);
+  await deleteProduct(scarf);
+  await deleteProduct(hat);
+});
+
+test('two orders at once cannot both take the last one', async () => {
+  const product = await createProduct({ ...newProduct, stock: 1 });
+  const visitors = [randomUUID(), randomUUID()];
+  for (const visitorId of visitors) {
+    assert.equal((await addProduct(visitorId, product.id)).status, 201);
+  }
+
+  const responses = await Promise.all(visitors.map(placeOrder));
+  assert.deepEqual(responses.map(({ status }) => status).sort(), [201, 409]);
+  assert.equal(await getStock(product.id), 0);
+  await deleteProduct(product);
 });
 
 test('a deleted product stays in carts and orders but can no longer be added', async () => {
@@ -1017,6 +1108,7 @@ for (const [kind, createVisitor] of [
     const visitor = await createVisitor();
     await addToCart(visitor);
     const summary = await (await api('/api/payment-summary', identify(visitor))).json();
+    const stockBefore = await getStock(productId);
     const session = await startCheckout(visitor);
 
     assert.equal((await getPaidOrder(visitor, session)).status, 409);
@@ -1037,6 +1129,7 @@ for (const [kind, createVisitor] of [
     assert.deepEqual(orders.map(({ id }) => id), [first.id]);
     assert.equal(orders[0].paymentMethod, 'card');
     assert.equal(orders[0].totalCostCents, summary.totalCostCents);
+    assert.equal(await getStock(productId), stockBefore - 1);
     assert.deepEqual(orders[0].products.map(({ productId, quantity }) => ({ productId, quantity })), [{ productId, quantity: 1 }]);
     assert.deepEqual(await getCart(visitor), []);
 
@@ -1050,6 +1143,29 @@ for (const [kind, createVisitor] of [
     assert.equal((await getPaidOrder(randomUUID(), session)).status, 404);
   });
 }
+
+test('card payment checks the stock first, then takes it once paid without going below 0', async () => {
+  const product = await createProduct({ ...newProduct, stock: 3 });
+  const visitorId = randomUUID();
+  assert.equal((await addProduct(visitorId, product.id, 2)).status, 201);
+  const session = await startCheckout(visitorId);
+
+  // Someone else buys 2 while this customer is on Stripe's page
+  const otherVisitorId = randomUUID();
+  await addProduct(otherVisitorId, product.id, 2);
+  assert.equal((await placeOrder(otherVisitorId)).status, 201);
+  assert.equal(await getStock(product.id), 1);
+  const refused = await checkout(visitorId);
+  assert.equal(refused.status, 409);
+  assert.match((await refused.json()).error, /Only 1 of Plaid Wool Scarf left/);
+
+  // The first session was paid anyway, so the order stands and the stock stops at 0
+  session.payment_status = 'paid';
+  assert.equal((await getPaidOrder(visitorId, session)).status, 200);
+  assert.equal((await getOrders(visitorId)).length, 1);
+  assert.equal(await getStock(product.id), 0);
+  await deleteProduct(product);
+});
 
 test('orders paid on delivery say so', async () => {
   const visitorId = randomUUID();

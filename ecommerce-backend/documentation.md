@@ -49,6 +49,8 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Reviews:** reading reviews works for everyone. Writing, editing and deleting one needs `Authorization: Bearer <access token>`, and the user always comes from the verified token, never from the request body. Only a user who has ordered the product can review it, once. Only the author can edit a review, and the author or an admin can delete it. After every change the product's `rating` is worked out again from its demo rating and its reviews, rounded to the nearest half star.
 
+**Stock:** a cart can't hold more of a product than its `stock`, and neither payment method orders more than is left. Paying on delivery takes the whole order out of stock at once, or refuses it. A card order takes its items when Stripe says it's paid, and since it's paid by then, an item that sold out meanwhile stops at 0.
+
 **Card payment:** only on when `STRIPE_SECRET_KEY` is a Stripe test key. Otherwise every `/api/stripe` route except `GET /api/stripe/config` answers `404`. The API sets all prices from the database, and an order paid by card is only created once Stripe says the session is paid.
 
 **Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
@@ -79,6 +81,8 @@ A sort that doesn't exist, a price that isn't a whole number of cents, or a filt
     "keywords": ["string"],
     // One of GET /api/products/categories. Null for a product added before categories, until an admin sets it
     "category": "string",
+    // How many can still be ordered. Placing an order lowers it, never below 0
+    "stock": "number",
     // Null here. Set on deleted products that a cart or order still returns
     "deletedAt": "string"
   }
@@ -230,6 +234,9 @@ Adds a product to the cart.
   "deliveryOptionId": "string",
 }
 ```
+- Status 201 with the cart item
+- Status 400 if the product doesn't exist or the quantity isn't from 1 to 10
+- Status 409 with the reason if the cart would hold more than is in stock
 
 ## PUT /api/cart-items/:productId
 Updates a cart item.
@@ -256,6 +263,7 @@ Updates a cart item.
   "deliveryOptionId": "string",
 }
 ```
+- Status 409 with the reason if the new quantity is more than is in stock
 
 ## DELETE /api/cart-items/:productId
 Removes an item from the cart.
@@ -314,9 +322,9 @@ Creates a new order from the current cart items.
   ]
 }
 ```
-- Side effect: Cart is emptied
+- Side effect: Cart is emptied, and its items are taken out of stock
 - Status 400 if the cart is empty
-- Status 409 if the visitor or user already has 50 orders
+- Status 409 if the visitor or user already has 50 orders, or with the reason if an item has less stock than the cart has
 
 ## GET /api/orders/:orderId
 Returns a specific order.
@@ -395,7 +403,7 @@ Takes no body. The `Origin` header must be the store's own address or one of `CO
 - Status 201 with the URL
 - Status 400 if the cart is empty or the origin isn't the store's
 - Status 404 when card payment is off
-- Status 409 if the visitor or user already has 50 orders
+- Status 409 if the visitor or user already has 50 orders, or with the reason if an item has less stock than the cart has
 
 ## GET /api/stripe/checkout-sessions/:sessionId/order
 Returns the order a paid Checkout Session made, and creates it first if the webhook hasn't yet. The success page calls it, so card payment also works without a webhook. Repeating it returns the same order. The cart is only emptied when the order is created.
@@ -452,7 +460,9 @@ Adds a product. It starts with a rating of 0 stars from 0 reviews.
   // Up to 10, each up to 20 characters and without commas. Can be empty
   "keywords": ["string"],
   // One of GET /api/products/categories
-  "category": "string"
+  "category": "string",
+  // A whole number from 0 to 100000
+  "stock": "number"
 }
 ```
 
