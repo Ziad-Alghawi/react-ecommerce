@@ -1,3 +1,5 @@
+// Must come first: the modules below read their settings as soon as they load
+import './loadEnv.js';
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';

@@ -61,8 +61,10 @@ To use Postgres, set `DATABASE_URL` to a connection string. For Supabase, copy t
 ```bash
 cp ecommerce-backend/.env.example ecommerce-backend/.env
 # Fill in DATABASE_URL, then:
-cd ecommerce-backend && node --env-file=.env server.js
+npm run dev:backend
 ```
+
+The server reads `ecommerce-backend/.env` on startup, and real environment variables take precedence over it. Restart it after changing the file.
 
 Supabase pauses free projects after a week without activity, so a [GitHub Actions workflow](.github/workflows/keep-alive.yml) loads the products from the live API every 3 days. It can also be run by hand from the Actions tab.
 

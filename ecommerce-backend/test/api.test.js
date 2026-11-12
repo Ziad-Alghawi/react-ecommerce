@@ -65,18 +65,22 @@ function createToken(userId = randomUUID(), {
 async function startServer() {
   const port = await getFreePort();
   baseUrl = `http://localhost:${port}`;
-  server = spawn(process.execPath, [serverFile], {
-    cwd: workDir,
+  // Like a local run, the Supabase project only comes from .env. Real environment variables
+  // win over the file, so the order limit tests see MAX_ORDERS=2
+  fs.writeFileSync(path.join(workDir, '.env'), `SUPABASE_URL=${supabaseUrl}
+MAX_ORDERS=50
+`);
+  const env = {
+    ...process.env,
+    PORT: String(port),
+    MAX_VISITORS: '3',
+    MAX_ORDERS: '2',
     // Tests delete visitors, so they only reach Postgres when given a throwaway database
-    env: {
-      ...process.env,
-      PORT: String(port),
-      MAX_VISITORS: '3',
-      MAX_ORDERS: '2',
-      SUPABASE_URL: supabaseUrl,
-      DATABASE_URL: process.env.TEST_DATABASE_URL || ''
-    }
-  });
+    DATABASE_URL: process.env.TEST_DATABASE_URL || ''
+  };
+  delete env.SUPABASE_URL;
+
+  server = spawn(process.execPath, [serverFile], { cwd: workDir, env });
 
   await new Promise((resolve, reject) => {
     server.stdout.on('data', (data) => {
@@ -198,6 +202,13 @@ test('cart and order routes need a valid visitor ID', async () => {
     assert.equal((await api(urlPath)).status, 400, `${urlPath} without an ID`);
     assert.equal((await api(urlPath, { visitorId: 'not-a-uuid' })).status, 400, `${urlPath} with a bad ID`);
   }
+});
+
+test('reads the Supabase project from .env in the folder it runs in', async () => {
+  const response = await api('/api/cart-items', { token: await createToken() });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), []);
 });
 
 test('a logged in user has the same cart and orders in every browser', async () => {
