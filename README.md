@@ -11,12 +11,13 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 ## Features
 
 - Product catalog with search by name or keyword
+- Product pages with customer reviews: customers who ordered a product can rate and review it, and its rating includes their reviews
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
 - Order placement and order history, with delivered or arriving status per package
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
-- Admin page to add, edit and delete products, for the accounts listed in `ADMIN_USER_IDS`
+- Admin page to add, edit and delete products, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
 - Package tracking with delivery progress
 - Loading, empty and error states, with a retry for failed changes
 - Responsive layout for phone and desktop
@@ -101,6 +102,14 @@ The API decides who is an admin from the verified token alone, so nothing the br
 
 Deleting a product hides it rather than removing it: it disappears from the shop and search, but carts and past orders that have it keep working, and the orders page shows it as no longer available.
 
+### Reviews
+
+Every product has its own page, linked from the shop and from past orders, with its reviews below. A logged in user who has ordered the product can give it 1 to 5 stars and an optional text of up to 500 characters, then edit or delete it. Each user can review a product once, and every review is marked as a verified purchase. Guests and users who haven't ordered the product see why they can't review it. Admins can delete any review.
+
+The API checks all of this itself, and takes the user from the verified token only. A review shows the part of the reviewer's email before the @ (or "Customer" when the token has no email), never the full address.
+
+The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews are added to it: after every new, edited or deleted review, the API works out the average of the demo rating and the reviews, rounded to the nearest half star, and saves it on the product. The shop and the product page read the same saved rating, so they always match.
+
 ## Tests
 
 Frontend:
@@ -140,7 +149,7 @@ GitHub Actions runs all of these on every push.
 ├── public/               # Favicon, product photos and rating images
 ├── src/
 │   ├── components/       # Shared components
-│   ├── pages/            # Home, checkout, orders, tracking, login, admin
+│   ├── pages/            # Home, product and reviews, checkout, orders, tracking, login, admin
 │   ├── hooks/            # Shared hooks
 │   ├── types/            # Shared TypeScript types
 │   └── utils/            # Helpers and their tests
@@ -149,6 +158,6 @@ GitHub Actions runs all of these on every push.
 
 ## Background
 
-This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an admin page for products, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
+This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an admin page for products, product pages with reviews, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
 
 Product photos are from Unsplash and Pexels and credited in [CREDITS.md](public/images/products/CREDITS.md).

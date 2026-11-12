@@ -3,7 +3,14 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Products, Delivery Options**
 - [GET /api/products](#get-apiproducts)
+- [GET /api/products/:productId](#get-apiproductsproductid)
 - [GET /api/delivery-options](#get-apidelivery-options)
+
+**Reviews**
+- [GET /api/products/:productId/reviews](#get-apiproductsproductidreviews)
+- [POST /api/products/:productId/reviews](#post-apiproductsproductidreviews)
+- [PUT /api/products/:productId/reviews/:reviewId](#put-apiproductsproductidreviewsreviewid)
+- [DELETE /api/products/:productId/reviews/:reviewId](#delete-apiproductsproductidreviewsreviewid)
 
 **Cart**
 - [GET /api/cart-items](#get-apicart-items)
@@ -33,6 +40,8 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Admins:** the `/api/admin` routes need `Authorization: Bearer <access token>` of a user whose ID is in `ADMIN_USER_IDS`. Without a valid token they answer `401`, and for any other user `403`. A deleted product is only hidden: it's left out of `GET /api/products` and can't be added to a cart, but carts and orders that have it still return it, with `deletedAt` set.
 
+**Reviews:** reading reviews works for everyone. Writing, editing and deleting one needs `Authorization: Bearer <access token>`, and the user always comes from the verified token, never from the request body. Only a user who has ordered the product can review it, once. Only the author can edit a review, and the author or an admin can delete it. After every change the product's `rating` is worked out again from its demo rating and its reviews, rounded to the nearest half star.
+
 **Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
 
 ## GET /api/products
@@ -59,6 +68,85 @@ Returns a list of products, without the ones an admin deleted.
   }
 ]
 ```
+
+## GET /api/products/:productId
+Returns one product, in the same shape as [GET /api/products](#get-apiproducts). Unlike the list, it also returns a deleted product, with `deletedAt` set, so links from old orders still work.
+
+**URL Parameters:**
+- `productId`: ID of the product
+
+**Response:**
+- Status 200 with the product
+- Status 404 if the product doesn't exist
+
+## GET /api/products/:productId/reviews
+Returns the product's reviews, newest first. Works for guests too. With a token, it also says which review is the user's and whether they can write one.
+
+**Response:**
+```js
+{
+  "reviews": [
+    {
+      "id": "uuid",
+      "productId": "uuid",
+      // The part of the reviewer's email before the @, or "Customer"
+      "authorName": "string",
+      // A whole number from 1 to 5
+      "stars": "number",
+      // Null when the review has no text
+      "text": "string",
+      "createdAt": "string",
+      "updatedAt": "string",
+      // Whether the user asking wrote it
+      "isMine": "boolean"
+    }
+  ],
+  // Whether the user has ordered the product. Always false for a guest
+  "canReview": "boolean"
+}
+```
+- Status 404 if the product doesn't exist
+- Status 401 for an invalid or expired token
+
+## POST /api/products/:productId/reviews
+Adds the user's review of a product they have ordered.
+
+**Request:**
+```js
+{
+  // Required, a whole number from 1 to 5
+  "stars": "number",
+  // Optional, up to 500 characters. Spaces around it are removed
+  "text": "string"
+}
+```
+
+**Response:**
+- Status 201 with the new review, in the same shape as in [GET /api/products/:productId/reviews](#get-apiproductsproductidreviews)
+- Status 400 with the reason if a field is missing or invalid
+- Status 401 without a valid token
+- Status 403 if the user hasn't ordered the product
+- Status 404 if the product doesn't exist
+- Status 409 if the user has already reviewed the product
+
+## PUT /api/products/:productId/reviews/:reviewId
+Changes the user's own review. Takes the same fields as [POST /api/products/:productId/reviews](#post-apiproductsproductidreviews).
+
+**Response:**
+- Status 200 with the changed review
+- Status 400 with the reason if a field is missing or invalid
+- Status 401 without a valid token
+- Status 403 if the review is someone else's, even for an admin
+- Status 404 if the product or the review doesn't exist
+
+## DELETE /api/products/:productId/reviews/:reviewId
+Deletes a review. The author can delete their own, and an admin can delete any.
+
+**Response:**
+- Status 204 (No response)
+- Status 401 without a valid token
+- Status 403 if the review is someone else's and the user isn't an admin
+- Status 404 if the product or the review doesn't exist
 
 ## GET /api/delivery-options
 Returns a list of all delivery options.
@@ -294,7 +382,7 @@ Adds a product. It starts with a rating of 0 stars from 0 reviews.
 - Status 400 with the reason if a field is missing or invalid
 
 ## PUT /api/admin/products/:productId
-Changes a product. Takes the same fields as [POST /api/admin/products](#post-apiadminproducts), all of them required. The rating can't be changed.
+Changes a product. Takes the same fields as [POST /api/admin/products](#post-apiadminproducts), all of them required. The rating can't be changed here: it comes from the demo data and reviews.
 
 **URL Parameters:**
 - `productId`: ID of the product to change

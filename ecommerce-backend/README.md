@@ -1,6 +1,6 @@
 # E-Commerce Backend
 
-The Express API for the store. It started from the [SuperSimpleDev ecommerce course](https://github.com/SuperSimpleDev/ecommerce-project) starter code, and I extended it with a separate cart and order history for each visitor, optional user accounts with Supabase Auth, admin routes to manage products, input validation and tests.
+The Express API for the store. It started from the [SuperSimpleDev ecommerce course](https://github.com/SuperSimpleDev/ecommerce-project) starter code, and I extended it with a separate cart and order history for each visitor, optional user accounts with Supabase Auth, admin routes to manage products, product reviews, input validation and tests.
 
 The endpoints are listed in [documentation.md](documentation.md).
 

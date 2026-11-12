@@ -208,6 +208,8 @@ describe('OrdersPage component', () => {
     expect(within(oldOrder).getByText('Intermediate Size Basketball')).toBeInTheDocument();
     expect(within(oldOrder).getByRole('img', { name: 'Intermediate Size Basketball' }))
       .toHaveAttribute('src', 'images/products/intermediate-composite-basketball.jpg');
+    expect(within(oldOrder).getByRole('link', { name: 'Intermediate Size Basketball' }))
+      .toHaveAttribute('href', '/products/15b6fc6f-327a-4ec4-896f-486349e85a3d');
     expect(within(oldOrder).getByTestId('product-unavailable')).toHaveTextContent('No longer available');
     expect(within(oldOrder).queryByTestId('buy-again-button')).not.toBeInTheDocument();
     expect(within(oldOrder).getByRole('link', { name: 'Track package' })).toBeInTheDocument();

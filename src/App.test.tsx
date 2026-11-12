@@ -103,6 +103,17 @@ describe('App when the API fails', () => {
     expect(screen.queryByTestId('loading-message')).not.toBeInTheDocument();
   });
 
+  it('opens the product page from a product card', async () => {
+    api[`/api/products/${product.id}`] = { data: product };
+    api[`/api/products/${product.id}/reviews`] = { data: { reviews: [], canReview: false } };
+    renderApp();
+
+    await user.click(await screen.findByRole('link', { name: product.name }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: product.name })).toBeInTheDocument();
+    expect(await screen.findByTestId('no-reviews-message')).toBeInTheDocument();
+  });
+
   it('shows an error on the home page and recovers with Try again', async () => {
     api['/api/products'] = { status: 503 };
     renderApp();
