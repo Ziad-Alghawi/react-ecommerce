@@ -3,10 +3,16 @@ import { Op } from 'sequelize';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { PRODUCT_CATEGORIES, Product } from '../models/Product.js';
 import { rejectInvalidId } from '../utils/isUuid.js';
+import { restockIfDue } from '../utils/demoRestock.js';
 
 const router = express.Router();
 
 router.param('productId', rejectInvalidId('Product not found'));
+
+router.use(asyncHandler(async (req, res, next) => {
+  await restockIfDue();
+  next();
+}));
 
 // Without a sort, products keep the store's own order. Ties in rating go to the most rated
 const SORTS = {

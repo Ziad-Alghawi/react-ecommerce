@@ -1380,6 +1380,47 @@ test('ignores Stripe events for sessions of the other app in the sandbox', async
   assert.equal((await getPaidOrder(visitorId, { id: 'cs_test_missing' })).status, 404);
 });
 
+test('restocks low demo products once a day, unless DEMO_RESTOCK is off', async () => {
+  // Starts with 4, and the sun hat starts sold out
+  const plates = '3ebe75dc-64d2-4137-8860-1f5a963e534b';
+  const sunHat = 'a82c6bac-3067-4e68-a5ba-d827ac0be010';
+  const sellPlates = async (quantity) => {
+    const visitorId = randomUUID();
+    assert.equal((await addProduct(visitorId, plates, quantity)).status, 201);
+    assert.equal((await placeOrder(visitorId)).status, 201);
+  };
+  const adminProduct = await createProduct({ ...newProduct, stock: 1 });
+
+  await sellPlates(3);
+  assert.equal(await getStock(plates), 1);
+
+  // The server restocked when it started this test run, and a restart doesn't count as a new day
+  await stopServer();
+  await startServer();
+  assert.equal(await getStock(plates), 1);
+
+  const aDayLater = { DEMO_RESTOCK_INTERVAL_MS: '1' };
+  for (const DEMO_RESTOCK of ['false', 'OFF', '0']) {
+    await stopServer();
+    await startServer({ ...aDayLater, DEMO_RESTOCK });
+    assert.equal(await getStock(plates), 1, DEMO_RESTOCK);
+  }
+
+  await stopServer();
+  await startServer(aDayLater);
+  assert.equal(await getStock(plates), 4);
+  assert.equal(await getStock(sunHat), 0);
+  assert.equal(await getStock(adminProduct.id), 1);
+
+  // A product request a day later restocks too, without a restart
+  await sellPlates(4);
+  assert.equal(await getStock(plates), 4);
+
+  await stopServer();
+  await startServer();
+  await deleteProduct(adminProduct);
+});
+
 test('card payment is off without a Stripe test key, and paying on delivery still works', async () => {
   for (const STRIPE_SECRET_KEY of ['', 'sk_live_not_for_a_demo']) {
     await stopServer();

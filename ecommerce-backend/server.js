@@ -25,6 +25,7 @@ import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
 import { Product } from './models/Product.js';
 import { addDefaultData } from './defaultData/addDefaultData.js';
+import { restockIfDue } from './utils/demoRestock.js';
 import fs from 'fs';
 
 const app = express();
@@ -108,6 +109,7 @@ for (const [model, columns] of laterColumns) {
 await sequelize.sync();
 
 await addDefaultData();
+await restockIfDue();
 await loadVisitors();
 
 app.listen(PORT, () => {

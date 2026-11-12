@@ -12,7 +12,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 
 - Product catalog with search by name or keyword, category links, a price range and sorting by price, rating or newest, all kept in the URL so links and the back button work
 - Product pages with customer reviews: customers who ordered a product can rate and review it, and its rating includes their reviews
-- Stock for every product: the shop says when only a few are left, out of stock products can't be added to the cart, and placing an order takes its items out of stock with either payment method
+- Stock for every product: the shop says when only a few are left, out of stock products can't be added to the cart, and placing an order takes its items out of stock with either payment method. Demo products that run low are restocked once a day
 - Cart with quantity updates and item removal
 - Delivery options with a live payment summary
 - Coupons: the customer types a code at checkout and the discount is taken off the items, whether they pay on delivery or by card. Try `WELCOME10` for 10% off
@@ -126,6 +126,12 @@ The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews
 Admins create coupons on the admin page, with a code, a percentage off, an optional last day and whether it's active. The store starts with `WELCOME10`, 10% off with no end date, and checkout suggests it.
 
 Checkout only sends the code. The API looks it up and works out the discount for the payment summary, the order and the card payment every time, so a discount can't be changed in the browser and a coupon that's turned off or expires before paying stops counting. The discount comes off the items before shipping and tax. For card payment, the API gives Stripe a coupon made for that one payment, so Stripe's page shows the discount and charges the same total.
+
+## Demo Restock
+
+Anyone can order from the public demo, so its products would sell out for good. Once a day, every demo product with fewer than 5 left goes back to the stock it started with, such as 15 basketballs. Products that start low stay that way on purpose: the sun hat starts sold out and the tote bag with 2 left, to show how the shop looks then. Products an admin added are never restocked, as their stock is the admin's to manage.
+
+There's no scheduled job, because the free server sleeps. The server checks when it starts and when products are requested, and the time of the last restock is kept in the database, so restarts don't restock more often. Set `DEMO_RESTOCK=false` in the backend's settings to turn it off, for example for a store with real stock.
 
 ## Card Payment
 
