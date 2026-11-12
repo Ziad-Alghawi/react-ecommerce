@@ -20,14 +20,23 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 - [GET /api/payment-summary](#get-apipayment-summary)
 - [POST /api/reset](#post-apireset)
 
+**Admin**
+- [GET /api/me](#get-apime)
+- [GET /api/admin/images](#get-apiadminimages)
+- [POST /api/admin/products](#post-apiadminproducts)
+- [PUT /api/admin/products/:productId](#put-apiadminproductsproductid)
+- [DELETE /api/admin/products/:productId](#delete-apiadminproductsproductid)
+
 **Visitors:** the cart, order and payment summary routes need an `X-Visitor-Id` header with a UUID. Each ID has its own cart and orders, so a browser can keep its own data without an account. Requests without a valid ID get `400`.
 
 **Accounts:** when `SUPABASE_URL` is set, these routes also accept `Authorization: Bearer <access token>` from Supabase Auth. A valid token uses the user's own cart and orders instead of the visitor's, and `X-Visitor-Id` is then optional. If both are sent, the visitor's cart and orders move to the user's account on the first request (quantities of the same product add up). A missing, expired or otherwise invalid token gets `401`, and so does a user's ID sent as `X-Visitor-Id` without their token. The 50-order limit applies to users too, but only guests are dropped when there are more than 500 visitors: a user's cart and orders are always kept.
 
+**Admins:** the `/api/admin` routes need `Authorization: Bearer <access token>` of a user whose ID is in `ADMIN_USER_IDS`. Without a valid token they answer `401`, and for any other user `403`. A deleted product is only hidden: it's left out of `GET /api/products` and can't be added to a cart, but carts and orders that have it still return it, with `deletedAt` set.
+
 **Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
 
 ## GET /api/products
-Returns a list of products.
+Returns a list of products, without the ones an admin deleted.
 
 **Query Parameters:**
 - `search=...` (optional): Search term to find products by name or keywords
@@ -44,7 +53,9 @@ Returns a list of products.
       "count": "number"
     },
     "priceCents": "number",
-    "keywords": ["string"]
+    "keywords": ["string"],
+    // Null here. Set on deleted products that a cart or order still returns
+    "deletedAt": "string"
   }
 ]
 ```
@@ -239,3 +250,66 @@ Resets the database to its default state. Only available when `NODE_ENV` is not 
 **Response:**
 - Status: 204 No Response
 - Status: 403 Forbidden when `NODE_ENV` is `production`
+
+## GET /api/me
+Tells the frontend who is logged in and whether to show the admin page. Works for guests too.
+
+**Response:**
+```js
+{
+  // Null for a guest
+  "userId": "uuid",
+  "isAdmin": "boolean"
+}
+```
+- Status 401 for an invalid or expired token
+
+## GET /api/admin/images
+Returns the product images an admin can choose from: those of every product, including deleted ones.
+
+**Response:**
+```js
+["images/products/2-slot-toaster-white.jpg", "..."]
+```
+
+## POST /api/admin/products
+Adds a product. It starts with a rating of 0 stars from 0 reviews.
+
+**Request:**
+```js
+{
+  // Required, up to 100 characters. Spaces around it are removed
+  "name": "string",
+  // A whole number from 1 to 1000000 ($10,000)
+  "priceCents": "number",
+  // One of GET /api/admin/images
+  "image": "string",
+  // Up to 10, each up to 20 characters and without commas. Can be empty
+  "keywords": ["string"]
+}
+```
+
+**Response:**
+- Status 201 with the new product, in the same shape as [GET /api/products](#get-apiproducts)
+- Status 400 with the reason if a field is missing or invalid
+
+## PUT /api/admin/products/:productId
+Changes a product. Takes the same fields as [POST /api/admin/products](#post-apiadminproducts), all of them required. The rating can't be changed.
+
+**URL Parameters:**
+- `productId`: ID of the product to change
+
+**Response:**
+- Status 200 with the changed product
+- Status 400 with the reason if a field is missing or invalid
+- Status 404 if the product doesn't exist or was deleted
+
+## DELETE /api/admin/products/:productId
+Hides a product from the store. Carts and orders that have it keep working.
+
+**URL Parameters:**
+- `productId`: ID of the product to delete
+
+**Response:**
+- Status 204 (No response)
+- Status 404 if the product doesn't exist or was already deleted

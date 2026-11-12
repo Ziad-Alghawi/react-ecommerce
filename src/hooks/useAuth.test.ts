@@ -1,7 +1,8 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import axios from 'axios';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { useAuthUser } from './useAuth';
+import { useAuthUser, useIsAdmin } from './useAuth';
 import { loadSupabase, mayHaveSession } from '../utils/supabase';
 
 type Listener = (event: AuthChangeEvent, session: Session | null) => void;
@@ -111,5 +112,51 @@ describe('useAuthUser', () => {
     expect(result.current).toBeUndefined();
     await act(async () => {});
     expect(result.current).toBeNull();
+  });
+});
+
+describe('useIsAdmin', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('never asks the API about a guest', () => {
+    const get = vi.spyOn(axios, 'get');
+
+    const { result } = renderHook(() => useIsAdmin(undefined));
+
+    expect(result.current).toBe(false);
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('asks the API whether the user is an admin', async () => {
+    vi.spyOn(axios, 'get')
+      .mockResolvedValueOnce({ data: { isAdmin: true } })
+      .mockResolvedValueOnce({ data: { isAdmin: false } });
+
+    const { result, rerender } = renderHook(({ userId }) => useIsAdmin(userId), {
+      initialProps: { userId: 'admin-id' as string | undefined }
+    });
+    expect(result.current).toBe(false);
+    await waitFor(() => expect(result.current).toBe(true));
+    expect(axios.get).toHaveBeenCalledWith('/api/me');
+
+    // Another user logs in on the same page: not an admin until the API says so
+    rerender({ userId: 'user-id' });
+    expect(result.current).toBe(false);
+    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
+    expect(result.current).toBe(false);
+
+    rerender({ userId: undefined });
+    expect(result.current).toBe(false);
+  });
+
+  it('treats a failed request as not an admin', async () => {
+    vi.spyOn(axios, 'get').mockRejectedValue(new Error('Network Error'));
+
+    const { result } = renderHook(() => useIsAdmin('admin-id'));
+
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
+    expect(result.current).toBe(false);
   });
 });

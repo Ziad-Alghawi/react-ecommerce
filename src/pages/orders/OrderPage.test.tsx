@@ -195,4 +195,22 @@ describe('OrdersPage component', () => {
     expect(within(buyAgainButton).queryByTestId('button-spinner')).not.toBeInTheDocument();
     expect(loadCart).toHaveBeenCalledTimes(1);
   });
+
+  it('still shows a product deleted from the store, without Add to Cart', async () => {
+    orders[1].products[0].product.deletedAt = '2024-06-20T10:00:00.000Z';
+    render(
+      <MemoryRouter>
+        <OrdersPage cart={cart} />
+      </MemoryRouter>
+    );
+
+    const [, oldOrder] = await screen.findAllByTestId('order-container');
+    expect(within(oldOrder).getByText('Intermediate Size Basketball')).toBeInTheDocument();
+    expect(within(oldOrder).getByRole('img', { name: 'Intermediate Size Basketball' }))
+      .toHaveAttribute('src', 'images/products/intermediate-composite-basketball.jpg');
+    expect(within(oldOrder).getByTestId('product-unavailable')).toHaveTextContent('No longer available');
+    expect(within(oldOrder).queryByTestId('buy-again-button')).not.toBeInTheDocument();
+    expect(within(oldOrder).getByRole('link', { name: 'Track package' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('buy-again-button')).toHaveLength(2);
+  });
 });

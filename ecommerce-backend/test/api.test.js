@@ -15,6 +15,13 @@ const serverFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..',
 // folder to keep the real database.sqlite untouched
 const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecommerce-backend-test-'));
 const productId = 'e43638ce-6aa0-4b85-b27f-e1d07eb678c6';
+const adminId = randomUUID();
+const newProduct = {
+  name: 'Plaid Wool Scarf',
+  priceCents: 1599,
+  image: 'images/products/gray-hand-knit-wool-socks.jpg',
+  keywords: ['scarves', 'plaid']
+};
 
 let server;
 let baseUrl;
@@ -75,6 +82,8 @@ MAX_ORDERS=50
     PORT: String(port),
     MAX_VISITORS: '3',
     MAX_ORDERS: '2',
+    // Spaces and capitals as someone might paste them
+    ADMIN_USER_IDS: ` ${adminId.toUpperCase()} ,${randomUUID()}`,
     // Tests delete visitors, so they only reach Postgres when given a throwaway database
     DATABASE_URL: process.env.TEST_DATABASE_URL || ''
   };
@@ -119,6 +128,20 @@ async function addToCart(who) {
 
 async function getCart(who) {
   return (await api('/api/cart-items', identify(who))).json();
+}
+
+async function asAdmin() {
+  return { token: await createToken(adminId) };
+}
+
+async function createProduct(fields = newProduct) {
+  const response = await api('/api/admin/products', { ...await asAdmin(), method: 'POST', body: fields });
+  assert.equal(response.status, 201);
+  return response.json();
+}
+
+async function getProducts(search = '') {
+  return (await api(`/api/products${search && `?search=${search}`}`)).json();
 }
 
 before(async () => {
@@ -363,6 +386,156 @@ test('each visitor has their own cart and orders', async () => {
   assert.equal((await api(`/api/orders/${order.id}`, { visitorId: bob })).status, 404);
 });
 
+test('tells the frontend whether the user is an admin, from the token only', async () => {
+  const userId = randomUUID();
+  const me = async (who) => (await api('/api/me', who)).json();
+
+  assert.deepEqual(await me({}), { userId: null, isAdmin: false });
+  assert.deepEqual(await me({ visitorId: adminId }), { userId: null, isAdmin: false });
+  assert.deepEqual(await me({ token: await createToken(userId) }), { userId, isAdmin: false });
+  assert.deepEqual(await me(await asAdmin()), { userId: adminId, isAdmin: true });
+
+  const expired = await createToken(adminId, { expiresAt: Math.floor(Date.now() / 1000) - 60 });
+  assert.equal((await api('/api/me', { token: expired })).status, 401);
+});
+
+test("admin routes need an admin's valid token", async () => {
+  const routes = [
+    ['GET', '/api/admin/images'],
+    ['POST', '/api/admin/products', newProduct],
+    ['PUT', `/api/admin/products/${productId}`, newProduct],
+    ['DELETE', `/api/admin/products/${productId}`]
+  ];
+  const refusals = [
+    ['without a token', {}, 401],
+    ["with the admin's ID as a visitor ID", { visitorId: adminId }, 401],
+    ["with an admin's token from another project", {
+      token: await createToken(adminId, { issuer: 'https://other.supabase.co/auth/v1' })
+    }, 401],
+    ["with a user's token", { token: await createToken() }, 403]
+  ];
+
+  for (const [method, urlPath, body] of routes) {
+    for (const [problem, who, status] of refusals) {
+      const response = await api(urlPath, { ...who, method, body });
+      assert.equal(response.status, status, `${method} ${urlPath} ${problem}`);
+      assert.ok((await response.json()).error);
+    }
+  }
+  assert.equal((await getProducts()).find(({ id }) => id === productId).name, 'Gray Hand Knit Wool Socks');
+
+  const response = await api('/api/admin/images', await asAdmin());
+  assert.equal(response.status, 200);
+  const images = await response.json();
+  assert.equal(images.length, 42);
+  assert.ok(images.includes(newProduct.image));
+});
+
+test('an admin adds, edits and deletes a product', async () => {
+  const admin = await asAdmin();
+  const product = await createProduct({
+    ...newProduct,
+    name: `  ${newProduct.name}  `,
+    keywords: [' scarves', 'plaid '],
+    rating: { stars: 5, count: 1000 }
+  });
+  assert.equal(product.name, newProduct.name);
+  assert.deepEqual(product.keywords, newProduct.keywords);
+  assert.deepEqual(product.rating, { stars: 0, count: 0 });
+  assert.deepEqual((await getProducts('plaid')).map(({ id }) => id), [product.id]);
+
+  const changes = { ...newProduct, name: 'Cashmere Scarf', priceCents: 1299, keywords: [], rating: { stars: 5, count: 1 } };
+  const updateResponse = await api(`/api/admin/products/${product.id}`, { ...admin, method: 'PUT', body: changes });
+  assert.equal(updateResponse.status, 200);
+  const updated = await updateResponse.json();
+  assert.equal(updated.name, 'Cashmere Scarf');
+  assert.equal(updated.priceCents, 1299);
+  assert.deepEqual(updated.keywords, []);
+  assert.deepEqual(updated.rating, { stars: 0, count: 0 });
+  assert.deepEqual((await getProducts('cashmere')).map(({ id }) => id), [product.id]);
+
+  const deleteResponse = await api(`/api/admin/products/${product.id}`, { ...admin, method: 'DELETE' });
+  assert.equal(deleteResponse.status, 204);
+  assert.ok(!(await getProducts()).some(({ id }) => id === product.id));
+  assert.deepEqual(await getProducts('cashmere'), []);
+
+  for (const id of [product.id, randomUUID(), 'not-a-uuid']) {
+    for (const method of ['PUT', 'DELETE']) {
+      const response = await api(`/api/admin/products/${id}`, { ...admin, method, body: newProduct });
+      assert.equal(response.status, 404, `${method} ${id}`);
+    }
+  }
+});
+
+test('refuses product fields that are missing or invalid', async () => {
+  const admin = await asAdmin();
+  const product = await createProduct();
+  const invalidFields = {
+    'without a name': { name: undefined },
+    'with a blank name': { name: '   ' },
+    'with a name over 100 characters': { name: 'a'.repeat(101) },
+    'without a price': { priceCents: undefined },
+    'with a price of 0': { priceCents: 0 },
+    'with a negative price': { priceCents: -100 },
+    'with a price in dollars': { priceCents: 15.99 },
+    'with a price as text': { priceCents: '1599' },
+    'with a price over $10,000': { priceCents: 1000001 },
+    'without an image': { image: undefined },
+    'with an image from another site': { image: 'https://example.com/hat.jpg' },
+    'without keywords': { keywords: undefined },
+    'with keywords as text': { keywords: 'scarves,plaid' },
+    'with a keyword containing a comma': { keywords: ['scarves,shawls'] },
+    'with a blank keyword': { keywords: [' '] },
+    'with a keyword over 20 characters': { keywords: ['k'.repeat(21)] },
+    'with more than 10 keywords': { keywords: Array.from({ length: 11 }, (_, i) => `keyword${i}`) }
+  };
+
+  for (const [problem, fields] of Object.entries(invalidFields)) {
+    const body = { ...newProduct, ...fields };
+    const createResponse = await api('/api/admin/products', { ...admin, method: 'POST', body });
+    assert.equal(createResponse.status, 400, `creating a product ${problem}`);
+    assert.ok((await createResponse.json()).error);
+
+    const updateResponse = await api(`/api/admin/products/${product.id}`, { ...admin, method: 'PUT', body });
+    assert.equal(updateResponse.status, 400, `editing a product ${problem}`);
+  }
+
+  assert.deepEqual((await getProducts('plaid')).map(({ id }) => id), [product.id]);
+  assert.equal((await getProducts('plaid'))[0].name, newProduct.name);
+  await api(`/api/admin/products/${product.id}`, { ...admin, method: 'DELETE' });
+});
+
+test('a deleted product stays in carts and orders but can no longer be added', async () => {
+  const visitorId = randomUUID();
+  const product = await createProduct();
+  const addProduct = () => api('/api/cart-items', {
+    visitorId, method: 'POST', body: { productId: product.id, quantity: 1 }
+  });
+
+  assert.equal((await addProduct()).status, 201);
+  const order = await (await api('/api/orders', { visitorId, method: 'POST' })).json();
+  assert.equal((await addProduct()).status, 201);
+
+  await api(`/api/admin/products/${product.id}`, { ...await asAdmin(), method: 'DELETE' });
+
+  const [cartItem] = await (await api('/api/cart-items?expand=product', { visitorId })).json();
+  assert.equal(cartItem.product.name, newProduct.name);
+  const summary = await (await api('/api/payment-summary', { visitorId })).json();
+  assert.equal(summary.productCostCents, newProduct.priceCents);
+  assert.equal((await addProduct()).status, 400);
+
+  assert.equal((await api('/api/orders', { visitorId, method: 'POST' })).status, 201);
+  const orders = await (await api('/api/orders?expand=products', { visitorId })).json();
+  assert.equal(orders.length, 2);
+  for (const { products } of orders) {
+    assert.equal(products[0].product.name, newProduct.name);
+  }
+  const savedOrder = await (await api(`/api/orders/${order.id}?expand=products`, { visitorId })).json();
+  assert.equal(savedOrder.products[0].product.image, newProduct.image);
+  // How the orders page knows not to offer it again
+  assert.ok(savedOrder.products[0].product.deletedAt);
+});
+
 test('drops the least recently active visitor when there are too many', async () => {
   // The server was started with room for 3 visitors
   const [oldest, active, third, newest] = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
@@ -411,7 +584,6 @@ test('still counts saved visitors after a restart', async () => {
   const [saved, other] = [randomUUID(), randomUUID()];
   await addToCart(saved);
   await addToCart(other);
-  const getProducts = async () => (await api('/api/products')).json();
   const products = await getProducts();
 
   await stopServer();
@@ -427,4 +599,18 @@ test('still counts saved visitors after a restart', async () => {
   await getCart(randomUUID());
   assert.equal((await getCart(saved)).length, 1);
   assert.deepEqual(await getCart(other), []);
+});
+
+// Hides the whole catalog, so it runs last
+test('deleted products stay deleted after a restart, even when none are left', async () => {
+  const admin = await asAdmin();
+  for (const { id } of await getProducts()) {
+    await api(`/api/admin/products/${id}`, { ...admin, method: 'DELETE' });
+  }
+
+  await stopServer();
+  await startServer();
+
+  assert.deepEqual(await getProducts(), []);
+  assert.equal((await api('/api/admin/images', admin)).status, 200);
 });

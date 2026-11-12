@@ -131,4 +131,21 @@ describe('Header component', () => {
 
     expect(logOut).toHaveBeenCalledTimes(1);
   });
+
+  it('links an admin to the admin page, and nobody else', () => {
+    const renderHeader = (isAdmin: boolean) => render(
+      <MemoryRouter>
+        <AuthContext value={{ user: { email: 'ziad@example.com' } as User, isAdmin, logOut: vi.fn() }}>
+          <Header cart={cart} />
+        </AuthContext>
+      </MemoryRouter>
+    );
+
+    const { unmount } = renderHeader(false);
+    expect(screen.queryByTestId('header-admin-link')).not.toBeInTheDocument();
+    unmount();
+
+    renderHeader(true);
+    expect(screen.getByTestId('header-admin-link')).toHaveAttribute('href', '/admin');
+  });
 });

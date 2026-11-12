@@ -14,6 +14,8 @@ services:
       # Set in the dashboard. The VITE_ ones are read by the build, so redeploy after changing them
       - key: SUPABASE_URL
         sync: false
+      - key: ADMIN_USER_IDS
+        sync: false
       - key: VITE_SUPABASE_URL
         sync: false
       - key: VITE_SUPABASE_PUBLISHABLE_KEY

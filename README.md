@@ -16,6 +16,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Order placement and order history, with delivered or arriving status per package
 - A separate cart and order history for each visitor, without sign-up, limited to 50 orders each
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
+- Admin page to add, edit and delete products, for the accounts listed in `ADMIN_USER_IDS`
 - Package tracking with delivery progress
 - Loading, empty and error states, with a retry for failed changes
 - Responsive layout for phone and desktop
@@ -84,10 +85,21 @@ To turn accounts on, use a Supabase project (it can be the same one as the datab
 | `VITE_SUPABASE_URL` | Frontend (`.env.local`) | Project URL, `https://<project-ref>.supabase.co` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Frontend (`.env.local`) | Publishable key (`sb_publishable_...`) from **Project Settings > API Keys** |
 | `SUPABASE_URL` | Backend (`ecommerce-backend/.env`) | The same Project URL |
+| `ADMIN_USER_IDS` | Backend (`ecommerce-backend/.env`) | Optional. User IDs of the admins, comma-separated (see below) |
 
 The publishable key is meant to be public. The secret key and the database password are never needed by the frontend.
 
 When a user is logged in, the frontend sends their access token with each API request. The API verifies it and uses the user ID in place of the visitor ID, so the cart and orders are the same on every device. On the first request after logging in, anything the browser had as a guest moves to the account. An invalid or expired token gets `401`, and the frontend then logs out and carries on as a guest.
+
+### Admins
+
+Admins get an **Admin** link in the header, to a page where they add, edit and delete products. A new product uses one of the store's existing photos and starts without a rating.
+
+To make an account an admin, sign up in the store, then in the Supabase dashboard open **Authentication > Users**, click the user and copy their **User UID**. Put it in `ADMIN_USER_IDS` in the backend's settings (several IDs are separated by commas) and restart the backend.
+
+The API decides who is an admin from the verified token alone, so nothing the browser sends can make a user an admin: admin routes answer `401` without a valid token and `403` for anyone else. The frontend only shows the link when `GET /api/me` says the user is an admin.
+
+Deleting a product hides it rather than removing it: it disappears from the shop and search, but carts and past orders that have it keep working, and the orders page shows it as no longer available.
 
 ## Tests
 
@@ -118,7 +130,7 @@ GitHub Actions runs all of these on every push.
 ├── docs/screenshots/     # README images
 ├── ecommerce-backend/    # Express API
 │   ├── defaultData/      # Demo products and delivery options
-│   ├── middleware/       # Visitor ID, login tokens and async error handling
+│   ├── middleware/       # Visitor ID, login tokens, admin check and async error handling
 │   ├── models/           # Sequelize models
 │   ├── routes/           # API routes
 │   ├── test/             # API tests
@@ -128,7 +140,7 @@ GitHub Actions runs all of these on every push.
 ├── public/               # Favicon, product photos and rating images
 ├── src/
 │   ├── components/       # Shared components
-│   ├── pages/            # Home, checkout, orders, tracking, login
+│   ├── pages/            # Home, checkout, orders, tracking, login, admin
 │   ├── hooks/            # Shared hooks
 │   ├── types/            # Shared TypeScript types
 │   └── utils/            # Helpers and their tests
@@ -137,6 +149,6 @@ GitHub Actions runs all of these on every push.
 
 ## Background
 
-This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
+This project started from a React course. The backend is based on the [SuperSimpleDev course starter code](https://github.com/SuperSimpleDev/ecommerce-project), and I built the frontend while following the course, then migrated it to TypeScript. Since then I've extended it with a separate cart and orders per visitor, optional accounts with Supabase Auth, an admin page for products, an order limit, loading, empty and error states, input validation, frontend and backend tests, CI and deployment config.
 
 Product photos are from Unsplash and Pexels and credited in [CREDITS.md](public/images/products/CREDITS.md).
