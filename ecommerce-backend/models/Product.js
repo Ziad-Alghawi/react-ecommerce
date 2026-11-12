@@ -19,6 +19,10 @@ export const Product = sequelize.define('Product', {
     type: DataTypes.JSON,
     allowNull: false
   },
+  // The rating from the demo data, which reviews are added to. Saved when the first review changes the rating
+  demoRating: {
+    type: DataTypes.JSON
+  },
   priceCents: {
     type: DataTypes.INTEGER,
     allowNull: false
@@ -51,3 +55,10 @@ export const Product = sequelize.define('Product', {
     order: [['createdAt', 'ASC']]
   }
 });
+
+// The demo rating is only for working out the rating, so responses leave it out
+Product.prototype.toJSON = function () {
+  const product = this.get({ plain: true });
+  delete product.demoRating;
+  return product;
+};

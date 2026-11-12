@@ -89,11 +89,13 @@ for (const model of [CartItem, Order]) {
 
 await sequelize.sync();
 
-// sync() doesn't change existing tables, so add the column that hides deleted products
+// sync() doesn't change existing tables, so add the columns that came later
 const productColumns = await sequelize.getQueryInterface().describeTable(Product.getTableName());
-if (!productColumns.deletedAt) {
-  await sequelize.getQueryInterface().addColumn(Product.getTableName(), 'deletedAt', { type: DataTypes.DATE(3) });
-  console.log('Added deletedAt to the products table.');
+for (const [column, type] of [['deletedAt', DataTypes.DATE(3)], ['demoRating', DataTypes.JSON]]) {
+  if (!productColumns[column]) {
+    await sequelize.getQueryInterface().addColumn(Product.getTableName(), column, { type });
+    console.log(`Added ${column} to the products table.`);
+  }
 }
 
 await addDefaultData();

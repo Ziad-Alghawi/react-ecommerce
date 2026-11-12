@@ -46,6 +46,20 @@ async function hasOrdered(userId, productId) {
   return orders.some((order) => order.products.some((orderProduct) => orderProduct.productId === productId));
 }
 
+// Reviews add to the rating the product started with. Stars are rounded to the nearest half,
+// the steps the rating images come in
+async function updateRating(product) {
+  product.demoRating ??= product.rating;
+  const reviews = await Review.findAll({ where: { productId: product.id }, attributes: ['stars'] });
+
+  const { stars: demoStars, count: demoCount } = product.demoRating;
+  const count = demoCount + reviews.length;
+  const totalStars = demoStars * demoCount + reviews.reduce((sum, review) => sum + review.stars, 0);
+
+  product.rating = { stars: count ? Math.round((totalStars / count) * 2) / 2 : 0, count };
+  await product.save();
+}
+
 // The fields a user can set, or the reason they're refused
 function readReviewFields({ stars, text = null }) {
   if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
@@ -91,6 +105,7 @@ router.post('/', requireUser, asyncHandler(async (req, res) => {
     userId: user.id,
     authorName: getAuthorName(user.email)
   });
+  await updateRating(product);
   res.status(201).json(toResponse(review, user.id));
 }));
 
@@ -106,6 +121,7 @@ router.put('/:reviewId', requireUser, asyncHandler(async (req, res) => {
   }
 
   await review.update(fields);
+  await updateRating(req.product);
   res.json(toResponse(review, user.id));
 }));
 
@@ -116,6 +132,7 @@ router.delete('/:reviewId', requireUser, asyncHandler(async (req, res) => {
   }
 
   await review.destroy();
+  await updateRating(req.product);
   res.status(204).send();
 }));
 
