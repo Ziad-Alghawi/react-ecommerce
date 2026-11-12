@@ -27,7 +27,8 @@ export const Product = sequelize.define('Product', {
     type: DataTypes.STRING,
     allowNull: false,
     get() {
-      return this.getDataValue('keywords').split(',');
+      const keywords = this.getDataValue('keywords');
+      return keywords ? keywords.split(',') : [];
     },
     set(val) {
       this.setDataValue('keywords', val.join(','));
@@ -39,7 +40,13 @@ export const Product = sequelize.define('Product', {
   updatedAt: {
     type: DataTypes.DATE(3)
   },
+  deletedAt: {
+    type: DataTypes.DATE(3)
+  },
 }, {
+  // Deleting only hides a product, so the carts and orders that have it keep working.
+  // Queries skip hidden products unless they pass paranoid: false
+  paranoid: true,
   defaultScope: {
     order: [['createdAt', 'ASC']]
   }

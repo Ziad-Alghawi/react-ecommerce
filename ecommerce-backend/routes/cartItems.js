@@ -20,7 +20,7 @@ router.get('/', asyncHandler(async (req, res) => {
 
   if (expand === 'product') {
     cartItems = await Promise.all(cartItems.map(async (item) => {
-      const product = await Product.findByPk(item.productId);
+      const product = await Product.findByPk(item.productId, { paranoid: false });
       return {
         ...item.toJSON(),
         product

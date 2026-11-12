@@ -18,7 +18,8 @@ export async function addDefaultData() {
   const defaults = [[Product, defaultProducts], [DeliveryOption, defaultDeliveryOptions]];
 
   for (const [model, rows] of defaults) {
-    if (await model.count() === 0) {
+    // Hidden products still take up their IDs
+    if (await model.count({ paranoid: false }) === 0) {
       await model.bulkCreate(withTimestamps(rows, timestamp));
       console.log(`Added the default ${model.getTableName()}.`);
     }

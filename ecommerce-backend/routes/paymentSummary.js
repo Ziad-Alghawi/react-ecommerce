@@ -13,7 +13,7 @@ export async function calculatePaymentSummary(cartItems) {
   let shippingCostCents = 0;
 
   for (const item of cartItems) {
-    const product = await Product.findByPk(item.productId);
+    const product = await Product.findByPk(item.productId, { paranoid: false });
     const deliveryOption = await DeliveryOption.findByPk(item.deliveryOptionId);
     totalItems += item.quantity;
     productCostCents += product.priceCents * item.quantity;

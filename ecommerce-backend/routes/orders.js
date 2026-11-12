@@ -22,7 +22,7 @@ const MAX_ORDERS = Number(process.env.MAX_ORDERS) || 50;
 async function withProductDetails(order) {
   const products = await Promise.all(order.products.map(async (orderProduct) => ({
     ...orderProduct,
-    product: await Product.findByPk(orderProduct.productId)
+    product: await Product.findByPk(orderProduct.productId, { paranoid: false })
   })));
   return { ...order.toJSON(), products };
 }

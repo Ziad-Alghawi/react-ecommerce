@@ -3,6 +3,7 @@ import './loadEnv.js';
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import { DataTypes } from 'sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
@@ -12,9 +13,12 @@ import cartItemRoutes from './routes/cartItems.js';
 import orderRoutes from './routes/orders.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
+import adminRoutes from './routes/admin.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
+import { requireAdmin } from './middleware/admin.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
+import { Product } from './models/Product.js';
 import { addDefaultData } from './defaultData/addDefaultData.js';
 import fs from 'fs';
 
@@ -39,6 +43,7 @@ app.use('/api/cart-items', requireVisitor, cartItemRoutes);
 app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
+app.use('/api/admin', requireAdmin, adminRoutes);
 
 // The built frontend, including the product images from its public folder
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -79,6 +84,14 @@ for (const model of [CartItem, Order]) {
 }
 
 await sequelize.sync();
+
+// sync() doesn't change existing tables, so add the column that hides deleted products
+const productColumns = await sequelize.getQueryInterface().describeTable(Product.getTableName());
+if (!productColumns.deletedAt) {
+  await sequelize.getQueryInterface().addColumn(Product.getTableName(), 'deletedAt', { type: DataTypes.DATE(3) });
+  console.log('Added deletedAt to the products table.');
+}
+
 await addDefaultData();
 await loadVisitors();
 
