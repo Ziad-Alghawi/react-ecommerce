@@ -146,12 +146,14 @@
     grid-template-areas:
       "logo nav"
       "search search";
+    column-gap: var(--space-3);
     row-gap: var(--space-2);
     padding: var(--space-2) var(--space-4) var(--space-3);
   }
 
   .header-nav {
     justify-self: end;
+    gap: 0;
   }
 
   .search-form {
@@ -160,6 +162,7 @@
 
   .header-link {
     padding: 0 var(--space-2);
+    white-space: nowrap;
   }
 
   .header-account-email {

@@ -84,14 +84,14 @@ export function LoginPage({ cart }: LoginPageProps) {
               Your cart and orders are saved to your account, so they follow you to any device.
             </p>
 
-            <label className="login-field">
+            <label className="form-field">
               Email
               <input type="email" required autoComplete="email" value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 data-testid="login-email-input" />
             </label>
 
-            <label className="login-field">
+            <label className="form-field">
               Password
               <input type="password" required minLength={6}
                 autoComplete={isSignUp ? 'new-password' : 'current-password'} value={password}

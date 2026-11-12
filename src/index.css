@@ -16,6 +16,7 @@
   --color-border-strong: #c3c9ce;
   --color-focus: #2f80ed;
   --color-error: #b42318;
+  --color-error-hover: #912018;
   --color-error-subtle: #fdecea;
 
   --font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -78,7 +79,8 @@ button, select {
 }
 
 .button-primary,
-.button-secondary {
+.button-secondary,
+.button-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -120,14 +122,28 @@ button, select {
   border-color: var(--color-text-muted);
 }
 
+.button-danger {
+  color: var(--color-text-inverse);
+  background-color: var(--color-error);
+}
+
+.button-danger:hover {
+  background-color: var(--color-error-hover);
+}
+
 .button-primary:disabled,
-.button-secondary:disabled {
+.button-secondary:disabled,
+.button-danger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 .button-primary:disabled {
   background-color: var(--color-brand);
+}
+
+.button-danger:disabled {
+  background-color: var(--color-error);
 }
 
 .page {
@@ -213,6 +229,7 @@ button, select {
 
 select,
 input[type="text"],
+input[type="number"],
 input[type="email"],
 input[type="password"] {
   min-height: 36px;
@@ -227,4 +244,27 @@ select:focus-visible,
 input:focus-visible {
   outline-offset: 0;
   border-color: var(--color-focus);
+}
+
+/* A label with its input below it */
+.form-field {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-field input {
+  min-height: 42px;
+  font-size: var(--font-size-md);
+}
+
+/* Read by screen readers, but not shown */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

@@ -46,6 +46,12 @@ export function Header({ cart }: HeaderProps) {
       </form>
 
       <nav className="header-nav">
+        {auth?.isAdmin && (
+          <NavLink className="header-link" to="/admin" data-testid="header-admin-link">
+            Admin
+          </NavLink>
+        )}
+
         <NavLink className="header-link" to="/orders"
           data-testid="header-orders-link">
           Orders

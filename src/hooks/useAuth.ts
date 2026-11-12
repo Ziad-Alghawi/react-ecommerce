@@ -1,9 +1,11 @@
 import { createContext, useEffect, useState } from 'react';
+import axios from 'axios';
 import type { Subscription, User } from '@supabase/supabase-js';
 import { authStorageKey, isAuthEnabled, loadSupabase, mayHaveSession, supabaseLoaded } from '../utils/supabase';
 
 export interface Auth {
   user: User | null;
+  isAdmin: boolean;
   logOut: () => Promise<void>;
 }
 
@@ -51,4 +53,29 @@ export function useAuthUser() {
   }, []);
 
   return user;
+}
+
+// Only the API can tell, from the verified token, whether the user is an admin. Guests never are
+export function useIsAdmin(userId: string | undefined) {
+  const [adminId, setAdminId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+    let isCurrentUser = true;
+    axios.get<{ isAdmin: boolean }>('/api/me')
+      .then(({ data }) => {
+        if (isCurrentUser && data?.isAdmin === true) {
+          setAdminId(userId);
+        }
+      })
+      // The admin link stays hidden, and the store works as usual
+      .catch(() => {});
+    return () => {
+      isCurrentUser = false;
+    };
+  }, [userId]);
+
+  return Boolean(userId) && adminId === userId;
 }

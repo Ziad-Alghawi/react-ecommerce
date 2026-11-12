@@ -18,18 +18,6 @@
   overflow-wrap: anywhere;
 }
 
-.login-field {
-  display: grid;
-  gap: var(--space-1);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.login-field input {
-  min-height: 42px;
-  font-size: var(--font-size-md);
-}
-
 .login-error {
   padding: var(--space-3);
   border-radius: var(--radius-md);

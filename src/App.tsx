@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
 import axios from 'axios';
 import { Routes, Route, useLocation } from 'react-router';
 import { HomePage } from './pages/home/HomePage';
@@ -8,21 +8,27 @@ import { TrackingPage } from './pages/TrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorMessage, LoadingMessage } from './components/PageStatus';
 import { ActionFailureContext } from './hooks/useAction';
-import { AuthContext, useAuthUser } from './hooks/useAuth';
+import { AuthContext, useAuthUser, useIsAdmin } from './hooks/useAuth';
 import { isAuthEnabled, logOut } from './utils/supabase';
 import type { CartItem, CartStatus } from './types/store';
 import './App.css';
 
-// Only people who open it download the login page and Supabase. If that fails, for example
-// offline or after a new deploy renamed the file, reloading fetches it again
-const LoginPage = lazy(() => import('./pages/LoginPage').then(
-  (module) => ({ default: module.LoginPage }),
-  () => ({
-    default: () => (
-      <ErrorMessage detail="Check your connection and try again." onButtonClick={() => window.location.reload()} />
-    )
-  })
-));
+function PageLoadError() {
+  return <ErrorMessage detail="Check your connection and try again." onButtonClick={() => window.location.reload()} />;
+}
+
+// Only people who open the page download it. If that fails, for example offline
+// or after a new deploy renamed the file, reloading fetches it again
+function lazyPage<Props extends object>(loadPage: () => Promise<ComponentType<Props>>) {
+  return lazy(() => loadPage().then(
+    (Page) => ({ default: Page }),
+    () => ({ default: PageLoadError as ComponentType<Props> })
+  ));
+}
+
+// The login page also brings in Supabase
+const LoginPage = lazyPage(() => import('./pages/LoginPage').then((module) => module.LoginPage));
+const AdminPage = lazyPage(() => import('./pages/admin/AdminPage').then((module) => module.AdminPage));
 
 // The API answers a request it won't accept (4xx) with the reason. Repeating it can't help
 function getRejectionReason(error: unknown) {
@@ -42,6 +48,7 @@ function App() {
   const [failedAction, setFailedAction] = useState<{ retry: () => Promise<void>; path: string } | null>(null);
   const location = useLocation();
   const user = useAuthUser();
+  const isAdmin = useIsAdmin(user?.id);
   // Whose cart and orders are shown. Pages load them again when it changes
   const owner = user === undefined ? null : user?.id ?? 'guest';
 
@@ -107,23 +114,20 @@ function App() {
   return (
     <>
       <div className="app-content">
-        <AuthContext value={isAuthEnabled ? { user: user ?? null, logOut } : null}>
+        <AuthContext value={isAuthEnabled ? { user: user ?? null, isAdmin, logOut } : null}>
           <ActionFailureContext value={reportActionFailure}>
             {owner ? (
-              <Routes key={`${retryCount}-${owner}`}>
-                <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
-                <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
-                {isAuthEnabled && (
-                  <Route path="login" element={
-                    <Suspense fallback={<LoadingMessage />}>
-                      <LoginPage cart={cart} />
-                    </Suspense>
-                  } />
-                )}
-                <Route path="*" element={<NotFoundPage cart={cart} />} />
-              </Routes>
+              <Suspense fallback={<LoadingMessage />}>
+                <Routes key={`${retryCount}-${owner}`}>
+                  <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                  <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
+                  <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                  <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
+                  {isAuthEnabled && <Route path="login" element={<LoginPage cart={cart} />} />}
+                  {isAuthEnabled && <Route path="admin" element={<AdminPage cart={cart} onRetry={retry} />} />}
+                  <Route path="*" element={<NotFoundPage cart={cart} />} />
+                </Routes>
+              </Suspense>
             ) : (
               <LoadingMessage />
             )}

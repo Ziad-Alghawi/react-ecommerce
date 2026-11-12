@@ -1,0 +1,235 @@
+.admin-page {
+  max-width: 1100px;
+}
+
+.admin-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.admin-heading .page-title {
+  margin: 0;
+}
+
+.admin-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: var(--space-5);
+}
+
+.admin-form-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.admin-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: normal;
+}
+
+.admin-image-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.admin-image-field legend {
+  margin-bottom: var(--space-1);
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.admin-image-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: var(--space-2);
+  max-height: 264px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.admin-image-option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+/* The radio stays focusable and keeps the browser's "required" check, the picture shows it */
+.admin-image-option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.admin-image-option img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border: 3px solid transparent;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.admin-image-option:hover img {
+  border-color: var(--color-border-strong);
+}
+
+.admin-image-option input:checked + img {
+  border-color: var(--color-brand);
+}
+
+.admin-image-option input:focus-visible + img {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.admin-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-table-container {
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.admin-caption {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+.admin-table th {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+}
+
+.admin-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table .product-thumbnail {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+
+.admin-cell-image {
+  width: 56px;
+}
+
+.admin-cell-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.admin-cell-price {
+  white-space: nowrap;
+}
+
+.admin-cell-keywords {
+  color: var(--color-text-muted);
+}
+
+/* As narrow as its buttons, so the other columns get the rest */
+.admin-cell-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.admin-confirm-text {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Each product becomes a small card: picture, details, then the buttons */
+@media (max-width: 640px) {
+  .admin-form {
+    padding: var(--space-4);
+  }
+
+  .admin-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table tr {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .admin-table td {
+    padding: 0;
+    border: none;
+  }
+
+  .admin-cell-image {
+    grid-row: span 3;
+  }
+
+  .admin-cell-actions {
+    grid-column: 1 / -1;
+    width: auto;
+    margin-top: var(--space-3);
+    white-space: normal;
+  }
+
+  .admin-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .admin-confirm-text {
+    flex-basis: 100%;
+  }
+}

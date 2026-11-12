@@ -14,6 +14,7 @@ import orderRoutes from './routes/orders.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import adminRoutes from './routes/admin.js';
+import meRoutes from './routes/me.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
 import { requireAdmin } from './middleware/admin.js';
 import { CartItem } from './models/CartItem.js';
@@ -43,6 +44,7 @@ app.use('/api/cart-items', requireVisitor, cartItemRoutes);
 app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
+app.use('/api/me', meRoutes);
 app.use('/api/admin', requireAdmin, adminRoutes);
 
 // The built frontend, including the product images from its public folder
