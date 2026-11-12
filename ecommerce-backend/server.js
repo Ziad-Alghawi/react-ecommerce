@@ -15,7 +15,7 @@ import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import adminRoutes from './routes/admin.js';
 import adminCouponRoutes from './routes/adminCoupons.js';
-import couponRoutes from './routes/coupons.js';
+import couponRoutes, { getFeaturedCoupon } from './routes/coupons.js';
 import meRoutes from './routes/me.js';
 import stripeRoutes, { handleWebhook } from './routes/stripe.js';
 import { corsOrigins } from './utils/corsOrigins.js';
@@ -24,6 +24,7 @@ import { requireAdmin } from './middleware/admin.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
 import { Product } from './models/Product.js';
+import { Coupon } from './models/Coupon.js';
 import { addDefaultData } from './defaultData/addDefaultData.js';
 import { restockIfDue } from './utils/demoRestock.js';
 import fs from 'fs';
@@ -47,6 +48,7 @@ app.use('/api/orders', requireVisitor, orderRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', requireVisitor, paymentSummaryRoutes);
 app.use('/api/coupons', couponRoutes);
+app.get('/api/featured-coupon', getFeaturedCoupon);
 app.use('/api/me', meRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin/coupons', requireAdmin, adminCouponRoutes);
@@ -94,7 +96,8 @@ for (const model of [CartItem, Order]) {
 // add the columns that came later first, as their indexes need them
 const laterColumns = [
   [Product, ['deletedAt', 'demoRating', 'category', 'stock']],
-  [Order, ['paymentMethod', 'stripeSessionId']]
+  [Order, ['paymentMethod', 'stripeSessionId']],
+  [Coupon, ['featured']]
 ];
 for (const [model, columns] of laterColumns) {
   const existingColumns = await sequelize.getQueryInterface()

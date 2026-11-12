@@ -7,11 +7,12 @@ import type { AppliedCoupon } from '../../types/store';
 
 interface CouponFormProps {
   appliedCoupon: AppliedCoupon | null;
+  featuredCoupon: AppliedCoupon | null;
   onApply: (code: string) => void;
   onRemove: () => void;
 }
 
-export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps) {
+export function CouponForm({ appliedCoupon, featuredCoupon, onApply, onRemove }: CouponFormProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const showToast = useToast();
@@ -64,7 +65,7 @@ export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps
       <label className="coupon-label" htmlFor={inputId}>Coupon code</label>
       <div className="coupon-row">
         <input id={inputId} type="text" value={code} autoComplete="off" autoCapitalize="characters"
-          spellCheck={false} aria-describedby={hintId} aria-invalid={Boolean(error)}
+          spellCheck={false} aria-describedby={featuredCoupon ? hintId : undefined} aria-invalid={Boolean(error)}
           onChange={(event) => setCode(event.target.value)} data-testid="coupon-input" />
         <button className="button-secondary" type="submit" disabled={isChecking} aria-busy={isChecking}
           data-testid="coupon-apply-button">
@@ -73,9 +74,11 @@ export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps
         </button>
       </div>
       {error && <div className="coupon-error" role="alert" data-testid="coupon-error">{error}</div>}
-      <p id={hintId} className="coupon-hint">
-        New here? Use <strong>WELCOME10</strong> for 10% off your items.
-      </p>
+      {featuredCoupon && (
+        <p id={hintId} className="coupon-hint" data-testid="coupon-hint">
+          Use <strong>{featuredCoupon.code}</strong> for {featuredCoupon.percentOff}% off your items.
+        </p>
+      )}
     </form>
   );
 }

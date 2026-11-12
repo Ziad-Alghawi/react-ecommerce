@@ -27,6 +27,12 @@ export const Coupon = sequelize.define('Coupon', {
     allowNull: false,
     defaultValue: true
   },
+  // Checkout suggests the newest featured coupon that can be used
+  featured: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },

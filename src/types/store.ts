@@ -61,6 +61,8 @@ export interface Coupon extends AppliedCoupon {
   // Null for a coupon that never expires
   expiresAt: string | null;
   active: boolean;
+  // Suggested at checkout, if it's the newest featured coupon that can be used
+  featured: boolean;
 }
 
 export interface PaymentSummary {

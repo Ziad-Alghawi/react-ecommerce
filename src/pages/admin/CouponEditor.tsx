@@ -18,6 +18,7 @@ export function CouponEditor({ coupon, onSaved, onCancel }: CouponEditorProps) {
   const [percentOff, setPercentOff] = useState(coupon ? String(coupon.percentOff) : '');
   const [expiryDate, setExpiryDate] = useState(coupon?.expiresAt ? dayjs(coupon.expiresAt).format('YYYY-MM-DD') : '');
   const [active, setActive] = useState(coupon?.active ?? true);
+  const [featured, setFeatured] = useState(coupon?.featured ?? false);
   const showToast = useToast();
 
   const [save, isSaving] = useAction(async () => {
@@ -26,7 +27,8 @@ export function CouponEditor({ coupon, onSaved, onCancel }: CouponEditorProps) {
       percentOff: Number(percentOff),
       // A coupon works until the end of its last day
       expiresAt: expiryDate ? dayjs(expiryDate).endOf('day').toISOString() : null,
-      active
+      active,
+      featured
     };
     if (coupon) {
       await axios.put(`/api/admin/coupons/${coupon.id}`, fields);
@@ -77,6 +79,15 @@ export function CouponEditor({ coupon, onSaved, onCancel }: CouponEditorProps) {
           data-testid="admin-coupon-active-input" />
         Active, so customers can use it
       </label>
+
+      <label className="admin-checkbox">
+        <input type="checkbox" checked={featured} onChange={(event) => setFeatured(event.target.checked)}
+          aria-describedby="admin-coupon-featured-hint" data-testid="admin-coupon-featured-input" />
+        Featured, so checkout suggests it
+      </label>
+      <span id="admin-coupon-featured-hint" className="admin-hint">
+        Checkout shows the newest featured coupon that's active and hasn't expired.
+      </span>
 
       <div className="admin-form-actions">
         <button className="button-primary" type="submit" disabled={isSaving}

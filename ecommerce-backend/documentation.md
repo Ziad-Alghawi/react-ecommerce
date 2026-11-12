@@ -27,6 +27,7 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 **Payment Summary, Coupons, Reset**
 - [GET /api/payment-summary](#get-apipayment-summary)
 - [GET /api/coupons/:code](#get-apicouponscode)
+- [GET /api/featured-coupon](#get-apifeatured-coupon)
 - [POST /api/reset](#post-apireset)
 
 **Card Payment**
@@ -393,6 +394,18 @@ Calculates and returns the payment summary for the current cart.
 
 - Status 400 with the reason if the coupon can't be used
 
+## GET /api/featured-coupon
+Returns the coupon checkout suggests: the newest one an admin marked as featured that's active and hasn't expired. Works for everyone. It isn't under `/api/coupons/`, where it would take the place of a coupon with the code `FEATURED`.
+
+**Response:**
+```js
+// Or null when no coupon is featured
+{
+  "code": "string",
+  "percentOff": "number"
+}
+```
+
 ## GET /api/coupons/:code
 Says whether a coupon code can be used now, so checkout can tell the customer before applying it. Works for everyone.
 
@@ -540,6 +553,7 @@ Returns every coupon, oldest first, including those turned off or expired.
     // Null for a coupon that never expires
     "expiresAt": "string",
     "active": "boolean",
+    "featured": "boolean",
     "createdAt": "string",
     "updatedAt": "string"
   }
@@ -559,7 +573,9 @@ Adds a coupon.
   // A date, or null for a coupon that never expires
   "expiresAt": "string",
   // Whether customers can use it
-  "active": "boolean"
+  "active": "boolean",
+  // Whether checkout may suggest it. It suggests the newest featured coupon that can be used
+  "featured": "boolean"
 }
 ```
 

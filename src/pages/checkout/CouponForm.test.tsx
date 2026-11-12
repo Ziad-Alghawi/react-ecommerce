@@ -34,14 +34,21 @@ describe('CouponForm component', () => {
     axios.defaults.adapter = originalAdapter;
   });
 
-  it('suggests the welcome coupon', () => {
-    render(<CouponForm appliedCoupon={null} onApply={onApply} onRemove={onRemove} />);
+  it('suggests the featured coupon', () => {
+    render(<CouponForm appliedCoupon={null} featuredCoupon={{ code: 'SUMMER20', percentOff: 20 }} onApply={onApply} onRemove={onRemove} />);
 
-    expect(screen.getByLabelText('Coupon code')).toHaveAccessibleDescription('New here? Use WELCOME10 for 10% off your items.');
+    expect(screen.getByLabelText('Coupon code')).toHaveAccessibleDescription('Use SUMMER20 for 20% off your items.');
+  });
+
+  it('suggests nothing without a featured coupon', () => {
+    render(<CouponForm appliedCoupon={null} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
+
+    expect(screen.queryByTestId('coupon-hint')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Coupon code')).not.toHaveAttribute('aria-describedby');
   });
 
   it('applies a code the API accepts, as the API spells it', async () => {
-    render(<CouponForm appliedCoupon={null} onApply={onApply} onRemove={onRemove} />);
+    render(<CouponForm appliedCoupon={null} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
 
     await user.type(screen.getByLabelText('Coupon code'), ' welcome10 {Enter}');
 
@@ -50,7 +57,7 @@ describe('CouponForm component', () => {
   });
 
   it('says why a code does not work', async () => {
-    render(<CouponForm appliedCoupon={null} onApply={onApply} onRemove={onRemove} />);
+    render(<CouponForm appliedCoupon={null} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
 
     await user.type(screen.getByLabelText('Coupon code'), 'NOPE');
     await user.click(screen.getByTestId('coupon-apply-button'));
@@ -61,7 +68,7 @@ describe('CouponForm component', () => {
   });
 
   it('asks to try again when the code could not be checked', async () => {
-    render(<CouponForm appliedCoupon={null} onApply={onApply} onRemove={onRemove} />);
+    render(<CouponForm appliedCoupon={null} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
 
     await user.type(screen.getByLabelText('Coupon code'), 'SPRING25{Enter}');
 
@@ -69,7 +76,7 @@ describe('CouponForm component', () => {
   });
 
   it('does not check an empty code', async () => {
-    render(<CouponForm appliedCoupon={null} onApply={onApply} onRemove={onRemove} />);
+    render(<CouponForm appliedCoupon={null} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
 
     await user.type(screen.getByLabelText('Coupon code'), '   {Enter}');
 
@@ -78,7 +85,7 @@ describe('CouponForm component', () => {
   });
 
   it('shows the applied coupon, which can be removed', async () => {
-    render(<CouponForm appliedCoupon={{ code: 'WELCOME10', percentOff: 10 }} onApply={onApply} onRemove={onRemove} />);
+    render(<CouponForm appliedCoupon={{ code: 'WELCOME10', percentOff: 10 }} featuredCoupon={null} onApply={onApply} onRemove={onRemove} />);
 
     expect(screen.getByTestId('coupon-applied')).toHaveTextContent('WELCOME10 applied: 10% off your items');
     await user.click(screen.getByRole('button', { name: 'Remove coupon WELCOME10' }));

@@ -13,7 +13,7 @@ const CODE_PATTERN = /^[A-Z0-9]{3,20}$/;
 router.param('couponId', rejectInvalidId('Coupon not found'));
 
 // The fields an admin can set, or the reason they're refused
-function readCouponFields({ code, percentOff, expiresAt = null, active }) {
+function readCouponFields({ code, percentOff, expiresAt = null, active, featured }) {
   const normalizedCode = normalizeCouponCode(code);
   if (!CODE_PATTERN.test(normalizedCode)) {
     return { error: 'Code must be 3 to 20 letters or digits' };
@@ -28,11 +28,11 @@ function readCouponFields({ code, percentOff, expiresAt = null, active }) {
     return { error: 'Expiry must be a date, or null for a coupon that never expires' };
   }
 
-  if (typeof active !== 'boolean') {
-    return { error: 'Active must be true or false' };
+  if (typeof active !== 'boolean' || typeof featured !== 'boolean') {
+    return { error: 'Active and featured must be true or false' };
   }
 
-  return { fields: { code: normalizedCode, percentOff, expiresAt: expiryDate, active } };
+  return { fields: { code: normalizedCode, percentOff, expiresAt: expiryDate, active, featured } };
 }
 
 async function isCodeTaken(code, exceptId = null) {

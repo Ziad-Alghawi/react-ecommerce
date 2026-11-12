@@ -7,7 +7,9 @@ import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
 import { useToast } from '../../hooks/useToast';
-import type { CartItem, CartStatus, DeliveryOption, LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
+import type {
+  AppliedCoupon, CartItem, CartStatus, DeliveryOption, LoadCart, PaymentSummary as PaymentSummaryType
+} from '../../types/store';
 import './CheckoutPage.css';
 
 interface CheckoutPageProps {
@@ -23,6 +25,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   const [hasError, setHasError] = useState(false);
   // Sent with the order, so the API can check it and work out the discount again
   const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [featuredCoupon, setFeaturedCoupon] = useState<AppliedCoupon | null>(null);
   const showToast = useToast();
 
   useEffect(() => {
@@ -75,13 +78,20 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
     };
   }, [cart, couponCode, showToast]);
 
+  useEffect(() => {
+    axios.get<AppliedCoupon | null>('/api/featured-coupon')
+      .then(({ data }) => setFeaturedCoupon(data?.code ? data : null))
+      // Checkout works the same without the suggestion
+      .catch(() => {});
+  }, []);
+
   const isLoading = cartStatus === 'loading' || deliveryOptions.length === 0 || !paymentSummary;
 
   let pageContent = (
     <div className="checkout-grid">
       <OrderSummary cart={cart} deliveryOptions={deliveryOptions} loadCart={loadCart} />
 
-      <PaymentSummary paymentSummary={paymentSummary} couponCode={couponCode}
+      <PaymentSummary paymentSummary={paymentSummary} couponCode={couponCode} featuredCoupon={featuredCoupon}
         onCouponChange={setCouponCode} loadCart={loadCart} />
     </div>
   );

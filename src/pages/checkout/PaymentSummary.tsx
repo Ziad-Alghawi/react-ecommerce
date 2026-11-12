@@ -6,16 +6,20 @@ import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
 import { useToast } from '../../hooks/useToast';
 import { CouponForm } from './CouponForm';
-import type { LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
+import type { AppliedCoupon, LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 
 interface PaymentSummaryProps {
   paymentSummary: PaymentSummaryType | null;
   couponCode: string | null;
+  // Suggested next to the coupon field
+  featuredCoupon?: AppliedCoupon | null;
   onCouponChange: (couponCode: string | null) => void;
   loadCart: LoadCart;
 }
 
-export function PaymentSummary({ paymentSummary, couponCode, onCouponChange, loadCart }: PaymentSummaryProps) {
+export function PaymentSummary({
+  paymentSummary, couponCode, featuredCoupon = null, onCouponChange, loadCart
+}: PaymentSummaryProps) {
   const navigate = useNavigate();
   const showToast = useToast();
 
@@ -106,7 +110,7 @@ export function PaymentSummary({ paymentSummary, couponCode, onCouponChange, loa
             </div>
           </div>
 
-          <CouponForm appliedCoupon={paymentSummary.coupon} onApply={onCouponChange}
+          <CouponForm appliedCoupon={paymentSummary.coupon} featuredCoupon={featuredCoupon} onApply={onCouponChange}
             onRemove={() => onCouponChange(null)} />
 
           {isCardPaymentOn && (

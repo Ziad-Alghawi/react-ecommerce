@@ -54,6 +54,17 @@
   color: var(--color-brand-active);
 }
 
+.admin-statuses {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.admin-status-featured {
+  background-color: var(--color-brand-accent);
+  color: var(--color-brand-dark);
+}
+
 .admin-status-expired {
   background-color: var(--color-error-subtle);
   color: var(--color-error);

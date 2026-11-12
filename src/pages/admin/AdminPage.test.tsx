@@ -30,9 +30,9 @@ const basketball = {
   category: 'Sports'
 };
 
-const welcome = { id: 'c1f6a8a2-4b7e-4f0e-9d3b-1a2b3c4d5e6f', code: 'WELCOME10', percentOff: 10, expiresAt: null, active: true };
-const oldSale = { id: 'd2a7b9c3-5c8f-4a1f-8e4c-2b3c4d5e6f70', code: 'OLDSALE', percentOff: 30, expiresAt: '2020-01-31T22:59:59.999Z', active: true };
-const paused = { id: 'e3b8cad4-6d90-4b2a-9f5d-3c4d5e6f7081', code: 'PAUSED', percentOff: 5, expiresAt: null, active: false };
+const welcome = { id: 'c1f6a8a2-4b7e-4f0e-9d3b-1a2b3c4d5e6f', code: 'WELCOME10', percentOff: 10, expiresAt: null, active: true, featured: true };
+const oldSale = { id: 'd2a7b9c3-5c8f-4a1f-8e4c-2b3c4d5e6f70', code: 'OLDSALE', percentOff: 30, expiresAt: '2020-01-31T22:59:59.999Z', active: true, featured: false };
+const paused = { id: 'e3b8cad4-6d90-4b2a-9f5d-3c4d5e6f7081', code: 'PAUSED', percentOff: 5, expiresAt: null, active: false, featured: false };
 
 const workingApi = {
   'get /api/products': { data: [socks, basketball] },
@@ -221,7 +221,7 @@ describe('AdminPage component', () => {
 
     const rows = await screen.findAllByTestId('admin-coupon-row');
     expect(rows.map((row) => [...row.querySelectorAll('td')].slice(0, 4).map((cell) => cell.textContent))).toEqual([
-      ['WELCOME10', '10% off', 'Never', 'Active'],
+      ['WELCOME10', '10% off', 'Never', 'ActiveFeatured'],
       ['OLDSALE', '30% off', 'January 31, 2020', 'Expired'],
       ['PAUSED', '5% off', 'Never', 'Off']
     ]);
@@ -234,11 +234,12 @@ describe('AdminPage component', () => {
     await user.type(screen.getByTestId('admin-coupon-code-input'), 'spring25');
     await user.type(screen.getByTestId('admin-coupon-percent-input'), '25');
     await user.type(screen.getByTestId('admin-coupon-expiry-input'), '2099-06-30');
+    await user.click(screen.getByTestId('admin-coupon-featured-input'));
     await user.click(screen.getByTestId('admin-coupon-save-button'));
 
     await waitFor(() => expect(screen.queryByTestId('admin-coupon-form')).not.toBeInTheDocument());
     expect(requestsTo('post /api/admin/coupons')[0].body).toEqual({
-      code: 'spring25', percentOff: 25, expiresAt: dayjs('2099-06-30').endOf('day').toISOString(), active: true
+      code: 'spring25', percentOff: 25, expiresAt: dayjs('2099-06-30').endOf('day').toISOString(), active: true, featured: true
     });
     expect(requestsTo('get /api/admin/coupons')).toHaveLength(2);
   });
@@ -250,12 +251,13 @@ describe('AdminPage component', () => {
     expect(screen.getByTestId('admin-coupon-code-input')).toHaveValue('WELCOME10');
     expect(screen.getByTestId('admin-coupon-percent-input')).toHaveValue(10);
     expect(screen.getByTestId('admin-coupon-expiry-input')).toHaveValue('');
+    expect(screen.getByTestId('admin-coupon-featured-input')).toBeChecked();
     await user.click(screen.getByTestId('admin-coupon-active-input'));
     await user.click(screen.getByTestId('admin-coupon-save-button'));
 
     await waitFor(() => expect(screen.queryByTestId('admin-coupon-form')).not.toBeInTheDocument());
     expect(requestsTo(`put /api/admin/coupons/${welcome.id}`)[0].body).toEqual({
-      code: 'WELCOME10', percentOff: 10, expiresAt: null, active: false
+      code: 'WELCOME10', percentOff: 10, expiresAt: null, active: false, featured: true
     });
   });
 });

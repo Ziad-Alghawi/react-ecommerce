@@ -25,7 +25,7 @@ const newProduct = {
   stock: 25
 };
 
-const newCoupon = { code: 'spring25', percentOff: 25, expiresAt: '2099-06-30T23:59:59.000Z', active: true };
+const newCoupon = { code: 'spring25', percentOff: 25, expiresAt: '2099-06-30T23:59:59.000Z', active: true, featured: false };
 
 let server;
 let baseUrl;
@@ -1291,11 +1291,11 @@ test('an admin creates, lists and edits coupons', async () => {
   const coupons = await (await api('/api/admin/coupons', admin)).json();
   assert.deepEqual(coupons.map(({ code }) => code).filter((code) => ['WELCOME10', 'AUTUMN15'].includes(code)), ['WELCOME10', 'AUTUMN15']);
 
-  const changes = { code: 'AUTUMN20', percentOff: 20, expiresAt: '2099-11-30T23:59:59.000Z', active: false };
+  const changes = { code: 'AUTUMN20', percentOff: 20, expiresAt: '2099-11-30T23:59:59.000Z', active: false, featured: true };
   const updateResponse = await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: changes });
   assert.equal(updateResponse.status, 200);
-  const { code, percentOff, expiresAt, active } = await updateResponse.json();
-  assert.deepEqual({ code, percentOff, expiresAt, active }, changes);
+  const { code, percentOff, expiresAt, active, featured } = await updateResponse.json();
+  assert.deepEqual({ code, percentOff, expiresAt, active, featured }, changes);
 
   const visitorId = randomUUID();
   await addToCart(visitorId);
@@ -1303,11 +1303,37 @@ test('an admin creates, lists and edits coupons', async () => {
   await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: { ...changes, active: true } });
   assert.equal((await (await api('/api/payment-summary?couponCode=AUTUMN20', { visitorId })).json()).coupon.percentOff, 20);
 
+  // Not featured any more, so it doesn't take the place of WELCOME10 at checkout for the tests after this one
+  await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: { ...changes, featured: false } });
   const taken = await api(`/api/admin/coupons/${coupon.id}`, { ...admin, method: 'PUT', body: { ...changes, code: 'WELCOME10' } });
   assert.equal(taken.status, 409);
   for (const id of [randomUUID(), 'not-a-uuid']) {
     assert.equal((await api(`/api/admin/coupons/${id}`, { ...admin, method: 'PUT', body: changes })).status, 404);
   }
+});
+
+test('suggests the newest featured coupon that can be used, or none', async () => {
+  const admin = await asAdmin();
+  const getFeatured = async () => (await api('/api/featured-coupon')).json();
+  assert.deepEqual(await getFeatured(), { code: 'WELCOME10', percentOff: 10 });
+
+  await createCoupon({ code: 'NOTFEATURED', featured: false });
+  await createCoupon({ code: 'FEATUREDOLD', featured: true, expiresAt: '2020-01-01T00:00:00.000Z' });
+  await createCoupon({ code: 'FEATUREDOFF', featured: true, active: false });
+  assert.deepEqual(await getFeatured(), { code: 'WELCOME10', percentOff: 10 });
+
+  const summer = await createCoupon({ code: 'SUMMER20', percentOff: 20, featured: true });
+  assert.deepEqual(await getFeatured(), { code: 'SUMMER20', percentOff: 20 });
+
+  const coupons = await (await api('/api/admin/coupons', admin)).json();
+  const welcome = coupons.find(({ code }) => code === 'WELCOME10');
+  const unfeature = (coupon, featured = false) => api(`/api/admin/coupons/${coupon.id}`, {
+    ...admin, method: 'PUT', body: { ...coupon, featured }
+  });
+  await unfeature(summer);
+  await unfeature(welcome);
+  assert.equal(await getFeatured(), null);
+  await unfeature(welcome, true);
 });
 
 test('refuses coupon fields that are missing or invalid', async () => {
@@ -1324,7 +1350,9 @@ test('refuses coupon fields that are missing or invalid', async () => {
     'with an expiry that is not a date': { expiresAt: 'next week' },
     'with an expiry as a number': { expiresAt: 1700000000000 },
     'without active': { active: undefined },
-    'with active as text': { active: 'yes' }
+    'with active as text': { active: 'yes' },
+    'without featured': { featured: undefined },
+    'with featured as a number': { featured: 1 }
   };
 
   for (const [problem, fields] of Object.entries(invalidFields)) {

@@ -5,6 +5,10 @@ export function normalizeCouponCode(code) {
   return typeof code === 'string' ? code.trim().toUpperCase() : '';
 }
 
+export function isExpired(coupon) {
+  return coupon.expiresAt !== null && coupon.expiresAt <= new Date();
+}
+
 // The coupon a customer can use now, or why they can't
 export async function findValidCoupon(code) {
   const normalizedCode = normalizeCouponCode(code);
@@ -12,7 +16,7 @@ export async function findValidCoupon(code) {
   if (!coupon || !coupon.active) {
     return { error: `${normalizedCode || 'This'} isn't a valid coupon code.` };
   }
-  if (coupon.expiresAt !== null && coupon.expiresAt <= new Date()) {
+  if (isExpired(coupon)) {
     return { error: `The coupon ${normalizedCode} has expired.` };
   }
   return { coupon };

@@ -1,6 +1,7 @@
 import express from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
-import { findValidCoupon } from '../middleware/coupon.js';
+import { findValidCoupon, isExpired } from '../middleware/coupon.js';
+import { Coupon } from '../models/Coupon.js';
 
 const router = express.Router();
 
@@ -12,5 +13,15 @@ router.get('/:code', asyncHandler(async (req, res) => {
   }
   res.json({ code: coupon.code, percentOff: coupon.percentOff });
 }));
+
+// Its own path, as /api/coupons/featured would hide a coupon with the code FEATURED
+export const getFeaturedCoupon = asyncHandler(async (req, res) => {
+  const coupons = await Coupon.unscoped().findAll({
+    where: { active: true, featured: true },
+    order: [['createdAt', 'DESC']]
+  });
+  const coupon = coupons.find((featured) => !isExpired(featured));
+  res.json(coupon ? { code: coupon.code, percentOff: coupon.percentOff } : null);
+});
 
 export default router;

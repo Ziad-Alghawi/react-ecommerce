@@ -12,9 +12,11 @@ describe('CheckoutPage component', () => {
   let cart;
   let deliveryOptions;
   let paymentSummary;
+  let featuredCoupon;
 
   beforeEach(() => {
     loadCart = vi.fn();
+    featuredCoupon = { code: 'WELCOME10', percentOff: 10 };
 
     cart = [{
       productId: 'e43638ce-6aa0-4b85-b27f-e1d07eb678c6',
@@ -83,6 +85,9 @@ describe('CheckoutPage component', () => {
       if (url === '/api/payment-summary') {
         return { data: paymentSummary };
       }
+      if (url === '/api/featured-coupon') {
+        return { data: featuredCoupon };
+      }
       if (url === '/api/coupons/welcome10') {
         return { data: { code: 'WELCOME10', percentOff: 10 } };
       }
@@ -138,6 +143,26 @@ describe('CheckoutPage component', () => {
       .toHaveTextContent('Your cart is empty');
     expect(screen.getByRole('link', { name: 'Browse products' })).toHaveAttribute('href', '/');
     expect(screen.queryByTestId('place-order-button')).not.toBeInTheDocument();
+  });
+
+  it('suggests the coupon the API features, or none', async () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <CheckoutPage cart={cart} cartStatus="ready" loadCart={loadCart} />
+      </MemoryRouter>
+    );
+    expect(await screen.findByTestId('coupon-hint')).toHaveTextContent('Use WELCOME10 for 10% off your items.');
+    unmount();
+
+    featuredCoupon = null;
+    render(
+      <MemoryRouter>
+        <CheckoutPage cart={cart} cartStatus="ready" loadCart={loadCart} />
+      </MemoryRouter>
+    );
+    await screen.findByTestId('coupon-input');
+    await waitFor(() => expect(axios.get).toHaveBeenCalledWith('/api/featured-coupon'));
+    expect(screen.queryByTestId('coupon-hint')).not.toBeInTheDocument();
   });
 
   it('applies a coupon, and the API works out the new totals', async () => {

@@ -63,7 +63,10 @@ export function AdminCoupons({ coupons, loadCoupons }: AdminCouponsProps) {
                   <td>{coupon.percentOff}% off</td>
                   <td>{coupon.expiresAt ? formatDate(coupon.expiresAt) : 'Never'}</td>
                   <td>
-                    <span className={`admin-status admin-status-${status.toLowerCase()}`}>{status}</span>
+                    <span className="admin-statuses">
+                      <span className={`admin-status admin-status-${status.toLowerCase()}`}>{status}</span>
+                      {coupon.featured && <span className="admin-status admin-status-featured">Featured</span>}
+                    </span>
                   </td>
                   <td className="admin-cell-actions">
                     <div className="admin-actions">

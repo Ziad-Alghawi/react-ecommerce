@@ -121,9 +121,9 @@ The API checks all of this itself, and takes the user from the verified token on
 
 The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews are added to it: after every new, edited or deleted review, the API works out the average of the demo rating and the reviews, rounded to the nearest half star, and saves it on the product. The shop and the product page read the same saved rating, so they always match.
 
-### Coupons
+## Coupons
 
-Admins create coupons on the admin page, with a code, a percentage off, an optional last day and whether it's active. The store starts with `WELCOME10`, 10% off with no end date, and checkout suggests it.
+Admins create coupons on the admin page, with a code, a percentage off, an optional last day, whether it's active and whether it's featured. Checkout suggests the newest featured coupon that's active and hasn't expired, and suggests nothing when there's none. The store starts with `WELCOME10`, 10% off with no end date, featured.
 
 Checkout only sends the code. The API looks it up and works out the discount for the payment summary, the order and the card payment every time, so a discount can't be changed in the browser and a coupon that's turned off or expires before paying stops counting. The discount comes off the items before shipping and tax. For card payment, the API gives Stripe a coupon made for that one payment, so Stripe's page shows the discount and charges the same total.
 
