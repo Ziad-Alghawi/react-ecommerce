@@ -58,27 +58,31 @@ router.post('/', asyncHandler(async (req, res) => {
     return res.status(refusal.status).json({ error: refusal.error });
   }
 
-  const products = await Promise.all(cartItems.map(async (item) => {
-    const deliveryOption = await DeliveryOption.findByPk(item.deliveryOptionId);
-    return {
-      productId: item.productId,
-      quantity: item.quantity,
-      estimatedDeliveryTimeMs: estimateDeliveryTimeMs(deliveryOption)
-    };
-  }));
   const { totalCostCents } = await calculatePaymentSummary(cartItems);
-
-  const order = await Order.create({
-    orderTimeMs: Date.now(),
-    totalCostCents,
-    products,
-    visitorId: req.visitorId
-  });
+  const order = await createOrder(req.visitorId, cartItems, { totalCostCents });
 
   await CartItem.destroy({ where: { visitorId: req.visitorId } });
 
   res.status(201).json(order);
 }));
+
+// Items are { productId, quantity, deliveryOptionId }, from the cart or from a paid Stripe session
+export async function createOrder(visitorId, items, { totalCostCents, paymentMethod = 'delivery', stripeSessionId = null }) {
+  const products = await Promise.all(items.map(async ({ productId, quantity, deliveryOptionId }) => ({
+    productId,
+    quantity,
+    estimatedDeliveryTimeMs: estimateDeliveryTimeMs(await DeliveryOption.findByPk(deliveryOptionId))
+  })));
+
+  return Order.create({
+    orderTimeMs: Date.now(),
+    totalCostCents,
+    products,
+    paymentMethod,
+    stripeSessionId,
+    visitorId
+  });
+}
 
 router.get('/:orderId', asyncHandler(async (req, res) => {
   const { orderId } = req.params;

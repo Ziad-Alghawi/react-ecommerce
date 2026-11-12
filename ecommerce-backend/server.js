@@ -3,7 +3,6 @@ import './loadEnv.js';
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import { DataTypes } from 'sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
@@ -16,7 +15,7 @@ import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
 import adminRoutes from './routes/admin.js';
 import meRoutes from './routes/me.js';
-import stripeRoutes from './routes/stripe.js';
+import stripeRoutes, { handleWebhook } from './routes/stripe.js';
 import { corsOrigins } from './utils/corsOrigins.js';
 import { loadVisitors, requireVisitor } from './middleware/visitor.js';
 import { requireAdmin } from './middleware/admin.js';
@@ -33,6 +32,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(compression());
 app.use(cors({ origin: corsOrigins }));
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 app.use(express.json());
 
 app.use('/api/products', productRoutes);
@@ -85,16 +85,23 @@ for (const model of [CartItem, Order]) {
   }
 }
 
-await sequelize.sync();
-
-// sync() doesn't change existing tables, so add the columns that came later
-const productColumns = await sequelize.getQueryInterface().describeTable(Product.getTableName());
-for (const [column, type] of [['deletedAt', DataTypes.DATE(3)], ['demoRating', DataTypes.JSON]]) {
-  if (!productColumns[column]) {
-    await sequelize.getQueryInterface().addColumn(Product.getTableName(), column, { type });
-    console.log(`Added ${column} to the products table.`);
+// sync() creates missing tables and indexes but doesn't change existing tables, so
+// add the columns that came later first, as their indexes need them
+const laterColumns = [
+  [Product, ['deletedAt', 'demoRating']],
+  [Order, ['paymentMethod', 'stripeSessionId']]
+];
+for (const [model, columns] of laterColumns) {
+  const existingColumns = await sequelize.getQueryInterface()
+    .describeTable(model.getTableName())
+    .catch(() => null);
+  for (const column of columns.filter((column) => existingColumns && !existingColumns[column])) {
+    await sequelize.getQueryInterface().addColumn(model.getTableName(), column, model.getAttributes()[column]);
+    console.log(`Added ${column} to the ${model.getTableName()} table.`);
   }
 }
+
+await sequelize.sync();
 
 await addDefaultData();
 await loadVisitors();

@@ -27,6 +27,16 @@ export const Order = sequelize.define('Order', {
     type: DataTypes.JSON,
     allowNull: false
   },
+  // 'delivery' or 'card'
+  paymentMethod: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'delivery'
+  },
+  // The Stripe Checkout Session that paid for a card order. Unique, so one payment makes one order
+  stripeSessionId: {
+    type: DataTypes.STRING
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },
@@ -37,5 +47,5 @@ export const Order = sequelize.define('Order', {
   defaultScope: {
     order: [['createdAt', 'ASC']]
   },
-  indexes: [{ fields: ['visitorId'] }]
+  indexes: [{ fields: ['visitorId'] }, { unique: true, fields: ['stripeSessionId'] }]
 });

@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType } from 'react';
 import axios from 'axios';
 import { Routes, Route, useLocation } from 'react-router';
 import { HomePage } from './pages/home/HomePage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
+import { CheckoutSuccessPage } from './pages/checkout/CheckoutSuccessPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -53,7 +54,8 @@ function App() {
   // Whose cart and orders are shown. Pages load them again when it changes
   const owner = user === undefined ? null : user?.id ?? 'guest';
 
-  const loadCart = async () => {
+  // Stable, so pages can reload the cart from an effect without running it again
+  const loadCart = useCallback(async () => {
     const response = await axios.get<CartItem[]>('/api/cart-items?expand=product');
     // A sleeping server or a proxy can answer with an HTML page instead of JSON
     if (!Array.isArray(response.data)) {
@@ -61,7 +63,7 @@ function App() {
     }
     setCart(response.data);
     setCartStatus('ready');
-  };
+  }, []);
 
   useEffect(() => {
     if (!owner) {
@@ -69,7 +71,7 @@ function App() {
     }
     setCartStatus('loading');
     loadCart().catch(() => setCartStatus('failed'));
-  }, [retryCount, owner]);
+  }, [retryCount, owner, loadCart]);
 
   useEffect(() => {
     // GET requests show their error on the page. Everything else (add to cart,
@@ -123,6 +125,7 @@ function App() {
                   <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="products/:productId" element={<ProductPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
+                  <Route path="checkout/success" element={<CheckoutSuccessPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
                   {isAuthEnabled && <Route path="login" element={<LoginPage cart={cart} />} />}
