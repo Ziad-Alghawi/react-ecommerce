@@ -151,6 +151,10 @@ To set it up, in the Stripe Dashboard in test mode:
 
 The frontend needs no Stripe key, because the customer pays on Stripe's own page.
 
+## Link Previews
+
+The page has a description and Open Graph tags, so a link shared on LinkedIn, X or in a chat shows the store's name, a short description and a preview image ([public/og-image.jpg](public/og-image.jpg), 1200 x 630). Link previews only load an image from a full URL, so the build fills in the store's address: the live demo by default, or `VITE_SITE_URL` when the store runs somewhere else. LinkedIn keeps a preview for a while, so after changing it, ask for a fresh one in the [Post Inspector](https://www.linkedin.com/post-inspector/).
+
 ## Tests
 
 Frontend:
