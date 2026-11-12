@@ -26,6 +26,7 @@ export function AdminProductRow({ product, onEdit, onDeleted }: AdminProductRowP
       </td>
       <td className="admin-cell-name">{product.name}</td>
       <td className="admin-cell-price">{formatMoney(product.priceCents)}</td>
+      <td className="admin-cell-category">{product.category}</td>
       <td className="admin-cell-keywords">{product.keywords?.join(', ')}</td>
       <td className="admin-cell-actions">
         {/* The keys swap in new buttons, so a double click on Delete can't also confirm it */}

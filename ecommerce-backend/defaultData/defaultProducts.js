@@ -8,7 +8,8 @@ export const defaultProducts = [
       "count": 87
     },
     "priceCents": 1090,
-    "keywords": ["socks", "wool", "apparel"]
+    "keywords": ["socks", "wool", "apparel"],
+    "category": "Clothing"
   },
   {
     "id": "15b6fc6f-327a-4ec4-896f-486349e85a3d",
@@ -19,7 +20,8 @@ export const defaultProducts = [
       "count": 127
     },
     "priceCents": 2095,
-    "keywords": ["sports", "basketballs"]
+    "keywords": ["sports", "basketballs"],
+    "category": "Sports"
   },
   {
     "id": "83d4ca15-0f35-48f5-b7a3-1ea210004f2e",
@@ -30,7 +32,8 @@ export const defaultProducts = [
       "count": 56
     },
     "priceCents": 799,
-    "keywords": ["tshirts", "apparel", "mens", "womens"]
+    "keywords": ["tshirts", "apparel", "mens", "womens"],
+    "category": "Clothing"
   },
   {
     "id": "54e0eccd-8f36-462b-b68a-8182611d9add",
@@ -41,7 +44,8 @@ export const defaultProducts = [
       "count": 2197
     },
     "priceCents": 1899,
-    "keywords": ["toaster", "kitchen", "appliances"]
+    "keywords": ["toaster", "kitchen", "appliances"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "3ebe75dc-64d2-4137-8860-1f5a963e534b",
@@ -52,7 +56,8 @@ export const defaultProducts = [
       "count": 37
     },
     "priceCents": 2067,
-    "keywords": ["plates", "kitchen", "dining"]
+    "keywords": ["plates", "kitchen", "dining"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "8c9c52b5-5a19-4bcb-a5d1-158a74287c53",
@@ -63,7 +68,8 @@ export const defaultProducts = [
       "count": 175
     },
     "priceCents": 3499,
-    "keywords": ["kitchen", "cookware"]
+    "keywords": ["kitchen", "cookware"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "dd82ca78-a18b-4e2a-9250-31e67412f98d",
@@ -74,7 +80,8 @@ export const defaultProducts = [
       "count": 317
     },
     "priceCents": 2400,
-    "keywords": ["sweaters", "apparel"]
+    "keywords": ["sweaters", "apparel"],
+    "category": "Clothing"
   },
   {
     "id": "77919bbe-0e56-475b-adde-4f24dfed3a04",
@@ -85,7 +92,8 @@ export const defaultProducts = [
       "count": 144
     },
     "priceCents": 3599,
-    "keywords": ["bathroom", "washroom", "restroom", "towels", "bath towels"]
+    "keywords": ["bathroom", "washroom", "restroom", "towels", "bath towels"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "6b07d4e7-f540-454e-8a1e-363f25dbae7d",
@@ -96,7 +104,8 @@ export const defaultProducts = [
       "count": 99
     },
     "priceCents": 2374,
-    "keywords": ["tissues", "kitchen", "napkins"]
+    "keywords": ["tissues", "kitchen", "napkins"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "5968897c-4d27-4872-89f6-5bcb052746d7",
@@ -107,7 +116,8 @@ export const defaultProducts = [
       "count": 235
     },
     "priceCents": 2970,
-    "keywords": ["robe", "swimsuit", "swimming", "bathing", "apparel"]
+    "keywords": ["robe", "swimsuit", "swimming", "bathing", "apparel"],
+    "category": "Clothing"
   },
   {
     "id": "b86ddc8b-3501-4b17-9889-a3bad6fb585f",
@@ -118,7 +128,8 @@ export const defaultProducts = [
       "count": 2286
     },
     "priceCents": 5300,
-    "keywords": ["womens", "shoes", "heels", "pumps"]
+    "keywords": ["womens", "shoes", "heels", "pumps"],
+    "category": "Shoes"
   },
   {
     "id": "aad29d11-ea98-41ee-9285-b916638cac4a",
@@ -129,7 +140,8 @@ export const defaultProducts = [
       "count": 30
     },
     "priceCents": 3560,
-    "keywords": ["accessories", "shades"]
+    "keywords": ["accessories", "shades"],
+    "category": "Accessories"
   },
   {
     "id": "901eb2ca-386d-432e-82f0-6fb1ee7bf969",
@@ -140,7 +152,8 @@ export const defaultProducts = [
       "count": 232
     },
     "priceCents": 4599,
-    "keywords": ["bedroom", "curtains", "home"]
+    "keywords": ["bedroom", "curtains", "home"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "82bb68d7-ebc9-476a-989c-c78a40ee5cd9",
@@ -151,7 +164,8 @@ export const defaultProducts = [
       "count": 160
     },
     "priceCents": 1699,
-    "keywords": ["shorts", "apparel", "womens"]
+    "keywords": ["shorts", "apparel", "womens"],
+    "category": "Clothing"
   },
   {
     "id": "c2a82c5e-aff4-435f-9975-517cfaba2ece",
@@ -162,7 +176,8 @@ export const defaultProducts = [
       "count": 846
     },
     "priceCents": 5074,
-    "keywords": ["water kettle", "kettles", "kitchen"]
+    "keywords": ["water kettle", "kettles", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "58b4fc92-e98c-42aa-8c55-b6b79996769a",
@@ -173,7 +188,8 @@ export const defaultProducts = [
       "count": 89
     },
     "priceCents": 5390,
-    "keywords": ["boots", "rain boots", "shoes", "footwear"]
+    "keywords": ["boots", "rain boots", "shoes", "footwear"],
+    "category": "Shoes"
   },
   {
     "id": "a82c6bac-3067-4e68-a5ba-d827ac0be010",
@@ -184,7 +200,8 @@ export const defaultProducts = [
       "count": 215
     },
     "priceCents": 2200,
-    "keywords": ["hats", "straw hats", "summer", "apparel"]
+    "keywords": ["hats", "straw hats", "summer", "apparel"],
+    "category": "Accessories"
   },
   {
     "id": "1c079479-8586-494f-ab53-219325432536",
@@ -195,7 +212,8 @@ export const defaultProducts = [
       "count": 229
     },
     "priceCents": 4590,
-    "keywords": ["boots", "hiking boots", "shoes", "footwear", "mens"]
+    "keywords": ["boots", "hiking boots", "shoes", "footwear", "mens"],
+    "category": "Shoes"
   },
   {
     "id": "b0f17cc5-8b40-4ca5-9142-b61fe3d98c85",
@@ -206,7 +224,8 @@ export const defaultProducts = [
       "count": 2465
     },
     "priceCents": 3374,
-    "keywords": ["sweaters", "apparel", "womens"]
+    "keywords": ["sweaters", "apparel", "womens"],
+    "category": "Clothing"
   },
   {
     "id": "a93a101d-79ef-4cf3-a6cf-6dbe532a1b4a",
@@ -217,7 +236,8 @@ export const defaultProducts = [
       "count": 119
     },
     "priceCents": 1850,
-    "keywords": ["bathmat", "bathroom", "home"]
+    "keywords": ["bathmat", "bathroom", "home"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "4f4fbcc2-4e72-45cc-935c-9e13d79cc57f",
@@ -228,7 +248,8 @@ export const defaultProducts = [
       "count": 326
     },
     "priceCents": 2640,
-    "keywords": ["bags", "tote bags", "accessories", "womens"]
+    "keywords": ["bags", "tote bags", "accessories", "womens"],
+    "category": "Accessories"
   },
   {
     "id": "8b5a2ee1-6055-422a-a666-b34ba28b76d4",
@@ -239,7 +260,8 @@ export const defaultProducts = [
       "count": 2556
     },
     "priceCents": 1599,
-    "keywords": ["sweaters", "apparel", "mens"]
+    "keywords": ["sweaters", "apparel", "mens"],
+    "category": "Clothing"
   },
   {
     "id": "3fdfe8d6-9a15-4979-b459-585b0d0545b9",
@@ -250,7 +272,8 @@ export const defaultProducts = [
       "count": 305
     },
     "priceCents": 2899,
-    "keywords": ["bathroom", "cleaning"]
+    "keywords": ["bathroom", "cleaning"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "e4f64a65-1377-42bc-89a5-e572d19252e2",
@@ -261,7 +284,8 @@ export const defaultProducts = [
       "count": 52
     },
     "priceCents": 6799,
-    "keywords": ["jewelry", "accessories", "womens"]
+    "keywords": ["jewelry", "accessories", "womens"],
+    "category": "Accessories"
   },
   {
     "id": "19c6a64a-5463-4d45-9af8-e41140a4100c",
@@ -272,7 +296,8 @@ export const defaultProducts = [
       "count": 456
     },
     "priceCents": 4399,
-    "keywords": ["bedroom", "bed sheets", "sheets", "covers", "home"]
+    "keywords": ["bedroom", "bed sheets", "sheets", "covers", "home"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "d2785924-743d-49b3-8f03-ec258e640503",
@@ -283,7 +308,8 @@ export const defaultProducts = [
       "count": 83
     },
     "priceCents": 1950,
-    "keywords": ["hats", "winter hats", "beanies", "apparel", "womens"]
+    "keywords": ["hats", "winter hats", "beanies", "apparel", "womens"],
+    "category": "Accessories"
   },
   {
     "id": "ee1f7c56-f977-40a4-9642-12ba5072e2b0",
@@ -294,7 +320,8 @@ export const defaultProducts = [
       "count": 9017
     },
     "priceCents": 2290,
-    "keywords": ["pants", "apparel", "mens"]
+    "keywords": ["pants", "apparel", "mens"],
+    "category": "Clothing"
   },
   {
     "id": "4df68c27-fd59-4a6a-bbd1-e754ddb6d53c",
@@ -305,7 +332,8 @@ export const defaultProducts = [
       "count": 42
     },
     "priceCents": 3690,
-    "keywords": ["sunglasses", "glasses", "accessories", "shades"]
+    "keywords": ["sunglasses", "glasses", "accessories", "shades"],
+    "category": "Accessories"
   },
   {
     "id": "04701903-bc79-49c6-bc11-1af7e3651358",
@@ -316,7 +344,8 @@ export const defaultProducts = [
       "count": 562
     },
     "priceCents": 2499,
-    "keywords": ["footwear", "men", "shoes", "oxfords"]
+    "keywords": ["footwear", "men", "shoes", "oxfords"],
+    "category": "Shoes"
   },
   {
     "id": "4e37dd03-3b23-4bc6-9ff8-44e112a92c64",
@@ -327,7 +356,8 @@ export const defaultProducts = [
       "count": 511
     },
     "priceCents": 6797,
-    "keywords": ["cooking set", "kitchen"]
+    "keywords": ["cooking set", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "a434b69f-1bc1-482d-9ce7-cd7f4a66ce8d",
@@ -338,7 +368,8 @@ export const defaultProducts = [
       "count": 130
     },
     "priceCents": 2549,
-    "keywords": ["bathroom", "washroom", "mirrors", "home"]
+    "keywords": ["bathroom", "washroom", "mirrors", "home"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "a45cfa0a-66d6-4dc7-9475-e2b01595f7d7",
@@ -349,7 +380,8 @@ export const defaultProducts = [
       "count": 248
     },
     "priceCents": 3400,
-    "keywords": ["pants", "apparel", "womens"]
+    "keywords": ["pants", "apparel", "womens"],
+    "category": "Clothing"
   },
   {
     "id": "d339adf3-e004-4c20-a120-40e8874c66cb",
@@ -360,7 +392,8 @@ export const defaultProducts = [
       "count": 117
     },
     "priceCents": 3467,
-    "keywords": ["accessories", "womens"]
+    "keywords": ["accessories", "womens"],
+    "category": "Accessories"
   },
   {
     "id": "d37a651a-d501-483b-aae6-a9659b0757a0",
@@ -371,7 +404,8 @@ export const defaultProducts = [
       "count": 126
     },
     "priceCents": 2899,
-    "keywords": ["food containers", "kitchen"]
+    "keywords": ["food containers", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "0d7f9afa-2efe-4fd9-b0fd-ba5663e0a524",
@@ -382,7 +416,8 @@ export const defaultProducts = [
       "count": 1211
     },
     "priceCents": 8250,
-    "keywords": ["espresso makers", "coffee", "kitchen"]
+    "keywords": ["espresso makers", "coffee", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "02e3a47e-dd68-467e-9f71-8bf6f723fdae",
@@ -393,7 +428,8 @@ export const defaultProducts = [
       "count": 363
     },
     "priceCents": 3099,
-    "keywords": ["bedroom", "home", "curtains"]
+    "keywords": ["bedroom", "home", "curtains"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "8a53b080-6d40-4a65-ab26-b24ecf700bce",
@@ -404,7 +440,8 @@ export const defaultProducts = [
       "count": 93
     },
     "priceCents": 2990,
-    "keywords": ["bathroom", "home", "towels"]
+    "keywords": ["bathroom", "home", "towels"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "10ed8504-57db-433c-b0a3-fc71a35c88a1",
@@ -415,7 +452,8 @@ export const defaultProducts = [
       "count": 89
     },
     "priceCents": 3390,
-    "keywords": ["jars", "storage", "kitchen"]
+    "keywords": ["jars", "storage", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "77a845b1-16ed-4eac-bdf9-5b591882113d",
@@ -426,7 +464,8 @@ export const defaultProducts = [
       "count": 3
     },
     "priceCents": 10747,
-    "keywords": ["food blenders", "kitchen", "appliances"]
+    "keywords": ["food blenders", "kitchen", "appliances"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "bc2847e9-5323-403f-b7cf-57fde044a955",
@@ -437,7 +476,8 @@ export const defaultProducts = [
       "count": 3157
     },
     "priceCents": 3800,
-    "keywords": ["sweaters", "hoodies", "apparel", "mens"]
+    "keywords": ["sweaters", "hoodies", "apparel", "mens"],
+    "category": "Clothing"
   },
   {
     "id": "36c64692-677f-4f58-b5ec-0dc2cf109e27",
@@ -448,7 +488,8 @@ export const defaultProducts = [
       "count": 679
     },
     "priceCents": 3899,
-    "keywords": ["bowls set", "kitchen"]
+    "keywords": ["bowls set", "kitchen"],
+    "category": "Home & Kitchen"
   },
   {
     "id": "aaa65ef3-8d6f-4eb3-bc9b-a6ea49047d8f",
@@ -459,6 +500,7 @@ export const defaultProducts = [
       "count": 1045
     },
     "priceCents": 1899,
-    "keywords": ["kitchen", "kitchen towels", "tissues"]
+    "keywords": ["kitchen", "kitchen towels", "tissues"],
+    "category": "Home & Kitchen"
   }
 ];

@@ -3,6 +3,7 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 
 **Products, Delivery Options**
 - [GET /api/products](#get-apiproducts)
+- [GET /api/products/categories](#get-apiproductscategories)
 - [GET /api/products/:productId](#get-apiproductsproductid)
 - [GET /api/delivery-options](#get-apidelivery-options)
 
@@ -53,10 +54,15 @@ Here's a list of all the URL Paths you can use with this backend and what each U
 **Errors:** a rejected request gets a `4xx` status and a JSON body like `{ "error": "Cart is empty" }`. An unexpected server error, such as a failed database call, gets `500` with the same kind of body.
 
 ## GET /api/products
-Returns a list of products, without the ones an admin deleted.
+Returns a list of products, without the ones an admin deleted. All filters are optional and work together.
 
 **Query Parameters:**
-- `search=...` (optional): Search term to find products by name or keywords
+- `search=...`: Search term to find products by name or keywords
+- `category=...`: Only products in this category, one of [GET /api/products/categories](#get-apiproductscategories)
+- `minPriceCents=...`, `maxPriceCents=...`: Only products with a price in this range, both included, as whole numbers of cents
+- `sort=...`: `price-asc`, `price-desc`, `rating` (most stars first, then most ratings) or `newest`. Without it, products keep the store's order
+
+A sort that doesn't exist, a price that isn't a whole number of cents, or a filter given twice gets `400`. A category with no products returns an empty list.
 
 **Response:**
 ```js
@@ -71,10 +77,20 @@ Returns a list of products, without the ones an admin deleted.
     },
     "priceCents": "number",
     "keywords": ["string"],
+    // One of GET /api/products/categories. Null for a product added before categories, until an admin sets it
+    "category": "string",
     // Null here. Set on deleted products that a cart or order still returns
     "deletedAt": "string"
   }
 ]
+```
+
+## GET /api/products/categories
+Returns the store's categories, in the order the shop shows them.
+
+**Response:**
+```js
+["Home & Kitchen", "Clothing", "Shoes", "Accessories", "Sports"]
 ```
 
 ## GET /api/products/:productId
@@ -434,7 +450,9 @@ Adds a product. It starts with a rating of 0 stars from 0 reviews.
   // One of GET /api/admin/images
   "image": "string",
   // Up to 10, each up to 20 characters and without commas. Can be empty
-  "keywords": ["string"]
+  "keywords": ["string"],
+  // One of GET /api/products/categories
+  "category": "string"
 }
 ```
 

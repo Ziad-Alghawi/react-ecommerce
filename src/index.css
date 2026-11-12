@@ -257,6 +257,7 @@ input:focus-visible {
 }
 
 .form-field input,
+.form-field select,
 .form-field textarea {
   min-height: 42px;
   font-size: var(--font-size-md);

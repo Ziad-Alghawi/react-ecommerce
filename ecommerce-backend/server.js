@@ -88,7 +88,7 @@ for (const model of [CartItem, Order]) {
 // sync() creates missing tables and indexes but doesn't change existing tables, so
 // add the columns that came later first, as their indexes need them
 const laterColumns = [
-  [Product, ['deletedAt', 'demoRating']],
+  [Product, ['deletedAt', 'demoRating', 'category']],
   [Order, ['paymentMethod', 'stripeSessionId']]
 ];
 for (const [model, columns] of laterColumns) {

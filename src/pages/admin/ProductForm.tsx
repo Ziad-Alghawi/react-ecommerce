@@ -13,21 +13,24 @@ interface ProductFormProps {
   // Null when adding a new product
   product: Product | null;
   images: string[];
+  categories: string[];
   onSaved: () => Promise<void>;
   onCancel: () => void;
 }
 
-export function ProductForm({ product, images, onSaved, onCancel }: ProductFormProps) {
+export function ProductForm({ product, images, categories, onSaved, onCancel }: ProductFormProps) {
   const [name, setName] = useState(product?.name ?? '');
   const [price, setPrice] = useState(product ? (product.priceCents / 100).toFixed(2) : '');
   const [keywords, setKeywords] = useState(product?.keywords?.join(', ') ?? '');
   const [image, setImage] = useState(product?.image ?? '');
+  const [category, setCategory] = useState(product?.category ?? '');
 
   const [save, isSaving] = useAction(async () => {
     const fields = {
       name,
       priceCents: Math.round(Number(price) * 100),
       image,
+      category,
       keywords: keywords.split(',').map((keyword) => keyword.trim()).filter(Boolean)
     };
     if (product) {
@@ -65,6 +68,17 @@ export function ProductForm({ product, images, onSaved, onCancel }: ProductFormP
             data-testid="admin-price-input" />
         </label>
       </div>
+
+      <label className="form-field">
+        Category
+        <select required value={category} onChange={(event) => setCategory(event.target.value)}
+          data-testid="admin-category-select">
+          <option value="" disabled>Choose a category</option>
+          {categories.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      </label>
 
       <label className="form-field">
         Keywords

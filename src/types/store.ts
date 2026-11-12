@@ -10,6 +10,8 @@ export interface Product {
   rating: Rating;
   priceCents: number;
   keywords?: string[];
+  // Null for a product added before categories, until an admin sets one
+  category?: string | null;
   // Set when an admin deleted it. The shop no longer lists it, but old orders still show it
   deletedAt?: string | null;
 }

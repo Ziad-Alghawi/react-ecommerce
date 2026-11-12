@@ -54,6 +54,13 @@ export function ProductPage({ cart, loadCart, onRetry }: ProductPageProps) {
           </div>
 
           <div className="product-details-info">
+            {product.category && (
+              <Link className="product-details-category link-primary"
+                to={`/?${new URLSearchParams({ category: product.category })}`}
+                data-testid="product-category-link">
+                {product.category}
+              </Link>
+            )}
             <h1 className="page-title">{product.name}</h1>
             <ProductRating rating={product.rating} />
             <div className="product-details-price" data-testid="product-price">

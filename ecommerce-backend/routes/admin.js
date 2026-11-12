@@ -1,6 +1,6 @@
 import express from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
-import { Product } from '../models/Product.js';
+import { PRODUCT_CATEGORIES, Product } from '../models/Product.js';
 import { rejectInvalidId } from '../utils/isUuid.js';
 
 const router = express.Router();
@@ -30,7 +30,7 @@ function readKeywords(keywords) {
 }
 
 // The fields an admin can set, or the reason they're refused. The rating is never set here
-async function readProductFields({ name, priceCents, image, keywords }) {
+async function readProductFields({ name, priceCents, image, keywords, category }) {
   const trimmedName = typeof name === 'string' ? name.trim() : '';
   if (!trimmedName || trimmedName.length > MAX_NAME_LENGTH) {
     return { error: `Name is required and can be up to ${MAX_NAME_LENGTH} characters` };
@@ -47,11 +47,15 @@ async function readProductFields({ name, priceCents, image, keywords }) {
     };
   }
 
+  if (!PRODUCT_CATEGORIES.includes(category)) {
+    return { error: `Category must be one of: ${PRODUCT_CATEGORIES.join(', ')}` };
+  }
+
   if (!(await getProductImages()).includes(image)) {
     return { error: 'Image must be one of the product images' };
   }
 
-  return { fields: { name: trimmedName, priceCents, image, keywords: trimmedKeywords } };
+  return { fields: { name: trimmedName, priceCents, image, keywords: trimmedKeywords, category } };
 }
 
 router.get('/images', asyncHandler(async (req, res) => {

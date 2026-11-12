@@ -21,6 +21,7 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
   const userId = useContext(AuthContext)?.user?.id;
   const [products, setProducts] = useState<Product[]>([]);
   const [images, setImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<PageStatus>('loading');
   const [editing, setEditing] = useState<Product | 'new' | null>(null);
 
@@ -37,12 +38,13 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
       return;
     }
     // The API decides who is an admin, so a refused request is how this page finds out
-    Promise.all([axios.get<string[]>('/api/admin/images'), loadProducts()])
-      .then(([imagesResponse]) => {
-        if (!Array.isArray(imagesResponse.data)) {
-          throw new Error('Unexpected images response');
+    Promise.all([axios.get<string[]>('/api/admin/images'), axios.get<string[]>('/api/products/categories'), loadProducts()])
+      .then(([imagesResponse, categoriesResponse]) => {
+        if (!Array.isArray(imagesResponse.data) || !Array.isArray(categoriesResponse.data)) {
+          throw new Error('Unexpected images or categories response');
         }
         setImages(imagesResponse.data);
+        setCategories(categoriesResponse.data);
         setStatus('ready');
       })
       .catch((error) => {
@@ -98,7 +100,7 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
 
         {editing && (
           <ProductForm key={editing === 'new' ? 'new' : editing.id}
-            product={editing === 'new' ? null : editing} images={images}
+            product={editing === 'new' ? null : editing} images={images} categories={categories}
             onSaved={closeFormAfterSaving} onCancel={() => setEditing(null)} />
         )}
 
@@ -110,6 +112,7 @@ export function AdminPage({ cart, onRetry }: AdminPageProps) {
                 <th scope="col"><span className="visually-hidden">Image</span></th>
                 <th scope="col">Name</th>
                 <th scope="col">Price</th>
+                <th scope="col">Category</th>
                 <th scope="col">Keywords</th>
                 <th scope="col"><span className="visually-hidden">Actions</span></th>
               </tr>

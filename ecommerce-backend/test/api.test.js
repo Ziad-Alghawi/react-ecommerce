@@ -20,7 +20,8 @@ const newProduct = {
   name: 'Plaid Wool Scarf',
   priceCents: 1599,
   image: 'images/products/gray-hand-knit-wool-socks.jpg',
-  keywords: ['scarves', 'plaid']
+  keywords: ['scarves', 'plaid'],
+  category: 'Accessories'
 };
 
 let server;
@@ -212,8 +213,10 @@ async function createProduct(fields = newProduct) {
   return response.json();
 }
 
-async function getProducts(search = '') {
-  return (await api(`/api/products${search && `?search=${search}`}`)).json();
+// A search word, or a query string starting with ?
+async function getProducts(query = '') {
+  const queryString = query.startsWith('?') || !query ? query : `?search=${query}`;
+  return (await api(`/api/products${queryString}`)).json();
 }
 
 // A logged in user who has ordered the product, so they can review it
@@ -299,6 +302,66 @@ test('searches products by name or keyword', async () => {
   assert.ok(byKeyword.some((product) => product.id === productId));
 
   assert.deepEqual(await (await api('/api/products?search=spaceship')).json(), []);
+});
+
+test('lists the categories, and every demo product is in one of them', async () => {
+  const categories = await (await api('/api/products/categories')).json();
+  assert.deepEqual(categories, ['Home & Kitchen', 'Clothing', 'Shoes', 'Accessories', 'Sports']);
+  for (const product of await getProducts()) {
+    assert.ok(categories.includes(product.category), product.name);
+  }
+});
+
+test('filters products by category and price, together with search', async () => {
+  const clothing = await getProducts('?category=Clothing');
+  assert.ok(clothing.length > 0);
+  assert.ok(clothing.every(({ category }) => category === 'Clothing'));
+  assert.ok(clothing.some(({ id }) => id === productId));
+
+  const kitchen = await getProducts(`?category=${encodeURIComponent('Home & Kitchen')}`);
+  assert.ok(kitchen.length > 0 && kitchen.every(({ category }) => category === 'Home & Kitchen'));
+  assert.deepEqual(await getProducts('?category=Spaceships'), []);
+
+  const affordable = await getProducts('?minPriceCents=1000&maxPriceCents=2000');
+  assert.ok(affordable.length > 0);
+  assert.ok(affordable.every(({ priceCents }) => priceCents >= 1000 && priceCents <= 2000));
+  // Socks cost $10.90
+  assert.deepEqual((await getProducts('?minPriceCents=1090&maxPriceCents=1090')).map(({ id }) => id), [productId]);
+  assert.ok((await getProducts('?minPriceCents=5000')).every(({ priceCents }) => priceCents >= 5000));
+
+  const clothingSearch = await getProducts('?search=sweater&category=Clothing&maxPriceCents=2500');
+  assert.ok(clothingSearch.length > 0);
+  assert.ok(clothingSearch.every(({ name, category, priceCents }) => (
+    /sweater/i.test(name) && category === 'Clothing' && priceCents <= 2500
+  )));
+});
+
+test('sorts products by price, rating or newest', async () => {
+  const all = await getProducts();
+  const byPrice = await getProducts('?sort=price-asc');
+  assert.equal(byPrice.length, all.length);
+  assert.deepEqual(byPrice.map(({ priceCents }) => priceCents), all.map(({ priceCents }) => priceCents).sort((a, b) => a - b));
+  assert.deepEqual((await getProducts('?sort=price-desc')).map(({ priceCents }) => priceCents),
+    byPrice.map(({ priceCents }) => priceCents).reverse());
+
+  const byRating = await getProducts('?sort=rating');
+  for (const [higher, lower] of byRating.slice(1).map((product, index) => [byRating[index], product])) {
+    assert.ok(higher.rating.stars > lower.rating.stars
+      || (higher.rating.stars === lower.rating.stars && higher.rating.count >= lower.rating.count));
+  }
+
+  const product = await createProduct();
+  assert.equal((await getProducts('?sort=newest'))[0].id, product.id);
+  assert.equal((await getProducts('?category=Accessories&sort=newest'))[0].id, product.id);
+  await api(`/api/admin/products/${product.id}`, { ...await asAdmin(), method: 'DELETE' });
+});
+
+test('refuses an unknown sort or a price that is not whole cents', async () => {
+  for (const query of ['sort=cheapest', 'minPriceCents=10.5', 'maxPriceCents=-1', 'minPriceCents=ten', 'sort=rating&sort=newest']) {
+    const response = await api(`/api/products?${query}`);
+    assert.equal(response.status, 400, query);
+    assert.ok((await response.json()).error, query);
+  }
 });
 
 test('an order costs what the payment summary showed', async () => {
@@ -573,16 +636,18 @@ test('an admin adds, edits and deletes a product', async () => {
   });
   assert.equal(product.name, newProduct.name);
   assert.deepEqual(product.keywords, newProduct.keywords);
+  assert.equal(product.category, newProduct.category);
   assert.deepEqual(product.rating, { stars: 0, count: 0 });
   assert.deepEqual((await getProducts('plaid')).map(({ id }) => id), [product.id]);
 
-  const changes = { ...newProduct, name: 'Cashmere Scarf', priceCents: 1299, keywords: [], rating: { stars: 5, count: 1 } };
+  const changes = { ...newProduct, name: 'Cashmere Scarf', priceCents: 1299, keywords: [], category: 'Clothing', rating: { stars: 5, count: 1 } };
   const updateResponse = await api(`/api/admin/products/${product.id}`, { ...admin, method: 'PUT', body: changes });
   assert.equal(updateResponse.status, 200);
   const updated = await updateResponse.json();
   assert.equal(updated.name, 'Cashmere Scarf');
   assert.equal(updated.priceCents, 1299);
   assert.deepEqual(updated.keywords, []);
+  assert.equal(updated.category, 'Clothing');
   assert.deepEqual(updated.rating, { stars: 0, count: 0 });
   assert.deepEqual((await getProducts('cashmere')).map(({ id }) => id), [product.id]);
 
@@ -619,7 +684,9 @@ test('refuses product fields that are missing or invalid', async () => {
     'with a keyword containing a comma': { keywords: ['scarves,shawls'] },
     'with a blank keyword': { keywords: [' '] },
     'with a keyword over 20 characters': { keywords: ['k'.repeat(21)] },
-    'with more than 10 keywords': { keywords: Array.from({ length: 11 }, (_, i) => `keyword${i}`) }
+    'with more than 10 keywords': { keywords: Array.from({ length: 11 }, (_, i) => `keyword${i}`) },
+    'without a category': { category: undefined },
+    'with an unknown category': { category: 'Spaceships' }
   };
 
   for (const [problem, fields] of Object.entries(invalidFields)) {

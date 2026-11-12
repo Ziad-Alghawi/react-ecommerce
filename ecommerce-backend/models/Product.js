@@ -1,6 +1,8 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from './index.js';
 
+export const PRODUCT_CATEGORIES = ['Home & Kitchen', 'Clothing', 'Shoes', 'Accessories', 'Sports'];
+
 export const Product = sequelize.define('Product', {
   id: {
     type: DataTypes.UUID,
@@ -37,6 +39,10 @@ export const Product = sequelize.define('Product', {
     set(val) {
       this.setDataValue('keywords', val.join(','));
     }
+  },
+  // One of PRODUCT_CATEGORIES. Empty only in a database from before categories, until addDefaultData fills it
+  category: {
+    type: DataTypes.STRING
   },
   createdAt: {
     type: DataTypes.DATE(3)

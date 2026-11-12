@@ -16,6 +16,103 @@
   color: var(--color-text-muted);
 }
 
+.product-filters {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.category-chip:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.category-chip[aria-current] {
+  border-color: var(--color-brand);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-active);
+}
+
+.product-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+}
+
+.product-toolbar-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.products-count {
+  min-height: 1.5em;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.product-toolbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+}
+
+.price-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.price-filter-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.price-filter-field input {
+  width: 80px;
+}
+
+.price-filter .button-secondary {
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+}
+
+.sort-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-medium);
+}
+
 .home-page .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -79,6 +176,21 @@
 }
 
 @media (max-width: 520px) {
+  .product-toolbar-controls,
+  .price-filter-field {
+    flex: 1 1 auto;
+  }
+
+  .price-filter {
+    flex-basis: 100%;
+  }
+
+  .price-filter-field input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+  }
+
   .home-page .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);

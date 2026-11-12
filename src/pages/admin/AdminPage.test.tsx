@@ -13,7 +13,8 @@ const socks = {
   name: 'Gray Hand Knit Wool Socks',
   rating: { stars: 4.5, count: 87 },
   priceCents: 1090,
-  keywords: ['socks', 'wool']
+  keywords: ['socks', 'wool'],
+  category: 'Clothing'
 };
 
 const basketball = {
@@ -22,12 +23,14 @@ const basketball = {
   name: 'Intermediate Size Basketball',
   rating: { stars: 4, count: 127 },
   priceCents: 2095,
-  keywords: ['sports', 'basketballs']
+  keywords: ['sports', 'basketballs'],
+  category: 'Sports'
 };
 
 const workingApi = {
   'get /api/products': { data: [socks, basketball] },
   'get /api/admin/images': { data: [basketball.image, socks.image] },
+  'get /api/products/categories': { data: ['Clothing', 'Accessories', 'Sports'] },
   'post /api/admin/products': { status: 201, data: {} },
   [`put /api/admin/products/${socks.id}`]: { data: {} },
   [`delete /api/admin/products/${socks.id}`]: { status: 204 }
@@ -104,6 +107,7 @@ describe('AdminPage component', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('Gray Hand Knit Wool Socks');
     expect(rows[0]).toHaveTextContent('$10.90');
+    expect(rows[0]).toHaveTextContent('Clothing');
     expect(rows[0]).toHaveTextContent('socks, wool');
     expect(screen.getByRole('table')).toHaveAccessibleName('2 products in the store');
   });
@@ -117,23 +121,27 @@ describe('AdminPage component', () => {
     await user.type(screen.getByTestId('admin-name-input'), 'Plaid Wool Scarf');
     await user.type(screen.getByTestId('admin-price-input'), '15.5');
     await user.type(screen.getByTestId('admin-keywords-input'), ' scarves,  plaid ,');
+    await user.selectOptions(screen.getByTestId('admin-category-select'), 'Accessories');
     await user.click(within(form).getByRole('radio', { name: 'gray hand knit wool socks' }));
     await user.click(screen.getByTestId('admin-save-button'));
 
     await waitFor(() => expect(screen.queryByTestId('admin-product-form')).not.toBeInTheDocument());
     expect(requestsTo('post /api/admin/products')).toEqual([{
       request: 'post /api/admin/products',
-      body: { name: 'Plaid Wool Scarf', priceCents: 1550, image: socks.image, keywords: ['scarves', 'plaid'] }
+      body: { name: 'Plaid Wool Scarf', priceCents: 1550, image: socks.image, category: 'Accessories', keywords: ['scarves', 'plaid'] }
     }]);
     expect(requestsTo('get /api/products')).toHaveLength(2);
   });
 
-  it('needs an image before adding a product', async () => {
+  it('needs an image and a category before adding a product', async () => {
     renderAdminPage();
     await user.click(await screen.findByTestId('admin-add-button'));
 
     await user.type(screen.getByTestId('admin-name-input'), 'Plaid Wool Scarf');
     await user.type(screen.getByTestId('admin-price-input'), '15');
+    await user.click(screen.getByTestId('admin-save-button'));
+    await user.click(screen.getByRole('radio', { name: 'gray hand knit wool socks' }));
+    expect(screen.getByTestId('admin-category-select')).toBeInvalid();
     await user.click(screen.getByTestId('admin-save-button'));
 
     expect(requestsTo('post /api/admin/products')).toEqual([]);
@@ -148,6 +156,7 @@ describe('AdminPage component', () => {
     expect(screen.getByTestId('admin-price-input')).toHaveValue(10.9);
     expect(screen.getByTestId('admin-keywords-input')).toHaveValue('socks, wool');
     expect(screen.getByRole('radio', { name: 'gray hand knit wool socks' })).toBeChecked();
+    expect(screen.getByTestId('admin-category-select')).toHaveValue('Clothing');
 
     await user.clear(screen.getByTestId('admin-price-input'));
     await user.type(screen.getByTestId('admin-price-input'), '12.99');
@@ -155,7 +164,7 @@ describe('AdminPage component', () => {
 
     await waitFor(() => expect(screen.queryByTestId('admin-product-form')).not.toBeInTheDocument());
     expect(requestsTo(`put /api/admin/products/${socks.id}`)[0].body).toEqual({
-      name: socks.name, priceCents: 1299, image: socks.image, keywords: ['socks', 'wool']
+      name: socks.name, priceCents: 1299, image: socks.image, category: 'Clothing', keywords: ['socks', 'wool']
     });
   });
 

@@ -23,6 +23,12 @@
   object-fit: cover;
 }
 
+.product-details-category {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
 .product-details-info .page-title {
   margin-bottom: var(--space-3);
   overflow-wrap: anywhere;

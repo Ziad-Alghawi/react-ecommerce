@@ -161,6 +161,10 @@
   white-space: nowrap;
 }
 
+.admin-cell-category {
+  white-space: nowrap;
+}
+
 .admin-cell-keywords {
   color: var(--color-text-muted);
 }
@@ -214,7 +218,7 @@
   }
 
   .admin-cell-image {
-    grid-row: span 3;
+    grid-row: span 4;
   }
 
   .admin-cell-actions {

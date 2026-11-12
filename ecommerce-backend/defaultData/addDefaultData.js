@@ -12,6 +12,18 @@ function withTimestamps(rows, timestamp) {
   }));
 }
 
+// A database from before a product column was added has it empty, so the demo products get
+// theirs from the demo data. Products an admin added keep it empty until an admin sets it
+async function fillNewProductColumns() {
+  const products = await Product.findAll({ where: { category: null }, paranoid: false });
+  for (const product of products) {
+    const defaults = defaultProducts.find(({ id }) => id === product.id);
+    if (defaults) {
+      await product.update({ category: defaults.category });
+    }
+  }
+}
+
 // Only fills empty tables, so a persistent database keeps its rows across restarts and deploys
 export async function addDefaultData() {
   const timestamp = Date.now();
@@ -24,4 +36,6 @@ export async function addDefaultData() {
       console.log(`Added the default ${model.getTableName()}.`);
     }
   }
+
+  await fillNewProductColumns();
 }
