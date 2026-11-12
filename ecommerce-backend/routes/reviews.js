@@ -35,9 +35,10 @@ function toResponse(review, userId) {
   return { ...fields, isMine: authorId === userId };
 }
 
-// "jane.doe@example.com" is shown as "jane.doe"
+// "jane.doe@example.com" is shown as "ja***", so the email can't be worked out from it
 function getAuthorName(email) {
-  return email?.split('@')[0] || 'Customer';
+  const localPart = email?.split('@')[0];
+  return localPart ? `${localPart.slice(0, 2)}***` : 'Customer';
 }
 
 // Logged in users keep their orders, so this is every order the user has placed

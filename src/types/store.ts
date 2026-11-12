@@ -17,7 +17,7 @@ export interface Product {
 export interface Review {
   id: string;
   productId: string;
-  // The part of the reviewer's email before the @, or "Customer"
+  // The first 2 characters of the reviewer's email followed by "***", or "Customer"
   authorName: string;
   stars: number;
   text: string | null;

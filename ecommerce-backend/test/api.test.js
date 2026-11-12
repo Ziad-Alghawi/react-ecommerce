@@ -738,19 +738,23 @@ test('only the author edits a review, and only the author or an admin deletes it
   assert.ok(!(await getReviews()).reviews.some(({ id }) => id === review.id));
 });
 
-test('shows reviews newest first, with a name instead of the email', async () => {
+test('shows reviews newest first, with a masked name instead of the email', async () => {
   const product = await createProduct();
   const first = await createBuyer(product.id, 'jane.doe@example.com');
-  const second = await createBuyer(product.id);
+  const second = await createBuyer(product.id, 'j@example.com');
+  const third = await createBuyer(product.id);
   // The name and user always come from the token, never from the body
   await postReview(first, { stars: 4, text: 'Cozy', authorName: 'Admin', userId: randomUUID() }, product.id);
-  await postReview(second, { stars: 2 }, product.id);
+  await postReview(second, { stars: 3 }, product.id);
+  await postReview(third, { stars: 2 }, product.id);
 
   const { reviews } = await getReviews(first, product.id);
   assert.deepEqual(reviews.map(({ authorName, stars, isMine }) => ({ authorName, stars, isMine })), [
     { authorName: 'Customer', stars: 2, isMine: false },
-    { authorName: 'jane.doe', stars: 4, isMine: true }
+    { authorName: 'j***', stars: 3, isMine: false },
+    { authorName: 'ja***', stars: 4, isMine: true }
   ]);
+  assert.ok(!JSON.stringify(reviews).includes('jane'));
   assert.ok(!JSON.stringify(reviews).includes('example.com'));
   assert.ok(reviews.every((review) => !('userId' in review)));
 });

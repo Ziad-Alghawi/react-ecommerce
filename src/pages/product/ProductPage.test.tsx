@@ -24,7 +24,7 @@ const reviewsPath = `${productPath}/reviews`;
 const review = (fields: Partial<Review>): Review => ({
   id: 'b8a4d2a6-3c55-4b1f-9a3e-2f1d6c0e7a11',
   productId: product.id,
-  authorName: 'jane.doe',
+  authorName: 'ja***',
   stars: 5,
   text: 'Warm and soft.',
   createdAt: '2025-05-18T09:00:00.000Z',
@@ -135,7 +135,7 @@ describe('ProductPage component', () => {
     expect(reviews).toHaveLength(2);
     expect(reviews[0]).toHaveTextContent('Customer · June 2, 2025');
     expect(within(reviews[0]).getByRole('img', { name: '3 out of 5 stars' })).toBeInTheDocument();
-    expect(reviews[1]).toHaveTextContent('jane.doe · May 18, 2025');
+    expect(reviews[1]).toHaveTextContent('ja*** · May 18, 2025');
     expect(reviews[1]).toHaveTextContent('Warm and soft.');
     for (const shownReview of reviews) {
       expect(shownReview).toHaveTextContent('Verified purchase');
@@ -190,7 +190,7 @@ describe('ProductPage component', () => {
 
     expect(requestsTo(`post ${reviewsPath}`)[0].body).toEqual({ stars: 4, text: 'Cozy' });
     await waitFor(() => expect(screen.queryByTestId('review-form')).not.toBeInTheDocument());
-    expect(screen.getAllByTestId('review')[0]).toHaveTextContent('jane.doe (you)');
+    expect(screen.getAllByTestId('review')[0]).toHaveTextContent('ja*** (you)');
     expect(screen.getByText('90')).toBeInTheDocument();
   });
 

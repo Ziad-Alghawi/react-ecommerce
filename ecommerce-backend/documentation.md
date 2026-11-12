@@ -89,7 +89,7 @@ Returns the product's reviews, newest first. Works for guests too. With a token,
     {
       "id": "uuid",
       "productId": "uuid",
-      // The part of the reviewer's email before the @, or "Customer"
+      // The first 2 characters of the reviewer's email followed by "***", such as "ja***", or "Customer"
       "authorName": "string",
       // A whole number from 1 to 5
       "stars": "number",

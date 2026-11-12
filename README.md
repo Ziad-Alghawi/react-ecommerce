@@ -106,7 +106,7 @@ Deleting a product hides it rather than removing it: it disappears from the shop
 
 Every product has its own page, linked from the shop and from past orders, with its reviews below. A logged in user who has ordered the product can give it 1 to 5 stars and an optional text of up to 500 characters, then edit or delete it. Each user can review a product once, and every review is marked as a verified purchase. Guests and users who haven't ordered the product see why they can't review it. Admins can delete any review.
 
-The API checks all of this itself, and takes the user from the verified token only. A review shows the part of the reviewer's email before the @ (or "Customer" when the token has no email), never the full address.
+The API checks all of this itself, and takes the user from the verified token only. A review shows a masked name, the first 2 characters of the reviewer's email followed by "***" (such as "ja***"), or "Customer" when the token has no email. Only this masked name is saved with the review, never the email.
 
 The demo products came with a rating, such as 4.5 stars from 87 ratings. Reviews are added to it: after every new, edited or deleted review, the API works out the average of the demo rating and the reviews, rounded to the nearest half star, and saves it on the product. The shop and the product page read the same saved rating, so they always match.
 
