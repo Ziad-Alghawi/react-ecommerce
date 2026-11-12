@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useState, type FormEvent } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import type { Review } from '../../types/store';
 
 const STAR_CHOICES = [1, 2, 3, 4, 5];
@@ -18,6 +19,7 @@ interface ReviewFormProps {
 export function ReviewForm({ productId, review, onSaved, onCancel }: ReviewFormProps) {
   const [stars, setStars] = useState(review?.stars ?? 0);
   const [text, setText] = useState(review?.text ?? '');
+  const showToast = useToast();
 
   const [save, isSaving] = useAction(async () => {
     const fields = { stars, text };
@@ -27,6 +29,7 @@ export function ReviewForm({ productId, review, onSaved, onCancel }: ReviewFormP
       await axios.post(`/api/products/${productId}/reviews`, fields);
     }
     await onSaved();
+    showToast(review ? 'Review updated' : 'Thanks! Your review is posted');
   });
 
   const submitForm = (event: FormEvent<HTMLFormElement>) => {

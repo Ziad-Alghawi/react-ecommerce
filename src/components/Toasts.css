@@ -1,0 +1,113 @@
+/* Clicks go through the empty space around the toasts */
+.toasts {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast-region {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+  gap: var(--space-2);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand-dark);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-sm);
+  pointer-events: auto;
+  animation: toast-in 200ms ease-out;
+}
+
+.toast-error {
+  background-color: var(--color-error);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.toast-action,
+.toast-close {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  transition: background-color var(--transition);
+}
+
+.toast-action {
+  padding: 0 var(--space-2);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+}
+
+.toast-close {
+  justify-content: center;
+  width: 32px;
+}
+
+.toast-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.toast-action:hover,
+.toast-close:hover {
+  background-color: var(--color-inverse-hover);
+}
+
+.toast :focus-visible {
+  outline-color: var(--color-text-inverse);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .toasts {
+    align-items: stretch;
+  }
+
+  .toast {
+    max-width: none;
+  }
+}

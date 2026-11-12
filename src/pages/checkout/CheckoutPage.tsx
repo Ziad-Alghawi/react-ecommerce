@@ -6,6 +6,7 @@ import { CheckoutHeader } from './CheckoutHeader';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
 import { ErrorMessage, LoadingMessage } from '../../components/PageStatus';
+import { useToast } from '../../hooks/useToast';
 import type { CartItem, CartStatus, DeliveryOption, LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 import './CheckoutPage.css';
 
@@ -22,6 +23,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
   const [hasError, setHasError] = useState(false);
   // Sent with the order, so the API can check it and work out the discount again
   const [couponCode, setCouponCode] = useState<string | null>(null);
+  const showToast = useToast();
 
   useEffect(() => {
     const fetchDeliveryOptions = async () => {
@@ -58,8 +60,9 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
           return;
         }
         // The coupon stopped working since it was applied, for example it expired. Carry on without it
-        if (couponCode && axios.isAxiosError(error) && error.response?.status === 400) {
+        if (couponCode && axios.isAxiosError<{ error?: string }>(error) && error.response?.status === 400) {
           setCouponCode(null);
+          showToast(error.response.data?.error ?? `The coupon ${couponCode} can no longer be used.`, { isError: true });
         } else {
           setHasError(true);
         }
@@ -70,7 +73,7 @@ export function CheckoutPage({ cart, cartStatus, loadCart, onRetry }: CheckoutPa
     return () => {
       isLatestRequest = false;
     };
-  }, [cart, couponCode]);
+  }, [cart, couponCode, showToast]);
 
   const isLoading = cartStatus === 'loading' || deliveryOptions.length === 0 || !paymentSummary;
 

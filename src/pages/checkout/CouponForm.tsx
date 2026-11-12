@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useId, useState, type FormEvent } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import type { AppliedCoupon } from '../../types/store';
 
 interface CouponFormProps {
@@ -13,6 +14,7 @@ interface CouponFormProps {
 export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const showToast = useToast();
   const inputId = useId();
   const hintId = useId();
 
@@ -22,6 +24,7 @@ export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps
       const response = await axios.get<AppliedCoupon>(`/api/coupons/${encodeURIComponent(code.trim())}`);
       onApply(response.data.code);
       setCode('');
+      showToast(`Coupon ${response.data.code} applied`);
     } catch (error) {
       // The API says why a code doesn't work. Anything else is worth another try
       const reason = axios.isAxiosError<{ error?: string }>(error) && error.response?.status === 404
@@ -44,7 +47,11 @@ export function CouponForm({ appliedCoupon, onApply, onRemove }: CouponFormProps
         <span>
           <strong>{appliedCoupon.code}</strong> applied: {appliedCoupon.percentOff}% off your items
         </span>
-        <button className="link-primary link-button" type="button" onClick={onRemove}
+        <button className="link-primary link-button" type="button"
+          onClick={() => {
+            onRemove();
+            showToast('Coupon removed');
+          }}
           aria-label={`Remove coupon ${appliedCoupon.code}`} data-testid="coupon-remove-button">
           Remove
         </button>

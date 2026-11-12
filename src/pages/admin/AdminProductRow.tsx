@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import { formatMoney } from '../../utils/money';
 import { describeStock, LOW_STOCK } from '../../utils/stock';
 import type { Product } from '../../types/store';
@@ -14,10 +15,12 @@ interface AdminProductRowProps {
 
 export function AdminProductRow({ product, onEdit, onDeleted }: AdminProductRowProps) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const showToast = useToast();
 
   const [deleteProduct, isDeleting] = useAction(async () => {
     await axios.delete(`/api/admin/products/${product.id}`);
     await onDeleted();
+    showToast(`${product.name} deleted from the store`);
   });
 
   return (

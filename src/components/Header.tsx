@@ -2,6 +2,7 @@ import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
 import { getCartQuantity } from '../utils/cart';
 import { AuthContext } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 import type { CartItem } from '../types/store';
 import { CartIcon, SearchIcon, UserIcon } from './Icons';
 import { Logo } from './Logo';
@@ -14,6 +15,7 @@ interface HeaderProps {
 export function Header({ cart }: HeaderProps) {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
+  const showToast = useToast();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const cartQuantity = getCartQuantity(cart);
@@ -58,7 +60,11 @@ export function Header({ cart }: HeaderProps) {
         </NavLink>
 
         {auth?.user ? (
-          <button className="header-link" type="button" onClick={auth.logOut}
+          <button className="header-link" type="button"
+            onClick={async () => {
+              await auth.logOut();
+              showToast("You're logged out");
+            }}
             aria-label={`Log out of ${auth.user.email}`}
             data-testid="header-log-out-button">
             <UserIcon className="header-link-icon" />

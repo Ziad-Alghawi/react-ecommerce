@@ -3,6 +3,7 @@ import axios from 'axios';
 import { formatMoney } from '../../utils/money';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import { describeStock } from '../../utils/stock';
 import type { CartItem, LoadCart } from '../../types/store';
 
@@ -15,6 +16,7 @@ interface CartItemDetailsProps {
 export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItemDetailsProps) {
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(String(cartItem.quantity));
+  const showToast = useToast();
 
   const [saveQuantity, isSavingQuantity] = useAction(async () => {
     await axios.put(`/api/cart-items/${cartItem.productId}`, {
@@ -22,6 +24,7 @@ export function CartItemDetails({ cartItem, deleteCartItem, loadCart }: CartItem
     });
     await loadCart();
     setIsUpdatingQuantity(false);
+    showToast('Quantity updated');
   });
   const [removeCartItem, isDeleting] = useAction(deleteCartItem);
   // Don't let the user change an item while it's being saved or deleted

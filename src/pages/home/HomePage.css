@@ -171,8 +171,9 @@
 }
 
 /* Pushes the actions to the bottom, so the buttons line up across a row */
-.home-page .added-to-cart {
+.home-page .product-actions {
   margin-top: auto;
+  padding-top: var(--space-4);
 }
 
 @media (max-width: 520px) {

@@ -42,6 +42,7 @@
 
 .product-details-info .product-actions {
   max-width: 360px;
+  margin-top: var(--space-4);
 }
 
 .product-details-unavailable {

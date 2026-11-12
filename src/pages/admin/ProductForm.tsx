@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useState, type FormEvent } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import type { Product } from '../../types/store';
 
 // "images/products/2-slot-toaster-white.jpg" becomes "2 slot toaster white"
@@ -25,6 +26,7 @@ export function ProductForm({ product, images, categories, onSaved, onCancel }: 
   const [image, setImage] = useState(product?.image ?? '');
   const [category, setCategory] = useState(product?.category ?? '');
   const [stock, setStock] = useState(product ? String(product.stock) : '');
+  const showToast = useToast();
 
   const [save, isSaving] = useAction(async () => {
     const fields = {
@@ -41,6 +43,7 @@ export function ProductForm({ product, images, categories, onSaved, onCancel }: 
       await axios.post('/api/admin/products', fields);
     }
     await onSaved();
+    showToast(product ? `${name.trim()} saved` : `${name.trim()} added to the store`);
   });
 
   const submitForm = (event: FormEvent<HTMLFormElement>) => {

@@ -30,22 +30,3 @@
   color: var(--color-text);
   font-weight: var(--font-weight-medium);
 }
-
-/* Shown over the page when adding to cart, placing an order, etc. fails */
-.action-error {
-  position: fixed;
-  bottom: var(--space-4);
-  left: var(--space-4);
-  right: var(--space-4);
-  z-index: 1100;
-  max-width: 420px;
-  margin: 0 auto;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-}
-
-.action-error .page-status {
-  padding: var(--space-5);
-}

@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { useState, type FormEvent } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import type { Coupon } from '../../types/store';
 
 interface CouponEditorProps {
@@ -17,6 +18,7 @@ export function CouponEditor({ coupon, onSaved, onCancel }: CouponEditorProps) {
   const [percentOff, setPercentOff] = useState(coupon ? String(coupon.percentOff) : '');
   const [expiryDate, setExpiryDate] = useState(coupon?.expiresAt ? dayjs(coupon.expiresAt).format('YYYY-MM-DD') : '');
   const [active, setActive] = useState(coupon?.active ?? true);
+  const showToast = useToast();
 
   const [save, isSaving] = useAction(async () => {
     const fields = {
@@ -32,6 +34,7 @@ export function CouponEditor({ coupon, onSaved, onCancel }: CouponEditorProps) {
       await axios.post('/api/admin/coupons', fields);
     }
     await onSaved();
+    showToast(`Coupon ${code.trim().toUpperCase()} saved`);
   });
 
   const submitForm = (event: FormEvent<HTMLFormElement>) => {

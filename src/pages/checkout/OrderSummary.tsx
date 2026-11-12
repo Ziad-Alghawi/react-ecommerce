@@ -2,6 +2,7 @@ import axios from 'axios';
 import { DeliveryOptions } from './DeliveryOptions';
 import { CartItemDetails } from './CartItemDetails';
 import { DeliveryDate } from './DeliveryDate';
+import { useToast } from '../../hooks/useToast';
 import type { CartItem, DeliveryOption, LoadCart } from '../../types/store';
 
 interface OrderSummaryProps {
@@ -11,12 +12,15 @@ interface OrderSummaryProps {
 }
 
 export function OrderSummary({ cart, deliveryOptions, loadCart }: OrderSummaryProps) {
+  const showToast = useToast();
+
   return (
     <div className="order-summary">
       {deliveryOptions.length > 0 && cart.map((cartItem) => {
         const deleteCartItem = async () => {
           await axios.delete(`/api/cart-items/${cartItem.productId}`);
           await loadCart();
+          showToast(`${cartItem.product.name} removed from your cart`);
         };
 
         return (

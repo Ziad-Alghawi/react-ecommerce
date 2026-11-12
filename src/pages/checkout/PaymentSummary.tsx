@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { formatMoney } from '../../utils/money';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import { CouponForm } from './CouponForm';
 import type { LoadCart, PaymentSummary as PaymentSummaryType } from '../../types/store';
 
@@ -16,10 +17,12 @@ interface PaymentSummaryProps {
 
 export function PaymentSummary({ paymentSummary, couponCode, onCouponChange, loadCart }: PaymentSummaryProps) {
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const [createOrder, isPlacingOrder] = useAction(async () => {
     await axios.post('/api/orders', { couponCode });
     await loadCart();
+    showToast('Order placed. Thank you!');
     navigate('/orders');
   });
 

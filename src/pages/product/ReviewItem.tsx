@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { RatingStars } from '../../components/Rating';
 import { useAction } from '../../hooks/useAction';
+import { useToast } from '../../hooks/useToast';
 import { formatDate } from '../../utils/date';
 import type { Review } from '../../types/store';
 
@@ -15,10 +16,12 @@ interface ReviewItemProps {
 
 export function ReviewItem({ review, canDelete, onEdit, onDeleted }: ReviewItemProps) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const showToast = useToast();
 
   const [deleteReview, isDeleting] = useAction(async () => {
     await axios.delete(`/api/products/${review.productId}/reviews/${review.id}`);
     await onDeleted();
+    showToast('Review deleted');
   });
 
   return (

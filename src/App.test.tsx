@@ -1,5 +1,5 @@
 import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import axios, { AxiosError } from 'axios';
@@ -12,7 +12,8 @@ const product = {
   name: 'Gray Hand Knit Wool Socks',
   rating: { stars: 4.5, count: 87 },
   priceCents: 1090,
-  keywords: ['socks']
+  keywords: ['socks'],
+  stock: 20
 };
 
 const cartItem = {
@@ -199,43 +200,57 @@ describe('App when the API fails', () => {
       await axios.post('/api/cart-items', {}).catch(() => {});
     });
 
-    expect(screen.getByTestId('error-message'))
+    expect(within(screen.getByRole('alert', { name: 'Errors' })).getByTestId('toast'))
       .toHaveTextContent("Your change wasn't saved");
 
-    await user.click(screen.getByTestId('error-message-button'));
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
 
     expect(await screen.findByTestId('product-container')).toBeInTheDocument();
-    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+  });
+
+  it('confirms adding to the cart, with a link to the cart', async () => {
+    api['/api/cart-items'] = { data: {} };
+    renderApp();
+    await user.click(await screen.findByTestId('add-to-cart-button'));
+
+    const toast = await within(screen.getByRole('status', { name: 'Notifications' })).findByTestId('toast');
+    expect(toast).toHaveTextContent('Gray Hand Knit Wool Socks added to your cart');
+
+    await user.click(within(toast).getByRole('button', { name: 'View cart' }));
+
+    expect(await screen.findByText('Review your order')).toBeInTheDocument();
   });
 
   it('repeats a failed add to cart when Try again is clicked', async () => {
     renderApp();
     await user.click(await screen.findByTestId('add-to-cart-button'));
 
-    expect(await screen.findByTestId('error-message'))
+    expect(await within(screen.getByRole('alert', { name: 'Errors' })).findByTestId('toast'))
       .toHaveTextContent("Your change wasn't saved");
     expect(screen.getByTestId('add-to-cart-button')).toBeEnabled();
 
     api['/api/cart-items'] = { data: {} };
-    await user.click(screen.getByTestId('error-message-button'));
+    await user.click(screen.getByTestId('toast-action'));
 
-    await waitFor(() => expect(screen.getByText('Added')).toHaveStyle({ opacity: '1' }));
+    expect(await within(screen.getByRole('status', { name: 'Notifications' })).findByTestId('toast'))
+      .toHaveTextContent('added to your cart');
     expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
     // The action was repeated without reloading the page
     expect(requests.filter((request) => request === 'get /api/products')).toHaveLength(1);
-    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('alert', { name: 'Errors' })).queryByTestId('toast')).not.toBeInTheDocument();
   });
 
   it('repeats a failed Buy again when Try again is clicked', async () => {
     renderApp('/orders');
     await user.click(await screen.findByTestId('buy-again-button'));
 
-    await screen.findByTestId('error-message');
+    await screen.findByTestId('toast');
 
     api['/api/cart-items'] = { data: {} };
-    await user.click(screen.getByTestId('error-message-button'));
+    await user.click(screen.getByTestId('toast-action'));
 
-    await waitFor(() => expect(screen.queryByTestId('error-message')).not.toBeInTheDocument());
+    await waitFor(() => expect(within(screen.getByRole('alert', { name: 'Errors' })).queryByTestId('toast')).not.toBeInTheDocument());
     await waitFor(() => expect(screen.getByTestId('buy-again-button')).toBeEnabled());
     expect(requests.filter((request) => request === 'post /api/cart-items')).toHaveLength(2);
     // The action was repeated without reloading the page
@@ -250,13 +265,14 @@ describe('App when the API fails', () => {
     renderApp('/checkout');
     await user.click(await screen.findByTestId('place-order-button'));
 
-    const errorMessage = await screen.findByTestId('error-message');
-    expect(errorMessage).toHaveTextContent('up to 50 orders per visitor');
-    expect(errorMessage).not.toHaveTextContent('waking up');
+    const toast = await screen.findByTestId('toast');
+    expect(toast).toHaveTextContent('up to 50 orders per visitor');
+    expect(toast).not.toHaveTextContent('waking up');
+    expect(within(toast).queryByTestId('toast-action')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(within(toast).getByRole('button', { name: 'Close' }));
 
-    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
     expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(1);
     // Still on checkout, with the cart kept
     expect(screen.getByTestId('place-order-button')).toBeEnabled();
@@ -266,14 +282,15 @@ describe('App when the API fails', () => {
     renderApp('/checkout');
     await user.click(await screen.findByTestId('place-order-button'));
 
-    await screen.findByTestId('error-message');
+    await screen.findByTestId('toast');
 
     api['/api/orders'] = { data: {} };
-    await user.click(screen.getByTestId('error-message-button'));
+    await user.click(screen.getByTestId('toast-action'));
 
     // The cart on checkout shows the product name too, so wait for the orders page itself
     expect(await screen.findByTestId('order-product-details')).toHaveTextContent(product.name);
     expect(requests.filter((request) => request === 'post /api/orders')).toHaveLength(2);
+    expect(screen.getByRole('status', { name: 'Notifications' })).toHaveTextContent('Order placed. Thank you!');
   });
 });
 

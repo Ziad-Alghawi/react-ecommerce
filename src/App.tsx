@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import axios from 'axios';
 import { Routes, Route, useLocation } from 'react-router';
 import { HomePage } from './pages/home/HomePage';
@@ -8,7 +8,9 @@ import { OrdersPage } from './pages/orders/OrdersPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorMessage, LoadingMessage } from './components/PageStatus';
+import { Toasts } from './components/Toasts';
 import { ActionFailureContext } from './hooks/useAction';
+import { ToastContext, useToasts } from './hooks/useToast';
 import { AuthContext, useAuthUser, useIsAdmin } from './hooks/useAuth';
 import { isAuthEnabled, logOut } from './utils/supabase';
 import type { CartItem, CartStatus } from './types/store';
@@ -44,11 +46,11 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartStatus, setCartStatus] = useState<CartStatus>('loading');
   const [retryCount, setRetryCount] = useState(0);
-  const [actionFailed, setActionFailed] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   // The button action that failed, so "Try again" can repeat it
-  const [failedAction, setFailedAction] = useState<{ retry: () => Promise<void>; path: string } | null>(null);
+  const failedAction = useRef<{ retry: () => Promise<void>; path: string } | null>(null);
   const location = useLocation();
+  const currentPath = useRef(location.pathname);
+  const { toasts, showToast, dismissToast } = useToasts();
   const user = useAuthUser();
   const isAdmin = useIsAdmin(user?.id);
   // Whose cart and orders are shown. Pages load them again when it changes
@@ -74,43 +76,49 @@ function App() {
   }, [retryCount, owner, loadCart]);
 
   useEffect(() => {
+    currentPath.current = location.pathname;
+  }, [location.pathname]);
+
+  // Changing the key of <Routes> remounts the page, which loads its data again
+  const retry = () => {
+    setRetryCount((count) => count + 1);
+  };
+
+  useEffect(() => {
+    // Only repeats the action if the user is still on the page where its button is
+    const retryFailedAction = () => {
+      const action = failedAction.current;
+      failedAction.current = null;
+      if (action && action.path === currentPath.current) {
+        action.retry();
+      } else {
+        setRetryCount((count) => count + 1);
+      }
+    };
+
     // GET requests show their error on the page. Everything else (add to cart,
-    // place order...) is a button click, so show those failures here for all of them.
+    // place order...) is a button click, so report those failures here for all of them.
     const interceptor = axios.interceptors.response.use(undefined, (error) => {
       if (error.config?.method !== 'get') {
-        setActionFailed(true);
-        setRejectionReason(getRejectionReason(error));
         // Cleared here and set again by useAction, if that's where the request came from
-        setFailedAction(null);
+        failedAction.current = null;
+        const reason = getRejectionReason(error);
+        showToast(reason ?? "Your change wasn't saved. The demo server may be waking up, so please try again.", {
+          isError: true,
+          action: reason ? undefined : { label: 'Try again', onClick: retryFailedAction }
+        });
       }
       return Promise.reject(error);
     });
 
     return () => axios.interceptors.response.eject(interceptor);
-  }, []);
-
-  // Changing the key of <Routes> remounts the page, which loads its data again
-  const retry = () => {
-    setActionFailed(false);
-    setRetryCount((count) => count + 1);
-  };
+  }, [showToast]);
 
   const reportActionFailure = (error: unknown, retry: () => Promise<void>) => {
     // Only repeat a change that wasn't saved. If it saved and only reloading
     // the cart failed, repeating it would add the item twice
     if (axios.isAxiosError(error) && error.config?.method !== 'get') {
-      setFailedAction({ retry, path: location.pathname });
-    }
-  };
-
-  const retryFailedAction = () => {
-    // The button is only still there if the user stayed on the same page
-    if (failedAction && failedAction.path === location.pathname) {
-      setActionFailed(false);
-      setFailedAction(null);
-      failedAction.retry();
-    } else {
-      retry();
+      failedAction.current = { retry, path: location.pathname };
     }
   };
 
@@ -118,38 +126,31 @@ function App() {
     <>
       <div className="app-content">
         <AuthContext value={isAuthEnabled ? { user: user ?? null, isAdmin, logOut } : null}>
-          <ActionFailureContext value={reportActionFailure}>
-            {owner ? (
-              <Suspense fallback={<LoadingMessage />}>
-                <Routes key={`${retryCount}-${owner}`}>
-                  <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                  <Route path="products/:productId" element={<ProductPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                  <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
-                  <Route path="checkout/success" element={<CheckoutSuccessPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                  <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
-                  <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
-                  {isAuthEnabled && <Route path="login" element={<LoginPage cart={cart} />} />}
-                  {isAuthEnabled && <Route path="admin" element={<AdminPage cart={cart} onRetry={retry} />} />}
-                  <Route path="*" element={<NotFoundPage cart={cart} />} />
-                </Routes>
-              </Suspense>
-            ) : (
-              <LoadingMessage />
-            )}
-          </ActionFailureContext>
+          <ToastContext value={showToast}>
+            <ActionFailureContext value={reportActionFailure}>
+              {owner ? (
+                <Suspense fallback={<LoadingMessage />}>
+                  <Routes key={`${retryCount}-${owner}`}>
+                    <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                    <Route path="products/:productId" element={<ProductPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                    <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
+                    <Route path="checkout/success" element={<CheckoutSuccessPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                    <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                    <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />
+                    {isAuthEnabled && <Route path="login" element={<LoginPage cart={cart} />} />}
+                    {isAuthEnabled && <Route path="admin" element={<AdminPage cart={cart} onRetry={retry} />} />}
+                    <Route path="*" element={<NotFoundPage cart={cart} />} />
+                  </Routes>
+                </Suspense>
+              ) : (
+                <LoadingMessage />
+              )}
+            </ActionFailureContext>
+          </ToastContext>
         </AuthContext>
       </div>
 
-      {actionFailed && (
-        <div className="action-error">
-          {rejectionReason ? (
-            <ErrorMessage title="Your change wasn't saved" detail={rejectionReason}
-              buttonText="Close" onButtonClick={() => setActionFailed(false)} />
-          ) : (
-            <ErrorMessage title="Your change wasn't saved" onButtonClick={retryFailedAction} />
-          )}
-        </div>
-      )}
+      <Toasts toasts={toasts} onDismiss={dismissToast} />
 
       <footer className="site-footer" data-testid="site-footer">
         <div className="site-footer-content">

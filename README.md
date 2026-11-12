@@ -22,7 +22,7 @@ A full-stack online store built with React, TypeScript and an Express API, cover
 - Optional accounts with email and password: the cart and orders follow the user to any device, and a guest's cart and orders move to their account when they log in
 - Admin page to add, edit and delete products and set their category and stock, and to create coupons, for the accounts listed in `ADMIN_USER_IDS`, who can also remove any review
 - Package tracking with delivery progress
-- Loading, empty and error states, with a retry for failed changes
+- Loading, empty and error states, and small notifications that confirm actions like adding to the cart or explain why a change failed, with a retry. Screen readers announce them too
 - Responsive layout for phone and desktop
 
 ## Tech Stack

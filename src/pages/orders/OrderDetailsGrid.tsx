@@ -1,8 +1,8 @@
-import axios from 'axios';
 import { Link } from 'react-router';
 import { CartIcon } from '../../components/Icons';
 import { ButtonSpinner } from '../../components/PageStatus';
 import { useAction } from '../../hooks/useAction';
+import { useAddToCart } from '../../hooks/useAddToCart';
 import { formatDeliveryStatus } from '../../utils/date';
 import type { LoadCart, Order, OrderProduct } from '../../types/store';
 
@@ -13,13 +13,8 @@ interface BuyAgainButtonProps {
 
 // Its own component, because useAction can't be called inside .map()
 function BuyAgainButton({ orderProduct, loadCart }: BuyAgainButtonProps) {
-  const [buyAgain, isAdding] = useAction(async () => {
-    await axios.post('/api/cart-items', {
-      productId: orderProduct.product.id,
-      quantity: 1
-    });
-    await loadCart();
-  });
+  const addToCart = useAddToCart(loadCart);
+  const [buyAgain, isAdding] = useAction(() => addToCart(orderProduct.product, 1));
 
   return (
     <button className="buy-again-button button-primary"
