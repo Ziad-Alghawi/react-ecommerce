@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
 import productRoutes from './routes/products.js';
+import reviewRoutes from './routes/reviews.js';
 import deliveryOptionRoutes from './routes/deliveryOptions.js';
 import cartItemRoutes from './routes/cartItems.js';
 import orderRoutes from './routes/orders.js';
@@ -38,6 +39,7 @@ app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 
 app.use('/api/products', productRoutes);
+app.use('/api/products/:productId/reviews', reviewRoutes);
 app.use('/api/delivery-options', deliveryOptionRoutes);
 // Each visitor has their own cart and orders. Products are shared
 app.use('/api/cart-items', requireVisitor, cartItemRoutes);

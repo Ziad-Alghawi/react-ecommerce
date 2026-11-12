@@ -11,8 +11,8 @@ function invalidSession() {
   return Object.assign(new Error('Your session is invalid or has expired. Please log in again.'), { status: 401 });
 }
 
-// The ID of the user the request's Bearer token belongs to, or null for a guest
-export async function getUserId(req) {
+// The user the request's Bearer token belongs to, or null for a guest
+export async function getUser(req) {
   const authorization = req.get('Authorization');
   if (authorization === undefined) {
     return null;
@@ -26,7 +26,7 @@ export async function getUserId(req) {
   try {
     const { payload } = await jwtVerify(token, keys, { issuer, audience: 'authenticated' });
     if (isUuid(payload.sub)) {
-      return payload.sub.toLowerCase();
+      return { id: payload.sub.toLowerCase(), email: typeof payload.email === 'string' ? payload.email : null };
     }
   } catch (error) {
     // A bad token is the client's fault, but failing to load Supabase's keys is ours
@@ -35,4 +35,20 @@ export async function getUserId(req) {
     }
   }
   throw invalidSession();
+}
+
+export async function getUserId(req) {
+  return (await getUser(req))?.id ?? null;
+}
+
+export async function requireUser(req, res, next) {
+  try {
+    req.user = await getUser(req);
+  } catch (error) {
+    return next(error);
+  }
+  if (!req.user) {
+    return res.status(401).json({ error: 'Please log in first.' });
+  }
+  next();
 }
