@@ -69,6 +69,7 @@ export interface Order {
   orderTimeMs: number;
   totalCostCents: number;
   products: OrderProduct[];
+  paymentMethod: 'card' | 'delivery';
 }
 
 export type LoadCart = () => Promise<void>;

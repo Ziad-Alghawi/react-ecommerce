@@ -23,6 +23,13 @@ export function OrderHeader({ order }: OrderHeaderProps) {
         </div>
       </div>
 
+      <div>
+        <div className="order-header-label">Payment</div>
+        <div data-testid="order-payment">
+          {order.paymentMethod === 'card' ? 'Paid by card' : 'Pay on delivery'}
+        </div>
+      </div>
+
       <div className="order-id">
         <div className="order-header-label">Order ID</div>
         <div data-testid="order-id">
