@@ -1,5 +1,6 @@
 import { it, expect, describe, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import { ProductsGrid } from './ProductsGrid';
 
 describe('ProductsGrid component', () => {
@@ -34,7 +35,11 @@ describe('ProductsGrid component', () => {
   });
 
   it('renders the products', async () => {
-    render(<ProductsGrid products={products} loadCart={loadCart} />);
+    render(
+      <MemoryRouter>
+        <ProductsGrid products={products} loadCart={loadCart} />
+      </MemoryRouter>
+    );
 
     const productContainers = await screen.findAllByTestId('product-container');
     expect(productContainers).toHaveLength(2);

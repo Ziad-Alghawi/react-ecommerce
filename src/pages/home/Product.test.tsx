@@ -2,6 +2,7 @@ import { it, expect, describe, vi, beforeEach } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { Product } from './Product';
 
 vi.mock('axios');
@@ -10,6 +11,12 @@ describe('Product component', () => {
   let product;
   let loadCart;
   let user;
+
+  const renderProduct = () => render(
+    <MemoryRouter>
+      <Product product={product} loadCart={loadCart} />
+    </MemoryRouter>
+  );
 
   beforeEach(() => {
     product = {
@@ -28,19 +35,21 @@ describe('Product component', () => {
   });
 
   it('displays product details correctly', () => {
-    render(<Product product={product} loadCart={loadCart} />);
+    renderProduct();
 
     expect(screen.getByText('Gray Hand Knit Wool Socks')).toBeInTheDocument();
     expect(screen.getByText('$10.90')).toBeInTheDocument();
     expect(screen.getByTestId('product-image'))
       .toHaveAttribute('src', 'images/products/gray-hand-knit-wool-socks.jpg');
-    expect(screen.getByTestId('product-rating-stars-image'))
+    expect(screen.getByRole('img', { name: '4.5 out of 5 stars' }))
       .toHaveAttribute('src', 'images/ratings/rating-45.png');
+    expect(screen.getByRole('link', { name: 'Gray Hand Knit Wool Socks' }))
+      .toHaveAttribute('href', '/products/e43638ce-6aa0-4b85-b27f-e1d07eb678c6');
     expect(screen.getByText('87')).toBeInTheDocument();
   });
 
   it('adds a product to the cart', async () => {
-    render(<Product product={product} loadCart={loadCart} />);
+    renderProduct();
 
     await user.click(screen.getByTestId('add-to-cart-button'));
 
@@ -52,7 +61,7 @@ describe('Product component', () => {
   });
 
   it('selects a quantity', async () => {
-    render(<Product product={product} loadCart={loadCart} />);
+    renderProduct();
 
     const quantitySelector = screen.getByTestId('quantity-select-selector');
     expect(quantitySelector).toHaveValue('1');
@@ -73,7 +82,7 @@ describe('Product component', () => {
     let finishRequest;
     axios.post.mockClear();
     axios.post.mockReturnValueOnce(new Promise((resolve) => { finishRequest = resolve; }));
-    render(<Product product={product} loadCart={loadCart} />);
+    renderProduct();
 
     const addToCartButton = screen.getByTestId('add-to-cart-button');
     await user.click(addToCartButton);

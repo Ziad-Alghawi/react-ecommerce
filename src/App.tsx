@@ -29,6 +29,7 @@ function lazyPage<Props extends object>(loadPage: () => Promise<ComponentType<Pr
 // The login page also brings in Supabase
 const LoginPage = lazyPage(() => import('./pages/LoginPage').then((module) => module.LoginPage));
 const AdminPage = lazyPage(() => import('./pages/admin/AdminPage').then((module) => module.AdminPage));
+const ProductPage = lazyPage(() => import('./pages/product/ProductPage').then((module) => module.ProductPage));
 
 // The API answers a request it won't accept (4xx) with the reason. Repeating it can't help
 function getRejectionReason(error: unknown) {
@@ -120,6 +121,7 @@ function App() {
               <Suspense fallback={<LoadingMessage />}>
                 <Routes key={`${retryCount}-${owner}`}>
                   <Route index element={<HomePage cart={cart} loadCart={loadCart} onRetry={retry} />} />
+                  <Route path="products/:productId" element={<ProductPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="checkout" element={<CheckoutPage cart={cart} cartStatus={cartStatus} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} onRetry={retry} />} />
                   <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} onRetry={retry} />} />

@@ -46,7 +46,15 @@
 }
 
 .orders-page .product-name {
+  display: block;
+  color: inherit;
   font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.orders-page .product-name:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
 }
 
 .orders-page .product-delivery-date {

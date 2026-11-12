@@ -1,7 +1,7 @@
 import express from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { Product } from '../models/Product.js';
-import { isUuid } from '../utils/isUuid.js';
+import { rejectInvalidId } from '../utils/isUuid.js';
 
 const router = express.Router();
 
@@ -11,12 +11,7 @@ const MAX_PRICE_CENTS = 1000000;
 const MAX_KEYWORDS = 10;
 const MAX_KEYWORD_LENGTH = 20;
 
-router.param('productId', (req, res, next, productId) => {
-  if (!isUuid(productId)) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
-  next();
-});
+router.param('productId', rejectInvalidId('Product not found'));
 
 // New products reuse the store's photos, including those of hidden products
 async function getProductImages() {

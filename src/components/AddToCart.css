@@ -1,0 +1,29 @@
+.added-to-cart {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  color: var(--color-brand);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: opacity var(--transition);
+}
+
+.added-to-cart svg {
+  width: 18px;
+  height: 18px;
+}
+
+.product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.product-actions select {
+  flex: 1 0 56px;
+}
+
+.add-to-cart-button {
+  flex: 1 1 110px;
+}

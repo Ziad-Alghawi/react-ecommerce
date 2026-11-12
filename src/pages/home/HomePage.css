@@ -35,6 +35,7 @@
 }
 
 .home-page .product-image-container {
+  display: block;
   aspect-ratio: 1;
   margin-bottom: var(--space-4);
   border-radius: var(--radius-md);
@@ -57,16 +58,14 @@
   line-height: 1.4;
 }
 
-.home-page .product-rating-container {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
+.home-page .product-link {
+  color: inherit;
+  text-decoration: none;
 }
 
-.home-page .product-rating-count {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+.home-page .product-link:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
 }
 
 .home-page .product-price {
@@ -76,34 +75,7 @@
 
 /* Pushes the actions to the bottom, so the buttons line up across a row */
 .home-page .added-to-cart {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
   margin-top: auto;
-  padding: var(--space-2) 0;
-  color: var(--color-brand);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  transition: opacity var(--transition);
-}
-
-.home-page .added-to-cart svg {
-  width: 18px;
-  height: 18px;
-}
-
-.home-page .product-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.home-page .product-actions select {
-  flex: 1 0 56px;
-}
-
-.home-page .add-to-cart-button {
-  flex: 1 1 110px;
 }
 
 @media (max-width: 520px) {

@@ -50,9 +50,9 @@ export function OrderDetailsGrid({ order, loadCart }: OrderDetailsGridProps) {
             alt={orderProduct.product.name} width="480" height="480" loading="lazy" />
 
           <div data-testid="order-product-details">
-            <div className="product-name">
+            <Link className="product-name" to={`/products/${orderProduct.product.id}`}>
               {orderProduct.product.name}
-            </div>
+            </Link>
             <div className="product-delivery-date" data-testid="order-product-delivery-date">
               {formatDeliveryStatus(orderProduct.estimatedDeliveryTimeMs)}
             </div>
